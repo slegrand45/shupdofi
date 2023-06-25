@@ -1,0 +1,9 @@
+(library
+ (name shupdofi_srv)
+ (modes byte native)
+ (libraries unix str magic-mime shupdofi_com))
+
+(env
+ (dev
+  (flags
+   (:standard -w -32 -w -69))))

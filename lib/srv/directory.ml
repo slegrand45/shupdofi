@@ -1,0 +1,90 @@
+module Com = Shupdofi_com
+
+type t = Com.Directory.t
+
+let is_without_parent_dir_name s =
+  let r = Str.regexp_string ".." in
+  not (Str.string_match r s 0)
+
+let remove_sep_first s =
+  if (String.starts_with ~prefix:Filename.dir_sep s) then (
+    String.sub s 1 ((String.length s) - 1)
+  ) else s
+
+let make_from_list l =
+  let name = String.concat (Filename.dir_sep) l in
+  Com.Directory.make ~name ()
+
+let to_list_of_string v =
+  let name = Com.Directory.get_name v in
+  String.split_on_char (Filename.dir_sep).[0] name |> List.filter (fun e -> e <> "")
+
+let concat v1 v2 =
+  let name = Filename.concat (Com.Directory.get_name v1) (Com.Directory.get_name v2) in
+  Com.Directory.make ~name ()
+
+let retrieve_stat v =
+  let s = Com.Directory.get_name v in
+  try
+    let stat = Unix.LargeFile.stat s in
+    Some stat
+  with
+  | _ -> None
+
+  (*
+let usable = function
+  | None -> false
+  | Some stat ->
+    match stat.Unix.LargeFile.st_kind with
+    | Unix.S_DIR -> true
+    | _ -> false
+    *)
+
+let attach_stat root entry =
+  (* mettre dans Directory pour sécuriser *)
+  let path = Filename.concat root entry in
+  try
+    let stat = Unix.LargeFile.stat path in
+    (entry, Some stat)
+  with
+  | _ -> (entry, None)
+
+let read directory =
+  let root = Com.Directory.get_name directory in
+  let filter_kind st_kind (_, stat) =
+    match stat with
+    | None -> false
+    | Some stat -> 
+      match stat.Unix.LargeFile.st_kind with
+      | v when v = st_kind -> true
+      | _ -> false
+  in
+  let retrieve_size_bytes (file, stat) =
+    match stat with
+    | None -> (file, stat)
+    | Some stat -> 
+      let size = stat.Unix.LargeFile.st_size in
+      (Com.File.set_size_bytes (Some size) file, Some stat)
+  in
+  let retrieve_mdatetime f (entry, stat) =
+    match stat with
+    | None -> (entry, stat)
+    | Some stat -> 
+      let mtime = stat.Unix.LargeFile.st_mtime in
+      (f (Some (Datetime.of_mtime mtime)) entry, Some stat)
+  in
+  try
+    let l = Sys.readdir root |> Array.to_list |> List.map (attach_stat root) in
+    let directories = List.filter (filter_kind Unix.S_DIR) l
+                      |> List.map (fun (entry, stat) -> (Com.Directory.make ~name:entry (), stat))
+                      |> List.map (retrieve_mdatetime Com.Directory.set_mdatetime)
+                      |> List.map fst
+    in
+    let files = List.filter (filter_kind Unix.S_REG) l
+                |> List.map (fun (entry, stat) -> (Com.File.make ~name:entry (), stat))
+                |> List.map retrieve_size_bytes
+                |> List.map (retrieve_mdatetime Com.File.set_mdatetime)
+                |> List.map fst
+    in (directories, files)
+  with
+  | _ -> ([], [])

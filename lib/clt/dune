@@ -1,0 +1,4 @@
+(library
+ (name shupdofi_clt)
+ (modes byte)
+ (libraries shupdofi_com))

@@ -1,0 +1,1 @@
+val from_pathname: string -> Route_page.t

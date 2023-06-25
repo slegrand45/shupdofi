@@ -1,0 +1,12 @@
+(include_subdirs unqualified)
+
+(executable
+ (name main)
+ (modes js)
+ (preprocess (pps js_of_ocaml-ppx))
+ (libraries js_of_ocaml-lwt vdom shupdofi_com shupdofi_clt))
+
+(env
+ (dev
+  (flags
+   (:standard -w -32 -w -69 -w -26))))

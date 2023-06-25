@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SHare, UPload and DOwnload FIles">
+  <title>SH.UP.DO.FI</title>
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+  <script src="/js/main.bc.js"></script>
+  <script src="/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function main() {
+      const toastElList = document.querySelectorAll('.toast')
+      const toastList = [...toastElList].map(toastEl => new bootstrap.Toast(toastEl, option))
+      toastList.forEach(e => { console.log(e); e.show() })
+    }
+
+    function ready(fn) {
+      if (document.readyState !== 'loading') {
+        fn();
+      } else {
+        document.addEventListener('DOMContentLoaded', fn);
+      }
+    }
+
+    ready(main)
+  </script>
+  <div class="toast-container bottom-0 end-0 p-3" id="toast-container"></div>
+</body>
+
+</html>
