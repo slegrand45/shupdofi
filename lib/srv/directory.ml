@@ -17,7 +17,7 @@ let make_from_list l =
 
 let to_list_of_string v =
   let name = Com.Directory.get_name v in
-  String.split_on_char (Filename.dir_sep).[0] name |> List.filter (fun e -> e <> "")
+  String.split_on_char (Filename.dir_sep).[0] name |> List.filter (fun e -> e <> "" && e <> ".")
 
 let concat v1 v2 =
   let name = Filename.concat (Com.Directory.get_name v1) (Com.Directory.get_name v2) in

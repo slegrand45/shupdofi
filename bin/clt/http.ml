@@ -12,6 +12,7 @@ let run_http_get ~url ~payload ~on_done () =
     );
   send r (Ojs.string_to_js payload)
 
+(*
 let run_http_put ~url ~payload ~on_done () =
   let open Js_browser.XHR in
   let r = create () in
@@ -27,12 +28,12 @@ let run_http_put ~url ~payload ~on_done () =
          ()
     );
   send r (Ojs.string_to_js payload)
+*)
 
-
-let run_http_put_file ~url ~file ~on_done () =
+let run_http_post_file ~url ~file ~on_done () =
   let open Js_browser.XHR in
   let r = create () in
-  open_ r "PUT" url;
+  open_ r "POST" url;
   set_response_type r "text";
   set_with_credentials r true;
   (* set_request_header r "X-Shupdofi-Data" "mydata"; *)

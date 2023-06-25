@@ -6,7 +6,7 @@ module Srv = Shupdofi_srv
 
 let () =
   let www_root =
-    Com.Directory.make ~name:"/home/slegrand45/TMP/ocaml/shupdofi/shupdofi/www/" ();
+    Com.Directory.make ~name:"/home/slegrand45/depots-git/perso/shupdofi/www/" ();
   in
   let config = Srv.Config.make ~www_root in
   let www_root = Srv.Config.get_www_root config in
@@ -123,7 +123,7 @@ let () =
            (Printexc.to_string e)
     ); *)
 
-  S.add_route_handler_stream ~meth:`PUT server
+  S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "upload" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (* ~accept:(fun req ->
        match S.Request.get_header_int req "Content-Length" with

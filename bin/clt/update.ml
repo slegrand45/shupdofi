@@ -79,8 +79,9 @@ let update m a =
       let toast = Option.bind elt (fun e -> Some (Js_toast.getOrCreateInstance e)) in
       let () = Option.iter (fun e -> e##show()) toast in
       let name = File.name file in
-      let url = Route_api.(to_url (Upload(area_id, area_subdirs, name))) in
-      let c = [Api.http_put_file ~url ~file (fun status response -> Action.Uploaded_file (toast_id, status, response))] in
+      let url = Route_api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload(area_id, area_subdirs, name))) in
+      let () = prerr_endline "BEFORE POST FILE" in
+      let c = [Api.http_post_file ~url ~file (fun status response -> Action.Uploaded_file (toast_id, status, response))] in
       return m ~c
     )
   | Action.Uploaded_file (toast_id, status, json) -> (
