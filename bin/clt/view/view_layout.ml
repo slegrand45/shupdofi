@@ -42,5 +42,6 @@ let view m content =
           ]
         ]
       ]
-    ]
+    ];
+    View_modal.view();
   ]

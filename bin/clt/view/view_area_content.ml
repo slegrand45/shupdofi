@@ -68,8 +68,8 @@ let breadcrumb_last id e =
       ];
       elt "ul" ~a:[class_ "dropdown-menu"] [
         elt "li" [
-          elt "a" ~a:[class_ "dropdown-item"; str_prop "href" "#"] [
-            text "Action"
+          elt "a" ~a:[class_ "dropdown-item"; str_prop "href" ""; onclick_cancel (fun e -> Some Action.New_directory_start)] [
+            text "New directory"
           ]
         ];
       ]

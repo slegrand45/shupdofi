@@ -14,3 +14,8 @@ type t =
   | Upload_file_start of string
   | Upload_file of (string * string list * string * Js_browser.File.t)
   | Uploaded_file of (string * int * string)
+
+  | New_directory_start
+  | Modal_close
+  | Modal_cancel
+  | Modal_ok

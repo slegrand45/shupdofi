@@ -80,12 +80,10 @@ let update m a =
       let () = Option.iter (fun e -> e##show()) toast in
       let name = File.name file in
       let url = Route_api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload(area_id, area_subdirs, name))) in
-      let () = prerr_endline "BEFORE POST FILE" in
       let c = [Api.http_post_file ~url ~file (fun status response -> Action.Uploaded_file (toast_id, status, response))] in
       return m ~c
     )
   | Action.Uploaded_file (toast_id, status, json) -> (
-      let () = prerr_endline json in
       let uploaded = Yojson.Safe.from_string json |> Com.Uploaded.t_of_yojson in
       let m = { m with area_content = Com.Area_content.(add_uploaded uploaded m.area_content |> sort) } in
       (* clean hidden toasts *)
@@ -105,3 +103,21 @@ let update m a =
       in
       return m
     )
+
+  | Action.New_directory_start ->
+    let () = prerr_endline "New directory start" in
+    let () = Modal.set_title "XX Titre test : é è ç à %" in
+    let () = Modal.set_btn_cancel "Cancel àà" in
+    let () = Modal.set_btn_ok "OK #&é#" in
+    let () = Modal.show () in
+    return m
+  | Action.Modal_close ->
+    let () = Modal.hide () in
+    return m
+  | Action.Modal_cancel ->
+    let () = Modal.hide () in
+    return m
+  | Action.Modal_ok ->
+    let () = Modal.hide () in
+    return m
+
