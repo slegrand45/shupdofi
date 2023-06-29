@@ -43,5 +43,5 @@ let view m content =
         ]
       ]
     ];
-    View_modal.view();
+    View_modal.view m;
   ]

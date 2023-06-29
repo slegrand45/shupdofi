@@ -106,18 +106,21 @@ let update m a =
 
   | Action.New_directory_start ->
     let () = prerr_endline "New directory start" in
-    let () = Modal.set_title "XX Titre test : é è ç à %" in
-    let () = Modal.set_btn_cancel "Cancel àà" in
-    let () = Modal.set_btn_ok "OK #&é#" in
-    let () = Modal.show () in
+    let modal = Clt.Modal.set_title "NEW TITLE éé çç àà" m.modal
+                |> Clt.Modal.set_content "àé\"çé'_(à_é\"à)\"é'"
+                |> Clt.Modal.set_txt_bt_ok "BT OK & @"
+                |> Clt.Modal.set_txt_bt_cancel "BT CANCEL = +"
+    in
+    let m = { m with modal } in
+    let () = Js_modal.show () in
     return m
   | Action.Modal_close ->
-    let () = Modal.hide () in
+    let () = Js_modal.hide () in
     return m
   | Action.Modal_cancel ->
-    let () = Modal.hide () in
+    let () = Js_modal.hide () in
     return m
   | Action.Modal_ok ->
-    let () = Modal.hide () in
+    let () = Js_modal.hide () in
     return m
 
