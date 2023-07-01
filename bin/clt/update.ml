@@ -62,27 +62,13 @@ let update m a =
           let area_id = Com.Area_content.get_id m.Model.area_content in
           let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
           let files = Element.files e in
-          let () = Random.self_init () in
-          let document = Dom_html.window##.document in
-          let container = Js.Opt.get (document##getElementById (Js.string "toast-container")) (fun () -> assert false) in
-          let (elts, c) = List.fold_left (
-              fun (elts, c) file ->
-                let rnd = Random.int 1000000000 in
-                let toast_id = "toast-" ^ area_id ^ "-" ^ (Int.to_string rnd) in
-                let name = File.name file in
-                let elts = (Js_toast.html ~doc:Dom_html.document ~id:toast_id ~msg:name)::elts in
-                let c = (Api.send (Action.Upload_file (area_id, area_subdirs, toast_id, file))) :: c in
-                (elts, c)
-            ) ([], []) files
-          in
-          let () = List.iter (fun e -> Dom.appendChild container e) elts in
+          let c = Js_toast.append_from_list ~l:files ~prefix_id:area_id ~fun_msg:File.name
+              ~fun_cmd:(fun toast_id e -> Api.send (Action.Upload_file (area_id, area_subdirs, toast_id, e))) in
           return m ~c
         )
     )
   | Action.Upload_file (area_id, area_subdirs, toast_id, file) -> (
-      let elt = Document.get_element_by_id document toast_id in
-      let toast = Option.bind elt (fun e -> Some (Js_toast.getOrCreateInstance e)) in
-      let () = Option.iter (fun e -> e##show()) toast in
+      let () = Js_toast.show ~document ~toast_id in
       let name = File.name file in
       let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload(area_id, area_subdirs, name))) in
       let c = [Api.http_post_file ~url ~file (fun status response -> Action.Uploaded_file (toast_id, status, response))] in
@@ -91,16 +77,7 @@ let update m a =
   | Action.Uploaded_file (toast_id, status, json) -> (
       let uploaded = Yojson.Safe.from_string json |> Com.Uploaded.t_of_yojson in
       let m = { m with area_content = Com.Area_content.(add_uploaded uploaded m.area_content |> sort) } in
-      (* clean hidden toasts *)
-      let container = Dom_html.getElementById "toast-container" in
-      let elements = container##querySelectorAll (Js.string ".toast.hide") in
-      let () = elements |> Dom.list_of_nodeList |> List.iter (fun e ->
-          let id = Js.Opt.get (e##getAttribute (Js.string "id")) (fun () -> assert false) in
-          let elt = Document.get_element_by_id document (Js.to_string id) in
-          let toast = Option.bind elt (fun e -> Some (Js_toast.getInstance e)) in
-          Option.iter (fun e -> e##dispose()) toast;
-          e##.outerHTML := (Js.string "")
-        ) in
+      let () = Js_toast.clean_hiddens ~document in
       (* change toast status *)
       let () = match status with
         | 201 -> Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0
@@ -125,6 +102,8 @@ let update m a =
   | Action.New_directory (area_id, area_subdirs) ->
     let () = prerr_endline "New_directory" in
     let () = prerr_endline area_id in
+    let () = prerr_endline (String.concat "/" area_subdirs) in
+    let () = prerr_endline (Modal.get_input_content m.modal) in
     return m
   | Action.Modal_set_input_content content ->
     return { m with modal = Modal.set_input_content content m.modal }

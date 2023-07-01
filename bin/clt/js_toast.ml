@@ -106,3 +106,36 @@ let set_status_ko ~doc ~id ~msg =
   Dom.insertBefore elt (icon_ko doc) (div##querySelector (Js.string ".toast-body"));
   let elt = Js.Opt.get (div##querySelector (Js.string ".toast-body")) (fun () -> assert false) in
   elt##.innerText := (Js.string msg)
+
+let append_from_list ~l ~prefix_id ~fun_msg ~fun_cmd =
+  let () = Random.self_init () in
+  let document = Dom_html.window##.document in
+  let container = Js.Opt.get (document##getElementById (Js.string "toast-container")) (fun () -> assert false) in
+  let (elts, c) = List.fold_left (
+      fun (elts, c) e ->
+        let rnd = Random.int 1000000000 in
+        let toast_id = prefix_id ^ "-toast-" ^ (Int.to_string rnd) in
+        let name = fun_msg e in
+        let elts = (html ~doc:Dom_html.document ~id:toast_id ~msg:name)::elts in
+        let c = (fun_cmd toast_id e) :: c in
+        (elts, c)
+    ) ([], []) l
+  in
+  List.iter (fun e -> Dom.appendChild container e) elts;
+  c
+
+let show ~document ~toast_id =
+  let elt = Js_browser.Document.get_element_by_id document toast_id in
+  let toast = Option.bind elt (fun e -> Some (getOrCreateInstance e)) in
+  Option.iter (fun e -> e##show()) toast
+
+let clean_hiddens ~document =
+  let container = Dom_html.getElementById "toast-container" in
+  let elements = container##querySelectorAll (Js.string ".toast.hide") in
+  elements |> Dom.list_of_nodeList |> List.iter (fun e ->
+      let id = Js.Opt.get (e##getAttribute (Js.string "id")) (fun () -> assert false) in
+      let elt = Js_browser.Document.get_element_by_id document (Js.to_string id) in
+      let toast = Option.bind elt (fun e -> Some (getInstance e)) in
+      Option.iter (fun e -> e##dispose()) toast;
+      e##.outerHTML := (Js.string "")
+    )
