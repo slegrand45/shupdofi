@@ -1,3 +1,6 @@
+module Action = Shupdofi_clt_model.Action
+module Model = Shupdofi_clt_model.Model
+
 open Vdom
 open Js_browser
 
@@ -5,7 +8,7 @@ let update = Update.update
 
 let init =
   (* let route = Shupdofi_clt.Router.from_pathname (Location.pathname (Window.location window)) in *)
-  return (* (Shupdofi_clt.Model.set_route route *) Shupdofi_clt.Model.empty ~c:[Api.send Action.Current_url_modified]
+  return (* (Shupdofi_clt.Model.set_route route *) Model.empty ~c:[Api.send Action.Current_url_modified]
 
 (* let button txt msg = input [] ~a:[onclick (fun _ -> msg); type_button; value txt] *)
 

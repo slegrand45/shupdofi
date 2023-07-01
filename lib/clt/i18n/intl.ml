@@ -1,6 +1,6 @@
-open Js_of_ocaml
-
 module Com = Shupdofi_com
+
+open Js_of_ocaml
 
 type language = En | Fr
 

@@ -8,5 +8,6 @@ class type modal =
 
 val getInstance : Js_browser.Element.t -> modal Js_of_ocaml.Js.t
 val getOrCreateInstance : Js_browser.Element.t -> modal Js_of_ocaml.Js.t
+
 val show : unit -> unit
 val hide : unit -> unit

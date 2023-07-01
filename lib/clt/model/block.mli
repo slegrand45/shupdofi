@@ -1,3 +1,5 @@
+module Routing = Shupdofi_clt_routing
+
 module Fetchable : sig
   type id = private
     | Default_id
@@ -17,5 +19,5 @@ module Fetchable : sig
   val to_loading : (id, status) t -> (id, status) t
   val to_loaded : (id, status) t -> (id, status) t
 
-  val route_api : (id, status) t -> Route_api.t
+  val route_api : (id, status) t -> Routing.Api.t
 end

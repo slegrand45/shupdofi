@@ -1,3 +1,5 @@
+module Routing = Shupdofi_clt_routing
+
 module Fetchable = struct
   type id =
     | Default_id
@@ -32,8 +34,8 @@ module Fetchable = struct
     | (id, _) -> (id, Loaded)
 
   let route_api = function
-    | (Areas, _) -> Route_api.Areas
-    | (Area_content (id, subdirs) , _) -> Route_api.Area_content (id, subdirs)
+    | (Areas, _) -> Routing.Api.Areas
+    | (Area_content (id, subdirs) , _) -> Routing.Api.Area_content (id, subdirs)
     | _ -> assert false
 
 end

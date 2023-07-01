@@ -1,8 +1,12 @@
+module Block = Shupdofi_clt_model.Block
+module Com = Shupdofi_com
+module Html = Shupdofi_clt_html.Html
+module Icon = Shupdofi_clt_icon.Icon
+module Model = Shupdofi_clt_model.Model
+module Routing = Shupdofi_clt_routing
+
 (* open Js_browser *)
 open Vdom
-
-module Clt = Shupdofi_clt
-module Com = Shupdofi_com
 
 let area v =
   div ~a:[class_ "col"] [
@@ -17,7 +21,7 @@ let area v =
       ];
       div ~a:[class_ "card-footer text-end"] [
         elt "small" ~a:[class_ "text-body-secondary"] [
-          Html.link Shupdofi_clt.Route_page.(Area_content ((Com.Area.get_id v), [])) ~class_attr:""
+          Html.link Routing.Page.(Area_content ((Com.Area.get_id v), [])) ~class_attr:""
             ~title:("Go to area " ^ (Com.Area.get_name v)) [
             Icon.box_arrow_right ~class_attr:"fs-5"
           ]
@@ -27,14 +31,14 @@ let area v =
   ]
 
 let view m =
-  if (Clt.Block.Fetchable.is_loaded m.Clt.Model.block) then
-    let areas = List.fold_left (fun acc e -> acc @ [area e]) [] m.Clt.Model.areas in
+  if (Block.Fetchable.is_loaded m.Model.block) then
+    let areas = List.fold_left (fun acc e -> acc @ [area e]) [] m.Model.areas in
     elt "content" [
       div ~a:[class_ "row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4"] areas
     ]
   else
     elt "content" [
-      View_loading.view ()
+      Loading.view ()
     ]
 
 

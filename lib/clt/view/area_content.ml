@@ -1,8 +1,14 @@
+module Action = Shupdofi_clt_model.Action
+module Block = Shupdofi_clt_model.Block
+module Com = Shupdofi_com
+module Html = Shupdofi_clt_html.Html
+module Icon = Shupdofi_clt_icon.Icon
+module Intl = Shupdofi_clt_i18n.Intl
+module Model = Shupdofi_clt_model.Model
+module Routing = Shupdofi_clt_routing
+
 (* open Js_browser *)
 open Vdom
-
-module Clt = Shupdofi_clt
-module Com = Shupdofi_com
 
 let one_line_size_bytes v =
   Option.fold ~none:"" ~some:Int64.to_string (Com.File.get_size_bytes v)
@@ -80,7 +86,7 @@ let breadcrumb_area id with_menu =
   match with_menu with
   | false ->
     elt "li" ~a:[class_ "breadcrumb-item d-flex align-items-center"] [
-      Html.link (Clt.Route_page.Area_content (id, []))
+      Html.link (Routing.Page.Area_content (id, []))
         ~class_attr:"btn btn-sm btn-light link-underline-light" ~title:"Area" [
         text "Area"
       ]
@@ -96,7 +102,7 @@ let breadcrumb id l =
     let elts, _ = List.fold_left (fun (elts, dirs) e -> (
           elts @ [
             elt "li" ~a:[class_ "breadcrumb-item d-flex align-items-center"] [
-              Html.link (Clt.Route_page.Area_content (id, dirs @ [e]))
+              Html.link (Routing.Page.Area_content (id, dirs @ [e]))
                 ~class_attr:"btn btn-sm btn-light link-underline-light" ~title:e [
                 text e
               ]
@@ -107,8 +113,8 @@ let breadcrumb id l =
     [(breadcrumb_area id false)] @ elts @ [(breadcrumb_last id only_last)]
 
 let view m =
-  if (Clt.Block.Fetchable.is_loaded m.Clt.Model.block) then (
-    let content = m.Clt.Model.area_content in
+  if (Block.Fetchable.is_loaded m.Model.block) then (
+    let content = m.Model.area_content in
     let id = Com.Area_content.get_id content in
     let subdirs = Com.Area_content.get_subdirs content in
     let directories = Com.Area_content.get_directories content in
@@ -121,7 +127,7 @@ let view m =
             div ~a:[class_ "input-group input-group-sm"] [
               div ~a:[class_ "input-group-text"] [ Icon.upload ~class_attr:"" ];
               input ~a:[class_ "form-control form-control-sm"; str_prop "type" "file"; value "";
-                        str_prop "aria-label" "upload"; str_prop "id" "fileupload";
+                        attr "aria-label" "upload"; str_prop "id" "fileupload";
                         oninput (fun e -> Action.Upload_file_start "fileupload")] []
             ]
           ];
@@ -129,7 +135,7 @@ let view m =
       ];
       div ~a:[class_ "row mt-3 mb-3"] [
         div ~a:[class_ "col"] [
-          elt "nav" ~a:[class_ ""; str_prop "aria-label" "breadcrumb"] [
+          elt "nav" ~a:[class_ ""; attr "aria-label" "breadcrumb"] [
             elt "ol" ~a:[class_ "breadcrumb mt-2 mb-2 align-items-center"] 
               (breadcrumb id subdirs)
           ]
@@ -141,6 +147,6 @@ let view m =
     ]
   ) else (
     elt "content" [
-      View_loading.view ()
+      Loading.view ()
     ]
   )

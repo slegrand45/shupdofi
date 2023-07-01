@@ -1,19 +1,24 @@
+module Action = Shupdofi_clt_model.Action
+module Block = Shupdofi_clt_model.Block
+module Com = Shupdofi_com
+module Modal = Shupdofi_clt_model.Modal
+module Model = Shupdofi_clt_model.Model
+module Routing = Shupdofi_clt_routing
+
 open Vdom
 open Js_of_ocaml
 open Js_browser
 
-module Clt = Shupdofi_clt
-module Com = Shupdofi_com
-
 let update m a =
-  let open Clt in
   match a with
+  | Action.Nothing ->
+    return m
   | Action.Set_current_url url ->
     (* Js_of_ocaml.Firebug.console##log ("click " ^ url); *)
     let () = Js_browser.(History.push_state (Window.history window) (Ojs.string_to_js "") "" url) in
     return m ~c:[Api.send Action.Current_url_modified]
   | Action.Current_url_modified -> (
-      let route = Router.from_pathname (Location.pathname (Window.location window)) in
+      let route = Routing.Router.from_pathname (Location.pathname (Window.location window)) in
       let m = Model.set_route route m in
       (* fetch de tous les blocs de la page *)
       match route with
@@ -31,7 +36,7 @@ let update m a =
     let m = { m with block = Block.Fetchable.to_loading block } in
     return m ~c:[Api.send (Action.Fetch block)]
   | Action.Fetch block ->
-    return m ~c:[Api.http_get ~url:(Route_api.(to_url (Block.Fetchable.route_api block))) ~payload:"" (fun r -> Action.Fetched (block, r))]
+    return m ~c:[Api.http_get ~url:(Routing.Api.(to_url (Block.Fetchable.route_api block))) ~payload:"" (fun r -> Action.Fetched (block, r))]
   | Action.Fetched (block, json) ->
     let m = { m with block = Block.Fetchable.to_loaded block } in
     let m =
@@ -45,8 +50,8 @@ let update m a =
     let id = Com.Area_content.get_id m.Model.area_content in
     let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let new_subdirs = subdirs @ [name] in
-    let route = Route_page.Area_content (id, new_subdirs) in
-    let url = Route_page.to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) route in
+    let route = Routing.Page.Area_content (id, new_subdirs) in
+    let url = Routing.Page.to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) route in
     return { m with area_content = (Com.Area_content.set_subdirs new_subdirs m.Model.area_content) }
       ~c:[Api.send (Action.Set_current_url url)]
   | Action.Upload_file_start id -> (
@@ -65,7 +70,7 @@ let update m a =
                 let rnd = Random.int 1000000000 in
                 let toast_id = "toast-" ^ area_id ^ "-" ^ (Int.to_string rnd) in
                 let name = File.name file in
-                let elts = (Toast.html ~doc:Dom_html.document ~id:toast_id ~msg:name)::elts in
+                let elts = (Js_toast.html ~doc:Dom_html.document ~id:toast_id ~msg:name)::elts in
                 let c = (Api.send (Action.Upload_file (area_id, area_subdirs, toast_id, file))) :: c in
                 (elts, c)
             ) ([], []) files
@@ -79,7 +84,7 @@ let update m a =
       let toast = Option.bind elt (fun e -> Some (Js_toast.getOrCreateInstance e)) in
       let () = Option.iter (fun e -> e##show()) toast in
       let name = File.name file in
-      let url = Route_api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload(area_id, area_subdirs, name))) in
+      let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload(area_id, area_subdirs, name))) in
       let c = [Api.http_post_file ~url ~file (fun status response -> Action.Uploaded_file (toast_id, status, response))] in
       return m ~c
     )
@@ -98,29 +103,39 @@ let update m a =
         ) in
       (* change toast status *)
       let () = match status with
-        | 201 -> Toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0
-        | _ -> Toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:"Unable to upload file"
+        | 201 -> Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0
+        | _ -> Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:"Unable to upload file"
       in
       return m
     )
 
   | Action.New_directory_start ->
     let () = prerr_endline "New directory start" in
-    let modal = Clt.Modal.set_title "NEW TITLE éé çç àà" m.modal
-                |> Clt.Modal.set_content "àé\"çé'_(à_é\"à)\"é'"
-                |> Clt.Modal.set_txt_bt_ok "BT OK & @"
-                |> Clt.Modal.set_txt_bt_cancel "BT CANCEL = +"
+    let area_id = Com.Area_content.get_id m.Model.area_content in
+    let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
+    let modal = Modal.set_title "New directory" m.modal
+                |> Modal.set_input_content "..."
+                |> Modal.set_txt_bt_ok "Create"
+                |> Modal.set_txt_bt_cancel "Cancel"
+                |> Modal.set_fun_bt_ok (fun e -> Action.New_directory (area_id, area_subdirs))
     in
     let m = { m with modal } in
     let () = Js_modal.show () in
     return m
+  | Action.New_directory (area_id, area_subdirs) ->
+    let () = prerr_endline "New_directory" in
+    let () = prerr_endline area_id in
+    return m
+  | Action.Modal_set_input_content content ->
+    return { m with modal = Modal.set_input_content content m.modal }
   | Action.Modal_close ->
     let () = Js_modal.hide () in
     return m
   | Action.Modal_cancel ->
     let () = Js_modal.hide () in
     return m
+    (*
   | Action.Modal_ok ->
     let () = Js_modal.hide () in
     return m
-
+*)

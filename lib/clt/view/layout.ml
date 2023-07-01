@@ -1,3 +1,7 @@
+module Html = Shupdofi_clt_html.Html
+module Icon = Shupdofi_clt_icon.Icon
+module Routing = Shupdofi_clt_routing
+
 open Vdom
 
 let view m content =
@@ -5,7 +9,7 @@ let view m content =
     elt "header" ~a:[class_ "border-bottom border-info-subtle mb-4"] [
       elt "nav" ~a:[class_ "navbar"] [
         div ~a:[class_ "container-fluid"] [
-          Html.link Shupdofi_clt.Route_page.Home ~class_attr:"navbar-brand d-flex" ~title:"Home" [
+          Html.link Routing.Page.Home ~class_attr:"navbar-brand d-flex" ~title:"Home" [
             Icon.house ~class_attr:"fs-6"
           ];
           div ~a:[class_ "row justify-content-end"] [
@@ -43,5 +47,5 @@ let view m content =
         ]
       ]
     ];
-    View_modal.view m;
+    Modal.view m;
   ]
