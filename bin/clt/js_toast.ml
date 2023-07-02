@@ -113,8 +113,10 @@ let append_from_list ~l ~prefix_id ~fun_msg ~fun_cmd =
   let container = Js.Opt.get (document##getElementById (Js.string "toast-container")) (fun () -> assert false) in
   let (elts, c) = List.fold_left (
       fun (elts, c) e ->
-        let rnd = Random.int 1000000000 in
-        let toast_id = prefix_id ^ "-toast-" ^ (Int.to_string rnd) in
+        let now = new%js Js.date_now in
+        let iso = Js.to_string now##toISOString in
+        let rnd = Random.int 1_073_741_820 in
+        let toast_id = prefix_id ^ "-toast-" ^ iso ^ "-" ^ (Int.to_string rnd) in
         let name = fun_msg e in
         let elts = (html ~doc:Dom_html.document ~id:toast_id ~msg:name)::elts in
         let c = (fun_cmd toast_id e) :: c in

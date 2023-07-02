@@ -27,6 +27,15 @@ let add_uploaded uploaded v =
   else
     v
 
+let add_new_directory new_directory v =
+  let area_id = New_directory_created.get_area_id new_directory in
+  let subdirs = New_directory_created.get_subdirs new_directory in
+  let directory = New_directory_created.get_directory new_directory in
+  if area_id = v.id && subdirs = v.subdirs then
+    { v with directories = directory :: v.directories }
+  else
+    v
+
 let sort v =
   let files = List.sort compare v.files in
   { v with files }

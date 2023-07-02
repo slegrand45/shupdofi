@@ -10,10 +10,12 @@ type t =
 
   | Upload_file_start of string
   | Upload_file of (string * string list * string * Js_browser.File.t)
-  | Uploaded_file of (string * int * string)
+  | Uploaded_file of (string * int * string * string)
 
-  | New_directory_start
-  | New_directory of (string * string list)
+  | New_directory_ask_dirname
+  | New_directory_start of (string * string list)
+  | New_directory of (string * string list * string * string)
+  | New_directory_created of (string * int * string * string)
 
   | Modal_set_input_content of string
   | Modal_close

@@ -4,12 +4,12 @@ type t = {
   area_id: string;
   (* or Directory.t list ?? *)
   subdirs: string list;
-  file: File.t
+  directory: Directory.t;
 }
 [@@deriving yojson]
 
-let make ~area_id ~subdirs ~file = { area_id; subdirs; file }
+let make ~area_id ~subdirs ~directory = { area_id; subdirs; directory }
 
 let get_area_id v = v.area_id
 let get_subdirs v = v.subdirs
-let get_file v = v.file
+let get_directory v = v.directory

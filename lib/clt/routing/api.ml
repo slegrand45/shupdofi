@@ -1,6 +1,7 @@
 type t = Areas
        | Area_content of string * string list
        | Upload of string * string list * string
+       | New_directory
 
 let prefix = "/api"
 
@@ -23,3 +24,5 @@ let to_url ?encode v =
   | Upload (area_id, subdirs, name) ->
     let path = List.map (fun e -> encode e) subdirs |> String.concat "/" in
     prefix ^ "/upload/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode name)
+  | New_directory ->
+    prefix ^ "/directory"

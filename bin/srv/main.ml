@@ -178,6 +178,49 @@ let () =
     );
     *)
 
+
+
+
+  S.add_route_handler_stream ~meth:`POST server
+    S.Route.(exact "api" @/ exact "directory" @/ return)
+    (* ~accept:(fun req ->
+       match S.Request.get_header_int req "Content-Length" with
+       | Some n when n > config.max_upload_size ->
+        Error (403, "max upload size is " ^ string_of_int config.max_upload_size)
+       | Some _ when contains_dot_dot req.S.Request.path ->
+        Error (403, "invalid path (contains '..')")
+       | _ -> Ok ()
+       ) *)
+    (fun req ->
+       let body = Tiny_httpd_stream.read_all req.S.Request.body in
+       let new_directory = Yojson.Safe.from_string body |> Com.New_directory.t_of_yojson in
+       let area_id = Com.New_directory.get_area_id new_directory in
+       let subdirs = Com.New_directory.get_subdirs new_directory in
+       let dirname = Com.New_directory.get_dirname new_directory in
+       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
+       let make_dir = Srv.Directory.mkdir (Com.Area.get_root area) (subdirs @ [dirname]) in
+       match make_dir with
+       | None ->
+         S.Response.fail_raise ~code:403 "Cannot create directory %s" dirname
+       | Some directory ->
+         let new_directory_created = Com.New_directory_created.make ~area_id ~subdirs ~directory in
+         let json = Com.New_directory_created.yojson_of_t new_directory_created |> Yojson.Safe.to_string in
+         S.Response.make_raw ~code:201 json
+       (*
+       |> S.Response.set_header "Access-Control-Allow-Origin" "*"
+       |> S.Response.set_header "Access-Control-Allow-Credentials" "true"
+       |> S.Response.set_header "Access-Control-Max-Age" "1800"
+       |> S.Response.set_header "Access-Control-Allow-Headers" "content-type"
+       |> S.Response.set_header "Access-Control-Allow-Methods" "PUT, POST, GET, DELETE, PATCH, OPTIONS"
+       |> S.Response.set_header "Access-Control-Allow-Headers" "X-Shupdofi-Data"
+       *)
+    );
+
+
+
+
+
+
   S.add_route_handler ~meth:`GET server
     S.Route.(exact_path "api/areas" return)
     (fun _req -> (
@@ -190,10 +233,7 @@ let () =
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun id subdirs _req -> (
-
-         let () = prerr_endline id in
-         let () = prerr_endline subdirs in
-
+         let () = prerr_endline (Printf.sprintf "id:%s subdirs:%s" id subdirs) in
          match id with
          | "" ->
            S.Response.make_raw ~code:404 "Not found"

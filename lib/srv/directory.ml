@@ -23,6 +23,37 @@ let concat v1 v2 =
   let name = Filename.concat (Com.Directory.get_name v1) (Com.Directory.get_name v2) in
   Com.Directory.make ~name ()
 
+let mkdir root l =
+  let l = List.map (fun name -> Com.Directory.make ~name ()) l in
+  let subdirs_ok = List.for_all Com.Directory.is_defined l in
+  let nb = List.length l in
+  match subdirs_ok with
+  | false -> None
+  | true -> (
+      let subdir = 
+        match nb with
+        | n when n < 1 -> None
+        | n when n = 1 -> Some (List.hd l)
+        | _ -> Some (List.fold_left (fun acc e -> concat acc e) (List.hd l) (List.tl l))
+      in
+      match subdir with
+      | None -> None
+      | Some subdir ->
+        try
+          let pathdir = concat root subdir |> Com.Directory.get_name in
+          let () = Sys.mkdir pathdir 0o755 in
+          let stat = Unix.LargeFile.stat pathdir in
+          let mtime = stat.Unix.LargeFile.st_mtime |> Datetime.of_mtime in
+          (* return only last dir of list *)
+          let dir = List.rev l |> List.hd in
+          Some (Com.Directory.set_mdatetime (Some mtime) dir)
+        with
+        | _ -> None
+    )
+
+
+
+  (*
 let retrieve_stat v =
   let s = Com.Directory.get_name v in
   try
@@ -30,6 +61,7 @@ let retrieve_stat v =
     Some stat
   with
   | _ -> None
+  *)
 
   (*
 let usable = function

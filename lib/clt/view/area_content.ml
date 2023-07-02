@@ -74,7 +74,7 @@ let breadcrumb_last id e =
       ];
       elt "ul" ~a:[class_ "dropdown-menu"] [
         elt "li" [
-          elt "a" ~a:[class_ "dropdown-item"; str_prop "href" ""; onclick_cancel (fun e -> Some Action.New_directory_start)] [
+          elt "a" ~a:[class_ "dropdown-item"; str_prop "href" ""; onclick_cancel (fun e -> Some Action.New_directory_ask_dirname)] [
             text "New directory"
           ]
         ];
@@ -97,7 +97,7 @@ let breadcrumb id l =
   match l with
   | [] -> [breadcrumb_area id true]
   | l ->
-    let without_last = List.rev l |> List.tl in
+    let without_last = List.rev l |> List.tl |> List.rev in
     let only_last = List.rev l |> List.hd in
     let elts, _ = List.fold_left (fun (elts, dirs) e -> (
           elts @ [

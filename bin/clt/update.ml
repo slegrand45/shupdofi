@@ -71,40 +71,79 @@ let update m a =
       let () = Js_toast.show ~document ~toast_id in
       let name = File.name file in
       let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload(area_id, area_subdirs, name))) in
-      let c = [Api.http_post_file ~url ~file (fun status response -> Action.Uploaded_file (toast_id, status, response))] in
+      let c = [Api.http_post_file ~url ~file (fun status response -> Action.Uploaded_file (toast_id, status, response, name))] in
       return m ~c
     )
-  | Action.Uploaded_file (toast_id, status, json) -> (
-      let uploaded = Yojson.Safe.from_string json |> Com.Uploaded.t_of_yojson in
-      let m = { m with area_content = Com.Area_content.(add_uploaded uploaded m.area_content |> sort) } in
-      let () = Js_toast.clean_hiddens ~document in
-      (* change toast status *)
-      let () = match status with
-        | 201 -> Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0
-        | _ -> Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:"Unable to upload file"
+  | Action.Uploaded_file (toast_id, status, json, filename) -> (
+      let m =
+        match status with
+        | 201 ->
+          let uploaded = Yojson.Safe.from_string json |> Com.Uploaded.t_of_yojson in
+          Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+          { m with area_content = Com.Area_content.(add_uploaded uploaded m.area_content |> sort) }
+        | _ ->
+          Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to upload file " ^ filename);
+          m
       in
+      let () = Js_toast.clean_hiddens ~document in
       return m
     )
 
-  | Action.New_directory_start ->
-    let () = prerr_endline "New directory start" in
+
+  | Action.New_directory_ask_dirname ->
+    let () = prerr_endline "New directory ask dirname" in
     let area_id = Com.Area_content.get_id m.Model.area_content in
     let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let modal = Modal.set_title "New directory" m.modal
                 |> Modal.set_input_content "..."
                 |> Modal.set_txt_bt_ok "Create"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun e -> Action.New_directory (area_id, area_subdirs))
+                |> Modal.set_fun_bt_ok (fun e -> Action.New_directory_start (area_id, area_subdirs))
     in
     let m = { m with modal } in
     let () = Js_modal.show () in
     return m
-  | Action.New_directory (area_id, area_subdirs) ->
+
+
+  | Action.New_directory_start (area_id, area_subdirs) ->
+    let () = prerr_endline "New directory start" in
+    let dirname = Modal.get_input_content m.modal in
+
+    let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "New directory " ^ dirname)
+        ~fun_cmd:(fun toast_id e -> Api.send (Action.New_directory (area_id, area_subdirs, toast_id, e)))
+    in
+    let c = Api.send(Action.Modal_close) :: c in
+    return m ~c
+
+  | Action.New_directory (area_id, area_subdirs, toast_id, dirname) ->
     let () = prerr_endline "New_directory" in
     let () = prerr_endline area_id in
     let () = prerr_endline (String.concat "/" area_subdirs) in
-    let () = prerr_endline (Modal.get_input_content m.modal) in
+    let () = prerr_endline toast_id in
+    let () = prerr_endline dirname in
+    let () = Js_toast.show ~document ~toast_id in
+    let payload = Com.New_directory.make ~area_id ~subdirs:area_subdirs ~dirname
+                  |> Com.New_directory.yojson_of_t |> Yojson.Safe.to_string
+    in
+    let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) New_directory) in
+    let c = [Api.http_post ~url ~payload (fun status response -> Action.New_directory_created (toast_id, status, response, dirname))] in
+    return m ~c
+
+  | Action.New_directory_created (toast_id, status, json, dirname) ->
+    let () = prerr_endline (Printf.sprintf "status: %d" status) in
+    let m =
+      match status with
+      | 201 ->
+        let new_directory = Yojson.Safe.from_string json |> Com.New_directory_created.t_of_yojson in
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+        { m with area_content = Com.Area_content.(add_new_directory new_directory m.area_content |> sort) }
+      | _ ->
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to create new directory " ^ dirname);
+        m
+    in
+    let () = Js_toast.clean_hiddens ~document in
     return m
+
   | Action.Modal_set_input_content content ->
     return { m with modal = Modal.set_input_content content m.modal }
   | Action.Modal_close ->

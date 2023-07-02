@@ -12,6 +12,20 @@ let run_http_get ~url ~payload ~on_done () =
     );
   send r (Ojs.string_to_js payload)
 
+let run_http_post ~url ~payload ~on_done () =
+  let open Js_browser.XHR in
+  let r = create () in
+  open_ r "POST" url;
+  set_response_type r "text";
+  set_onreadystatechange r
+    (fun () ->
+       match ready_state r with
+       | Done -> on_done (status r) (response_text r)
+       | _ ->
+         ()
+    );
+  send r (Ojs.string_to_js payload)
+
 (*
 let run_http_put ~url ~payload ~on_done () =
   let open Js_browser.XHR in
