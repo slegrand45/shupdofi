@@ -21,7 +21,7 @@ let view m =
           elt "form" [
             div ~a:[class_ "my-3"] [
               elt "input" ~a:[class_ "form-control"; attr "aria-label" "Input field";
-                              value (Modal.get_input_content modal); oninput (fun e -> Action.Modal_set_input_content e)] []
+                              value (Modal.get_input_content modal); oninput (fun e -> Action.Modal_set_input_content { content = e })] []
             ]
           ]
         ];

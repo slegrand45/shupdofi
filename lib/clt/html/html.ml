@@ -20,5 +20,5 @@ let input_file id finput =
 
 let link route ~class_attr ~title children =
   let url = Routing.Page.to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) route in
-  let f _ = Some (Action.Set_current_url url) in
+  let f _ = Some (Action.Set_current_url { url }) in
   elt "a" ~a:[class_ class_attr; str_prop "href" url; str_prop "title" title; onclick_cancel f] children

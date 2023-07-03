@@ -22,7 +22,7 @@ let one_line_directory acc v =
   match Com.Directory.get_name v with
   | "" -> acc
   | name -> 
-    elt "tr" ~a:[ondblclick_cancel (fun _ -> Some (Action.Area_go_to_subdir name))] [
+    elt "tr" ~a:[ondblclick_cancel (fun _ -> Some (Action.Area_go_to_subdir { name }))] [
       elt "td" [ Icon.folder ~class_attr:"" ];
       elt "td" [ text name ];
       elt "td" [ text (one_line_mdatetime (Com.Directory.get_mdatetime v)) ];
@@ -127,7 +127,7 @@ let view m =
               div ~a:[class_ "input-group-text"] [ Icon.upload ~class_attr:"" ];
               input ~a:[class_ "form-control form-control-sm"; str_prop "type" "file"; value "";
                         attr "aria-label" "upload"; str_prop "id" "fileupload";
-                        oninput (fun e -> Action.Upload_file_start "fileupload")] []
+                        oninput (fun e -> Action.Upload_file_start { input_file_id = "fileupload" })] []
             ]
           ];
         ]
