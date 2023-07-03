@@ -94,45 +94,8 @@ let () =
        )
     );
 
-  (* file upload *)
-  (*
-  S.add_route_handler ~meth:`OPTIONS server
-    S.Route.(exact "api" @/ exact "upload" @/ string_urlencoded @/ string_urlencoded @/ return)
-    (fun _ _ _ _ ->
-       prerr_endline "api upload options";
-       S.Response.make_raw ~code:200 ""
-       |> S.Response.set_header "Access-Control-Allow-Origin" "*"
-       |> S.Response.set_header "Access-Control-Allow-Credentials" "true"
-       |> S.Response.set_header "Access-Control-Max-Age" "1800"
-       |> S.Response.set_header "Access-Control-Allow-Methods" "PUT, POST, GET, DELETE, PATCH, OPTIONS"
-       |> S.Response.set_header "Access-Control-Allow-Headers" "content-type"
-       |> S.Response.set_header "Access-Control-Allow-Headers" "X-Shupdofi-Data"
-    );
-    *)
-    (*
-  S.add_route_handler_stream ~meth:`PUT server
-    S.Route.(exact "upload" @/ string_urlencoded @/ return)
-    (fun path req ->
-       try
-         let oc = open_out @@ "/tmp/" ^ path in
-         output_string oc (Tiny_httpd_stream.read_all req.S.Request.body);
-         flush oc;
-         S.Response.make_raw ~code:201 ""
-       with e ->
-         S.Response.fail ~code:500 "couldn't upload file: %s"
-           (Printexc.to_string e)
-    ); *)
-
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "upload" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    (* ~accept:(fun req ->
-       match S.Request.get_header_int req "Content-Length" with
-       | Some n when n > config.max_upload_size ->
-        Error (403, "max upload size is " ^ string_of_int config.max_upload_size)
-       | Some _ when contains_dot_dot req.S.Request.path ->
-        Error (403, "invalid path (contains '..')")
-       | _ -> Ok ()
-       ) *)
     (fun area_id path req ->
        let path_string = path in
        let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
@@ -157,29 +120,7 @@ let () =
          | _ -> ""
        in
        S.Response.make_raw ~code:201 json
-       (*
-       |> S.Response.set_header "Access-Control-Allow-Origin" "*"
-       |> S.Response.set_header "Access-Control-Allow-Credentials" "true"
-       |> S.Response.set_header "Access-Control-Max-Age" "1800"
-       |> S.Response.set_header "Access-Control-Allow-Headers" "content-type"
-       |> S.Response.set_header "Access-Control-Allow-Methods" "PUT, POST, GET, DELETE, PATCH, OPTIONS"
-       |> S.Response.set_header "Access-Control-Allow-Headers" "X-Shupdofi-Data"
-       *)
     );
-
-  (* files of dir *)
-  (*
-  S.add_route_handler ~meth:`GET server
-    S.Route.(exact "ls" @/ string @/ return)
-    (fun _ _req -> (
-         let l = Srv.File.ls "." in
-         let json = Srv.File.yojson_of_collection l |> Yojson.Safe.to_string in
-         S.Response.make_string (Ok json))
-    );
-    *)
-
-
-
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "directory" @/ return)
@@ -206,20 +147,7 @@ let () =
          let new_directory_created = Com.New_directory_created.make ~area_id ~subdirs ~directory in
          let json = Com.New_directory_created.yojson_of_t new_directory_created |> Yojson.Safe.to_string in
          S.Response.make_raw ~code:201 json
-       (*
-       |> S.Response.set_header "Access-Control-Allow-Origin" "*"
-       |> S.Response.set_header "Access-Control-Allow-Credentials" "true"
-       |> S.Response.set_header "Access-Control-Max-Age" "1800"
-       |> S.Response.set_header "Access-Control-Allow-Headers" "content-type"
-       |> S.Response.set_header "Access-Control-Allow-Methods" "PUT, POST, GET, DELETE, PATCH, OPTIONS"
-       |> S.Response.set_header "Access-Control-Allow-Headers" "X-Shupdofi-Data"
-       *)
     );
-
-
-
-
-
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact_path "api/areas" return)
@@ -233,7 +161,6 @@ let () =
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun id subdirs _req -> (
-         let () = prerr_endline (Printf.sprintf "id:%s subdirs:%s" id subdirs) in
          match id with
          | "" ->
            S.Response.make_raw ~code:404 "Not found"
@@ -244,22 +171,6 @@ let () =
            |> S.Response.set_header "Content-Type" "text/json"
        )
     );
-
-(*
-  S.add_route_handler ~meth:`GET server
-    S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string @/ return)
-    (fun id _req -> (
-         match id with
-         | "" ->
-           S.Response.make_raw ~code:404 "Not found"
-         | _ ->
-           let content = Srv.Area.get_content ~id ~subdirs:[] in
-           S.Response.make_string (Ok (Com.Area_content.yojson_of_t content |> Yojson.Safe.to_string))
-           |> S.Response.set_header "Content-Type" "text/json"
-       )
-    );
-    *)
-
 
   (* run the server *)
   Printf.printf "listening on http://%s:%d\n%!" (S.addr server) (S.port server);

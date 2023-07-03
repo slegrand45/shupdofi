@@ -51,27 +51,6 @@ let mkdir root l =
         | _ -> None
     )
 
-
-
-  (*
-let retrieve_stat v =
-  let s = Com.Directory.get_name v in
-  try
-    let stat = Unix.LargeFile.stat s in
-    Some stat
-  with
-  | _ -> None
-  *)
-
-  (*
-let usable = function
-  | None -> false
-  | Some stat ->
-    match stat.Unix.LargeFile.st_kind with
-    | Unix.S_DIR -> true
-    | _ -> false
-    *)
-
 let attach_stat root entry =
   (* mettre dans Directory pour sécuriser *)
   let path = Filename.concat root entry in

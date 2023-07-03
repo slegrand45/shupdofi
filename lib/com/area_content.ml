@@ -40,21 +40,3 @@ let sort v =
   let files = List.sort compare v.files in
   { v with files }
 
-(*
-let get_all : type a. a t -> a list = fun v -> 
-  match v with
-  | No_data -> []
-  | User_data v -> [ v ]
-  | User_collection v -> v
-  | Admin_data v -> [ v ]
-  | Admin_collection v -> v
-*)
-
-(*
-let get_all : type a. (Profile.t * Page.t) -> t list = fun ctx -> 
-  match ctx with
-  | (Profile.User, Page.(Section_user, Areas))
-  | (Profile.Admin, Page.(Section_user, Areas)) -> [ User_data v1_areas ]
-  | (Profile.Admin, Page.(Section_admin, Areas)) -> [ Admin_data v1_areas_admin ]
-  | _ -> [ ]
-*)

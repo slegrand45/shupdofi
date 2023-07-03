@@ -7,7 +7,6 @@ module Intl = Shupdofi_clt_i18n.Intl
 module Model = Shupdofi_clt_model.Model
 module Routing = Shupdofi_clt_routing
 
-(* open Js_browser *)
 open Vdom
 
 let one_line_size_bytes v =

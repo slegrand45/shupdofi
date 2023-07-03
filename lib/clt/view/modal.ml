@@ -18,7 +18,6 @@ let view m =
                            onclick (fun e -> Action.Modal_close)] [];
         ];
         div ~a:[class_ "modal-body"; str_prop "id" "modal-body"] [
-          (* text (Clt.Modal.get_content modal) *)
           elt "form" [
             div ~a:[class_ "my-3"] [
               elt "input" ~a:[class_ "form-control"; attr "aria-label" "Input field";

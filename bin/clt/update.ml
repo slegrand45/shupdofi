@@ -14,7 +14,6 @@ let update m a =
   | Action.Nothing ->
     return m
   | Action.Set_current_url url ->
-    (* Js_of_ocaml.Firebug.console##log ("click " ^ url); *)
     let () = Js_browser.(History.push_state (Window.history window) (Ojs.string_to_js "") "" url) in
     return m ~c:[Api.send Action.Current_url_modified]
   | Action.Current_url_modified -> (
@@ -36,7 +35,7 @@ let update m a =
     let m = { m with block = Block.Fetchable.to_loading block } in
     return m ~c:[Api.send (Action.Fetch block)]
   | Action.Fetch block ->
-    return m ~c:[Api.http_get ~url:(Routing.Api.(to_url (Block.Fetchable.route_api block))) ~payload:"" (fun r -> Action.Fetched (block, r))]
+    return m ~c:[Api.http_get ~url:(Routing.Api.(to_url (Block.Fetchable.route_api block))) ~payload:"" (fun _ r -> Action.Fetched (block, r))]
   | Action.Fetched (block, json) ->
     let m = { m with block = Block.Fetchable.to_loaded block } in
     let m =
@@ -88,10 +87,7 @@ let update m a =
       let () = Js_toast.clean_hiddens ~document in
       return m
     )
-
-
   | Action.New_directory_ask_dirname ->
-    let () = prerr_endline "New directory ask dirname" in
     let area_id = Com.Area_content.get_id m.Model.area_content in
     let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let modal = Modal.set_title "New directory" m.modal
@@ -103,24 +99,14 @@ let update m a =
     let m = { m with modal } in
     let () = Js_modal.show () in
     return m
-
-
   | Action.New_directory_start (area_id, area_subdirs) ->
-    let () = prerr_endline "New directory start" in
     let dirname = Modal.get_input_content m.modal in
-
     let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "New directory " ^ dirname)
         ~fun_cmd:(fun toast_id e -> Api.send (Action.New_directory (area_id, area_subdirs, toast_id, e)))
     in
     let c = Api.send(Action.Modal_close) :: c in
     return m ~c
-
   | Action.New_directory (area_id, area_subdirs, toast_id, dirname) ->
-    let () = prerr_endline "New_directory" in
-    let () = prerr_endline area_id in
-    let () = prerr_endline (String.concat "/" area_subdirs) in
-    let () = prerr_endline toast_id in
-    let () = prerr_endline dirname in
     let () = Js_toast.show ~document ~toast_id in
     let payload = Com.New_directory.make ~area_id ~subdirs:area_subdirs ~dirname
                   |> Com.New_directory.yojson_of_t |> Yojson.Safe.to_string
@@ -128,9 +114,7 @@ let update m a =
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) New_directory) in
     let c = [Api.http_post ~url ~payload (fun status response -> Action.New_directory_created (toast_id, status, response, dirname))] in
     return m ~c
-
   | Action.New_directory_created (toast_id, status, json, dirname) ->
-    let () = prerr_endline (Printf.sprintf "status: %d" status) in
     let m =
       match status with
       | 201 ->
@@ -143,7 +127,6 @@ let update m a =
     in
     let () = Js_toast.clean_hiddens ~document in
     return m
-
   | Action.Modal_set_input_content content ->
     return { m with modal = Modal.set_input_content content m.modal }
   | Action.Modal_close ->
@@ -152,8 +135,3 @@ let update m a =
   | Action.Modal_cancel ->
     let () = Js_modal.hide () in
     return m
-    (*
-  | Action.Modal_ok ->
-    let () = Js_modal.hide () in
-    return m
-*)

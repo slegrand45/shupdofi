@@ -1,5 +1,5 @@
 type section = Section_user | Section_admin
-(* correspond aux routes *)
+(* A MODIFIER ? : correspond en fait aux routes ? *)
 type page = Areas | Area of string
 
 type t = (section * page)

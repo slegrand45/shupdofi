@@ -17,6 +17,5 @@ let get_content ~id ~subdirs =
   | None -> Com.Area_content.make ~id:"" ~subdirs ~directories:[] ~files:[] 
   | Some area ->
     let dir = Directory.concat (Com.Area.get_root area) (Directory.make_from_list subdirs) in
-    let () = prerr_endline (Printf.sprintf "make_from_list:%s" (Com.Directory.get_name dir)) in
     let (directories, files) = Directory.read dir in
     Com.Area_content.make ~id ~subdirs ~directories ~files 
