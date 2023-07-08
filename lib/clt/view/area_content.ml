@@ -4,13 +4,17 @@ module Com = Shupdofi_com
 module Html = Shupdofi_clt_html.Html
 module Icon = Shupdofi_clt_icon.Icon
 module Intl = Shupdofi_clt_i18n.Intl
+module Size = Shupdofi_clt_i18n.Size
 module Model = Shupdofi_clt_model.Model
 module Routing = Shupdofi_clt_routing
 
 open Vdom
 
 let one_line_size_bytes v =
-  Option.fold ~none:"" ~some:Int64.to_string (Com.File.get_size_bytes v)
+  let bytes = Com.File.get_size_bytes v in
+  match bytes with
+  | None -> ""
+  | Some v -> Size.(to_human (from_int64 v))
 
 let one_line_mdatetime v =
   let user_language = Intl.user_language () in
