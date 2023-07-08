@@ -69,7 +69,7 @@ let update m a =
   | Action.Upload_file { area_id; area_subdirs; toast_id; file } -> (
       let () = Js_toast.show ~document ~toast_id in
       let filename = File.name file in
-      let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload(area_id, area_subdirs, filename))) in
+      let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload { area_id; area_subdirs; filename })) in
       let c = [Api.http_post_file ~url ~file (fun status json -> Action.Uploaded_file { toast_id; status; json; filename })] in
       return m ~c
     )

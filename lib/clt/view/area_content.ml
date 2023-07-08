@@ -22,25 +22,45 @@ let one_line_directory acc v =
   match Com.Directory.get_name v with
   | "" -> acc
   | name -> 
-    elt "tr" ~a:[ondblclick_cancel (fun _ -> Some (Action.Area_go_to_subdir { name }))] [
+    elt "tr" ~a:[onclick_cancel (fun _ -> Some (Action.Area_go_to_subdir { name }))] [
       elt "td" [ Icon.folder ~class_attr:"" ];
       elt "td" [ text name ];
       elt "td" [ text (one_line_mdatetime (Com.Directory.get_mdatetime v)) ];
       elt "td" [ text "" ];
+      elt "td" [ text "" ];
+      elt "td" [ text "" ];
+      elt "td" [ text "" ];
     ] :: acc
 
-let one_line_file acc v =
-  match Com.File.get_name v with
+let one_line_file area_id area_subdirs acc file =
+  let filename = Com.File.get_name file in
+  let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download { area_id; area_subdirs; filename })) in
+  match Com.File.get_name file with
   | "" -> acc
   | name -> 
-    elt "tr" [
+    elt "tr" ~a:[class_ "line"] [
       elt "td" [ text "" ];
       elt "td" [ text name ];
-      elt "td" [ text (one_line_mdatetime (Com.File.get_mdatetime v)) ];
-      elt "td" [ text (one_line_size_bytes v) ];
+      elt "td" [ text (one_line_mdatetime (Com.File.get_mdatetime file)) ];
+      elt "td" [ text (one_line_size_bytes file) ];
+      elt "td" ~a:[class_ "text-center"] [
+        elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
+          Icon.download ~class_attr:"icon"
+        ];
+      ];
+      elt "td" ~a:[class_ "text-center"] [
+        elt "a" ~a:[str_prop "href" ""; class_ "action hide"] [
+          Icon.pencil ~class_attr:"icon"
+        ];
+      ];
+      elt "td" ~a:[class_ "text-center"] [
+        elt "a" ~a:[str_prop "href" ""; class_ "action hide"] [
+          Icon.trash ~class_attr:"icon"
+        ];
+      ];
     ] :: acc
 
-let lines directories files =
+let lines area_id subdirs directories files =
   match directories, files with
   | [], [] -> [elt "p"
                  [ text "Empty directory" ]
@@ -49,15 +69,18 @@ let lines directories files =
     let directories = List.sort (fun e1 e2 -> String.compare (Com.Directory.get_name e1) (Com.Directory.get_name e2)) directories in
     let files = List.sort (fun e1 e2 -> String.compare (Com.File.get_name e1) (Com.File.get_name e2)) files in
     let trs_directories = List.fold_left one_line_directory [] directories |> List.rev in
-    let trs_files = List.fold_left one_line_file [] files |> List.rev in
+    let trs_files = List.fold_left (one_line_file area_id subdirs) [] files |> List.rev in
     [div ~a:[class_ "table-responsive"] [
-        elt "table" ~a:[class_ "table table-hover"] [
+        elt "table" ~a:[class_ "table table-hover area-content"] [
           elt "thead" [
             elt "tr" [
               elt "th" ~a:[str_prop "scope" "col"; str_prop "style" "width: 1em;"] [ text "" ];
               elt "th" ~a:[str_prop "scope" "col"] [ text "Name" ];
               elt "th" ~a:[str_prop "scope" "col"] [ text "Last modified" ];
               elt "th" ~a:[str_prop "scope" "col"] [ text "Size" ];
+              elt "th" ~a:[str_prop "scope" "col"] [ text "" ];
+              elt "th" ~a:[str_prop "scope" "col"] [ text "" ];
+              elt "th" ~a:[str_prop "scope" "col"] [ text "" ];
             ]
           ];
           elt "tbody" (trs_directories @ trs_files)
@@ -92,16 +115,16 @@ let breadcrumb_area id with_menu =
     ]
   | true -> breadcrumb_last id "Area"
 
-let breadcrumb id l =
+let breadcrumb area_id l =
   match l with
-  | [] -> [breadcrumb_area id true]
+  | [] -> [breadcrumb_area area_id true]
   | l ->
     let without_last = List.rev l |> List.tl |> List.rev in
     let only_last = List.rev l |> List.hd in
     let elts, _ = List.fold_left (fun (elts, dirs) e -> (
           elts @ [
             elt "li" ~a:[class_ "breadcrumb-item d-flex align-items-center"] [
-              Html.link (Routing.Page.Area_content (id, dirs @ [e]))
+              Html.link (Routing.Page.Area_content (area_id, dirs @ [e]))
                 ~class_attr:"btn btn-sm btn-light link-underline-light" ~title:e [
                 text e
               ]
@@ -109,16 +132,16 @@ let breadcrumb id l =
           ], dirs @ [e])
       ) ([], []) without_last
     in
-    [(breadcrumb_area id false)] @ elts @ [(breadcrumb_last id only_last)]
+    [(breadcrumb_area area_id false)] @ elts @ [(breadcrumb_last area_id only_last)]
 
 let view m =
   if (Block.Fetchable.is_loaded m.Model.block) then (
     let content = m.Model.area_content in
-    let id = Com.Area_content.get_id content in
+    let area_id = Com.Area_content.get_id content in
     let subdirs = Com.Area_content.get_subdirs content in
     let directories = Com.Area_content.get_directories content in
     let files = Com.Area_content.get_files content in
-    let lines = lines directories files in
+    let lines = lines area_id subdirs directories files in
     elt "content" [
       div ~a:[class_ "row justify-content-end"] [
         div ~a:[class_ "col-auto"] [
@@ -136,7 +159,7 @@ let view m =
         div ~a:[class_ "col"] [
           elt "nav" ~a:[class_ ""; attr "aria-label" "breadcrumb"] [
             elt "ol" ~a:[class_ "breadcrumb mt-2 mb-2 align-items-center"] 
-              (breadcrumb id subdirs)
+              (breadcrumb area_id subdirs)
           ]
         ]
       ];

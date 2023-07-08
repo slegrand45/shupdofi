@@ -95,20 +95,20 @@ let () =
     );
 
   S.add_route_handler_stream ~meth:`POST server
-    S.Route.(exact "api" @/ exact "upload" @/ string_urlencoded @/ rest_of_path_urlencoded)
+    S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun area_id path req ->
        let path_string = path in
        let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
        let path = Srv.Path.from_string path in
        let write, close =
          try
-           Srv.Path.io (Com.Area.get_root area) path          
+           Srv.Path.oc (Com.Area.get_root area) path
          with e ->
            S.Response.fail_raise ~code:403 "Cannot upload %S: %s"
              path_string (Printexc.to_string e)
        in
-       Tiny_httpd_stream.iter write req.S.Request.body;
-       close ();
+       let () = Tiny_httpd_stream.iter write req.S.Request.body in
+       let () = close () in
        let path = Srv.Path.update_meta_infos (Com.Area.get_root area) path in
        let directory = Com.Path.get_directory path in
        let file = Com.Path.get_file path in
@@ -120,6 +120,26 @@ let () =
          | _ -> ""
        in
        S.Response.make_raw ~code:201 json
+    );
+
+  S.add_route_handler_stream ~meth:`GET server
+    S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
+    (fun area_id path req ->
+       let path_string = path in
+       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
+       let path = Srv.Path.from_string path in
+       let dir = Com.Path.get_directory path in
+       let file = Com.Path.get_file path in
+       match dir, file with
+       | Some dir, Some file -> (
+           let path = Com.Path.make (Srv.Directory.concat (Com.Area.get_root area) dir) file in
+           let ch = In_channel.open_bin (Srv.Path.to_string path) in
+           let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
+           S.Response.make_raw_stream ~code:S.Response_code.ok stream
+           |> S.Response.set_header "Content-Type" (Srv.Path.mime path)
+         )
+       | _, _ ->
+         S.Response.fail_raise ~code:403 "Cannot download %s" path_string
     );
 
   S.add_route_handler_stream ~meth:`POST server

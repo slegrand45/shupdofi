@@ -40,7 +40,7 @@ let usable = function
 let mime v =
   Magic_mime.lookup (to_string v)
 
-let io root_dir v =
+let oc root_dir v =
   let dir = Com.Path.get_directory v in
   match dir with
   | None -> failwith "Empty directory in path"

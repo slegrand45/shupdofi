@@ -8,5 +8,5 @@ val add_extension : string -> t -> t
 val retrieve_stat : t -> Unix.LargeFile.stats option
 val usable : Unix.LargeFile.stats option -> bool
 val mime : t -> string
-val io : Com.Directory.t -> t -> (bytes -> int -> int -> unit) * (unit -> unit)
+val oc : Com.Directory.t -> t -> (bytes -> int -> int -> unit) * (unit -> unit)
 val update_meta_infos : Com.Directory.t -> t -> t

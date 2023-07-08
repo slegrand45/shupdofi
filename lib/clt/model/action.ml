@@ -1,3 +1,5 @@
+module Com = Shupdofi_com
+
 type t =
   | Nothing
   | Area_go_to_subdir of { name : string }

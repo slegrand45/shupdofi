@@ -1,6 +1,7 @@
 type t = Areas
-       | Area_content of string * string list
-       | Upload of string * string list * string
+       | Area_content of { area_id: string; area_subdirs: string list }
+       | Upload of { area_id: string; area_subdirs: string list; filename: string }
+       | Download of { area_id: string; area_subdirs: string list; filename: string }
        | New_directory
 
 let prefix = "/api"
@@ -13,16 +14,19 @@ let to_url ?encode v =
   in
   match v with
   | Areas -> prefix ^ "/areas"
-  | Area_content (id, subdirs) -> (
-      match subdirs with
+  | Area_content { area_id; area_subdirs } -> (
+      match area_subdirs with
       | [] ->
-        prefix ^ "/area/content/" ^ (encode id)
+        prefix ^ "/area/content/" ^ (encode area_id)
       | l ->
         let s = String.concat "/" l in
-        prefix ^ "/area/content/" ^ (encode id) ^ "/" ^ s
+        prefix ^ "/area/content/" ^ (encode area_id) ^ "/" ^ s
     )
-  | Upload (area_id, subdirs, name) ->
-    let path = List.map (fun e -> encode e) subdirs |> String.concat "/" in
-    prefix ^ "/upload/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode name)
+  | Upload { area_id; area_subdirs; filename } ->
+    let path = List.map (fun e -> encode e) area_subdirs |> String.concat "/" in
+    prefix ^ "/file/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode filename)
+  | Download { area_id; area_subdirs; filename } ->
+    let path = List.map (fun e -> encode e) area_subdirs |> String.concat "/" in
+    prefix ^ "/file/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode filename)
   | New_directory ->
     prefix ^ "/directory"
