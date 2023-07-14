@@ -1,7 +1,7 @@
 module Com = Shupdofi_com
 
 type t = {
-  www_root: Com.Directory.t;
+  www_root: Com.Directory.absolute Com.Directory.t;
 }
 
 let make ~www_root =

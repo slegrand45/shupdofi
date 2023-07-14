@@ -1,18 +1,21 @@
 open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 
-type path = {
-  directory: Directory.t;
+type 'a path = {
+  directory: 'a Directory.t;
   file: File.t;
 }
 [@@deriving yojson]
 
-type t = path option
+type 'a t = ('a path) option
 [@@deriving yojson]
 
 let make directory file =
   match Directory.is_defined directory, File.is_defined file with
   | true, true -> Some { directory; file }
   | _ -> None
+
+let make_absolute = make
+let make_relative = make
 
 let is_defined = function
   | None -> false

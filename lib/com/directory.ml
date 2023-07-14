@@ -1,15 +1,27 @@
 open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 
-type directory = {
+type absolute
+[@@deriving yojson]
+
+type relative
+[@@deriving yojson]
+
+type 'a directory = {
   name: string;
   mdatetime: Datetime.t option;
 }
 [@@deriving yojson]
 
-type t = directory option
+type 'a t = ('a directory) option
 [@@deriving yojson]
 
-let make ~name ?mdatetime () =
+let make_absolute ~name ?mdatetime () =
+  (* root: Interdire les .. et . (?), supprimer le / en fin, supprimer les / multiples, renvoyer dirname *)
+  (* subdir: Interdire le / au début et les .. et . (?), supprimer le / en fin, supprimer les / multiples, renvoyer dirname *)
+  (* file: Interdire le / partout et les .. et . (?), renvoyer basename *)
+  Some { name; mdatetime }
+
+let make_relative ~name ?mdatetime () =
   (* root: Interdire les .. et . (?), supprimer le / en fin, supprimer les / multiples, renvoyer dirname *)
   (* subdir: Interdire le / au début et les .. et . (?), supprimer le / en fin, supprimer les / multiples, renvoyer dirname *)
   (* file: Interdire le / partout et les .. et . (?), renvoyer basename *)

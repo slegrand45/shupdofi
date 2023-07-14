@@ -3,7 +3,7 @@ open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 type t = {
   id: string;
   subdirs: string list;
-  directories: Directory.t list;
+  directories: Directory.relative Directory.t list;
   files: File.t list
 }
 [@@deriving yojson]

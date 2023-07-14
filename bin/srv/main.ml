@@ -6,7 +6,7 @@ module Srv = Shupdofi_srv
 
 let () =
   let www_root =
-    Com.Directory.make ~name:"/home/slegrand45/depots-git/perso/shupdofi/www/" ();
+    Com.Directory.make_absolute ~name:"/home/slegrand45/depots-git/perso/shupdofi/www/" ();
   in
   let config = Srv.Config.make ~www_root in
   let www_root = Srv.Config.get_www_root config in
@@ -21,7 +21,7 @@ let () =
   in
 
   let gzip_path_if_exists subdir path _req =
-    let path = Com.Path.make (Com.Directory.make ~name:(Filename.concat (Com.Directory.get_name www_root) subdir) ())
+    let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Filename.concat (Com.Directory.get_name www_root) subdir) ())
         (Com.File.make ~name:(Filename.basename path) ()) in
     let path_gzip = Srv.Path.add_extension "gz" path in
     if (accept_gzip _req) && (Srv.Path.(retrieve_stat path_gzip |> usable)) then
@@ -33,7 +33,7 @@ let () =
   S.set_top_handler 
     server
     (fun _req ->
-       let path = Com.Path.make (Com.Directory.make ~name:(Com.Directory.get_name www_root) ())
+       let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Com.Directory.get_name www_root) ())
            (Com.File.make ~name:"index.html" ()) in
        let ch = In_channel.open_bin (Srv.Path.to_string path) in
        let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
@@ -46,7 +46,7 @@ let () =
     S.Route.(exact "www" @/ string_urlencoded @/ return)
     (fun path _req ->
        (* ajouter une méthode concat dans Shupdofi_srv.Directory *)
-       let path = Com.Path.make (Com.Directory.make ~name:(Filename.concat (Com.Directory.get_name www_root) (Filename.dirname path)) ())
+       let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Filename.concat (Com.Directory.get_name www_root) (Filename.dirname path)) ())
            (Com.File.make ~name:(Filename.basename path) ()) in
        let ch = In_channel.open_bin (Srv.Path.to_string path) in
        let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
@@ -77,7 +77,7 @@ let () =
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "favicon.ico" @/ return)
     (fun _req -> (
-         let path = Com.Path.make (Com.Directory.make ~name:(Com.Directory.get_name www_root) ())
+         let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Com.Directory.get_name www_root) ())
              (Com.File.make ~name:"favicon.ico" ()) in
          S.Response.make_string (Ok (In_channel.with_open_bin (Srv.Path.to_string path) In_channel.input_all))
          |> S.Response.set_header "Content-Type" "image/vnd.microsoft.icon"
@@ -87,7 +87,7 @@ let () =
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "robots.txt" @/ return)
     (fun _req -> (
-         let path = Com.Path.make (Com.Directory.make ~name:(Com.Directory.get_name www_root) ())
+         let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Com.Directory.get_name www_root) ())
              (Com.File.make ~name:"robots.txt" ()) in
          S.Response.make_string (Ok (In_channel.with_open_bin (Srv.Path.to_string path) In_channel.input_all))
          |> S.Response.set_header "Content-Type" "text/plain"
@@ -99,7 +99,7 @@ let () =
     (fun area_id path req ->
        let path_string = path in
        let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       let path = Srv.Path.from_string path in
+       let path = Srv.Path.relative_from_string path in
        let write, close =
          try
            Srv.Path.oc (Com.Area.get_root area) path
@@ -127,12 +127,12 @@ let () =
     (fun area_id path req ->
        let path_string = path in
        let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       let path = Srv.Path.from_string path in
+       let path = Srv.Path.relative_from_string path in
        let dir = Com.Path.get_directory path in
        let file = Com.Path.get_file path in
        match dir, file with
        | Some dir, Some file -> (
-           let path = Com.Path.make (Srv.Directory.concat (Com.Area.get_root area) dir) file in
+           let path = Com.Path.make_absolute (Srv.Directory.concat (Com.Area.get_root area) dir) file in
            let ch = In_channel.open_bin (Srv.Path.to_string path) in
            let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
            S.Response.make_raw_stream ~code:S.Response_code.ok stream
@@ -153,7 +153,7 @@ let () =
        let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
        try
          Srv.Path.delete (Com.Area.get_root area)
-           (Com.Path.make (Srv.Directory.make_from_list subdirs) (Com.File.make ~name:filename ()));
+           (Com.Path.make_relative (Srv.Directory.make_from_list subdirs) (Com.File.make ~name:filename ()));
          S.Response.make_raw ~code:200 ""
        with
        | _ -> S.Response.fail_raise ~code:403 "Cannot delete file %s" filename         

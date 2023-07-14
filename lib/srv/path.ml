@@ -1,18 +1,25 @@
 module Com = Shupdofi_com
 
-type t = Com.Path.t
+type 'a t = 'a Com.Path.t
 
 let to_string v =
   let directory = Option.fold ~some:Com.Directory.get_name ~none:"" (Com.Path.get_directory v) in
   let file = Option.fold ~some:Com.File.get_name ~none:"" (Com.Path.get_file v) in
   Filename.concat directory file
 
-let from_string s =
+let absolute_from_string s =
   let dirname = Filename.dirname s in
   let filename = Filename.basename s in
-  let directory = Com.Directory.make ~name:dirname () in
+  let directory = Com.Directory.make_absolute ~name:dirname () in
   let file = Com.File.make ~name:filename () in
-  Com.Path.make directory file
+  Com.Path.make_absolute directory file
+
+let relative_from_string s =
+  let dirname = Filename.dirname s in
+  let filename = Filename.basename s in
+  let directory = Com.Directory.make_relative ~name:dirname () in
+  let file = Com.File.make ~name:filename () in
+  Com.Path.make_relative directory file
 
 let add_extension ext v =
   let file = Com.Path.get_file v in
@@ -41,12 +48,14 @@ let mime v =
   Magic_mime.lookup (to_string v)
 
 let oc root_dir v =
-  let dir = Com.Path.get_directory v in
-  match dir with
-  | None -> failwith "Empty directory in path"
-  | Some dir -> 
-    let new_dir = Directory.concat root_dir dir in
-    let v = Com.Path.set_directory new_dir v in
+  let subdir = Com.Path.get_directory v in
+  let file = Com.Path.get_file v in
+  match subdir, file with
+  | None, _ -> failwith "Empty directory in path"
+  | _, None -> failwith "Empty file in path"
+  | Some subdir, Some file -> 
+    let new_dir = Directory.concat root_dir subdir in
+    let v = Com.Path.make_absolute new_dir file in
     let name = to_string v in
     let oc = Out_channel.open_bin name in
     let write = Out_channel.output oc in
@@ -59,7 +68,7 @@ let update_meta_infos root_dir v =
   match dir, file with
   | Some dir, Some file -> (
       let new_dir = Directory.concat root_dir dir in
-      let path_with_root = Com.Path.make new_dir file in
+      let path_with_root = Com.Path.make_absolute new_dir file in
       let stat = retrieve_stat path_with_root in
       match stat with
       | None -> v
@@ -77,7 +86,7 @@ let delete root_dir v =
   match dir, file with
   | Some dir, Some file -> (
       let new_dir = Directory.concat root_dir dir in
-      let path_with_root = Com.Path.make new_dir file in
+      let path_with_root = Com.Path.make_absolute new_dir file in
       let pathname = to_string path_with_root in
       Sys.remove pathname
     )

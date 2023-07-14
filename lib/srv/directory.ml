@@ -1,6 +1,7 @@
 module Com = Shupdofi_com
 
-type t = Com.Directory.t
+type absolute = Com.Directory.absolute Com.Directory.t
+type relative = Com.Directory.relative Com.Directory.t
 
 let is_without_parent_dir_name s =
   let r = Str.regexp_string ".." in
@@ -13,7 +14,7 @@ let remove_sep_first s =
 
 let make_from_list l =
   let name = String.concat (Filename.dir_sep) l in
-  Com.Directory.make ~name ()
+  Com.Directory.make_relative ~name ()
 
 let to_list_of_string v =
   let name = Com.Directory.get_name v in
@@ -21,7 +22,7 @@ let to_list_of_string v =
 
 let concat v1 v2 =
   let name = Filename.concat (Com.Directory.get_name v1) (Com.Directory.get_name v2) in
-  Com.Directory.make ~name ()
+  Com.Directory.make_absolute ~name ()
 
 let mkdir root l =
   (*
@@ -46,7 +47,7 @@ let mkdir root l =
       let stat = Unix.LargeFile.stat pathdir in
       let mtime = stat.Unix.LargeFile.st_mtime |> Datetime.of_mtime in
       (* return only last dir of list *)
-      let dir = List.rev l |> List.hd |> (fun v -> Com.Directory.make ~name:v ()) in
+      let dir = List.rev l |> List.hd |> (fun v -> Com.Directory.make_relative ~name:v ()) in
       Some (Com.Directory.set_mdatetime (Some mtime) dir)
     with
     | _ -> None
@@ -88,7 +89,7 @@ let read directory =
   try
     let l = Sys.readdir root |> Array.to_list |> List.map (attach_stat root) in
     let directories = List.filter (filter_kind Unix.S_DIR) l
-                      |> List.map (fun (entry, stat) -> (Com.Directory.make ~name:entry (), stat))
+                      |> List.map (fun (entry, stat) -> (Com.Directory.make_relative ~name:entry (), stat))
                       |> List.map (retrieve_mdatetime Com.Directory.set_mdatetime)
                       |> List.map fst
     in

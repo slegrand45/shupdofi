@@ -1,6 +1,6 @@
 open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 
-type t = { id: string; name: string; description: string; root: Directory.t }
+type t = { id: string; name: string; description: string; root: Directory.absolute Directory.t }
 [@@deriving yojson]
 
 type collection = t list

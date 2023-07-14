@@ -4,7 +4,7 @@ type t = {
   area_id: string;
   (* or Directory.t list ?? *)
   subdirs: string list;
-  directory: Directory.t
+  directory: Directory.relative Directory.t
 }
 [@@deriving yojson]
 
