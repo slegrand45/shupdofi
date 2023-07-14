@@ -3,3 +3,4 @@ val send : 'a -> 'a Vdom.Cmd.t
 val http_get : url:string -> payload:string -> (int -> string -> 'a) -> 'a Vdom.Cmd.t
 val http_post : url:string -> payload:string -> (int -> string -> 'a) -> 'a Vdom.Cmd.t
 val http_post_file : url:string -> file:Js_browser.File.t -> (int -> string -> 'a) -> 'a Vdom.Cmd.t
+val http_delete : url:string -> payload:string -> (int -> string -> 'a) -> 'a Vdom.Cmd.t

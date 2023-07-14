@@ -49,17 +49,18 @@ let one_line_file area_id area_subdirs acc file =
       elt "td" [ text (one_line_size_bytes file) ];
       elt "td" ~a:[class_ "text-center"] [
         elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
-          Icon.download ~class_attr:"icon"
+          Icon.download ~label:"Download" ~class_attr:"icon"
         ];
       ];
       elt "td" ~a:[class_ "text-center"] [
         elt "a" ~a:[str_prop "href" ""; class_ "action hide"] [
-          Icon.pencil ~class_attr:"icon"
+          Icon.pencil ~label:"Rename" ~class_attr:"icon"
         ];
       ];
       elt "td" ~a:[class_ "text-center"] [
-        elt "a" ~a:[str_prop "href" ""; class_ "action hide"] [
-          Icon.trash ~class_attr:"icon"
+        elt "a" ~a:[str_prop "href" ""; class_ "action hide";
+                    onclick_cancel (fun _ -> Some (Action.Delete_file_ask_confirm { file }))] [
+          Icon.trash ~label:"Delete" ~class_attr:"icon"
         ];
       ];
     ] :: acc

@@ -70,3 +70,15 @@ let update_meta_infos root_dir v =
         Com.Path.set_file new_file v
     )
   | _, _ -> failwith "Empty directory or file in path"
+
+let delete root_dir v =
+  let dir = Com.Path.get_directory v in
+  let file = Com.Path.get_file v in
+  match dir, file with
+  | Some dir, Some file -> (
+      let new_dir = Directory.concat root_dir dir in
+      let path_with_root = Com.Path.make new_dir file in
+      let pathname = to_string path_with_root in
+      Sys.remove pathname
+    )
+  | _, _ -> failwith "Empty directory or file in path"

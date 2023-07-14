@@ -2,6 +2,7 @@ type t = Areas
        | Area_content of { area_id: string; area_subdirs: string list }
        | Upload of { area_id: string; area_subdirs: string list; filename: string }
        | Download of { area_id: string; area_subdirs: string list; filename: string }
+       | Delete_file
        | New_directory
 
 let prefix = "/api"
@@ -28,5 +29,7 @@ let to_url ?encode v =
   | Download { area_id; area_subdirs; filename } ->
     let path = List.map (fun e -> encode e) area_subdirs |> String.concat "/" in
     prefix ^ "/file/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode filename)
+  | Delete_file ->
+    prefix ^ "/file"
   | New_directory ->
     prefix ^ "/directory"

@@ -142,6 +142,23 @@ let () =
          S.Response.fail_raise ~code:403 "Cannot download %s" path_string
     );
 
+  S.add_route_handler_stream ~meth:`DELETE server
+    S.Route.(exact "api" @/ exact "file" @/ return)
+    (fun req ->
+       let body = Tiny_httpd_stream.read_all req.S.Request.body in
+       let delete_file = Yojson.Safe.from_string body |> Com.Delete_file.t_of_yojson in
+       let area_id = Com.Delete_file.get_area_id delete_file in
+       let subdirs = Com.Delete_file.get_subdirs delete_file in
+       let filename = Com.Delete_file.get_filename delete_file in
+       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
+       try
+         Srv.Path.delete (Com.Area.get_root area)
+           (Com.Path.make (Srv.Directory.make_from_list subdirs) (Com.File.make ~name:filename ()));
+         S.Response.make_raw ~code:200 ""
+       with
+       | _ -> S.Response.fail_raise ~code:403 "Cannot delete file %s" filename         
+    );
+
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "directory" @/ return)
     (* ~accept:(fun req ->
@@ -181,6 +198,9 @@ let () =
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun id subdirs _req -> (
+         (* prerr_endline "** Headers:";
+            S.Headers.pp Format.err_formatter (S.Request.headers _req) ;
+            prerr_endline "** **"; *)
          match id with
          | "" ->
            S.Response.make_raw ~code:404 "Not found"

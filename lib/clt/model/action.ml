@@ -15,6 +15,11 @@ type t =
   | New_directory_start of { area_id : string; area_subdirs : string list }
   | New_directory of { area_id : string; area_subdirs : string list; toast_id : string; dirname : string }
   | New_directory_created of { toast_id : string; status : int; json : string; dirname : string }
+  | Delete_file_ask_confirm of { file : Com.File.t }
+  | Delete_file_start of { area_id : string; area_subdirs : string list; filename : string }
+  | Delete_file of { area_id : string; area_subdirs : string list; toast_id : string; filename : string }
+  | Delete_file_done of { area_id : string ; area_subdirs : string list; toast_id : string; filename : string; status : int }
   | Modal_set_input_content of { content : string }
+  | Modal_toggle_switch
   | Modal_close
   | Modal_cancel

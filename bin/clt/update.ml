@@ -90,7 +90,8 @@ let update m a =
   | Action.New_directory_ask_dirname ->
     let area_id = Com.Area_content.get_id m.Model.area_content in
     let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
-    let modal = Modal.set_title "New directory" m.modal
+    let modal = Modal.set_new_directory m.modal
+                |> Modal.set_title "New directory"
                 |> Modal.set_input_content "..."
                 |> Modal.set_txt_bt_ok "Create"
                 |> Modal.set_txt_bt_cancel "Cancel"
@@ -127,8 +128,57 @@ let update m a =
     in
     let () = Js_toast.clean_hiddens ~document in
     return m
+  | Action.Delete_file_ask_confirm { file } ->
+    let area_id = Com.Area_content.get_id m.Model.area_content in
+    let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
+    let filename = Com.File.get_name file in
+    let msg = Printf.sprintf "I understand that the file \"%s\" will be permanently deleted." filename in
+    let modal = Modal.set_confirm_delete msg m.modal
+                |> Modal.disable_bt_ok
+                |> Modal.set_title "Delete file"
+                |> Modal.set_input_content ""
+                |> Modal.set_txt_bt_ok "Delete"
+                |> Modal.set_txt_bt_cancel "Cancel"
+                |> Modal.set_fun_bt_ok (fun e -> Action.Delete_file_start { area_id; area_subdirs; filename })
+    in
+    let m = { m with modal } in
+    let () = Js_modal.show () in
+    return m
+  | Action.Delete_file_start { area_id; area_subdirs; filename } ->
+    let c = Js_toast.append_from_list ~l:[filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "Delete file " ^ filename)
+        ~fun_cmd:(fun toast_id dirname -> Api.send (Action.Delete_file { area_id; area_subdirs; toast_id; filename }))
+    in
+    let c = Api.send(Action.Modal_close) :: c in
+    return m ~c
+  | Action.Delete_file { area_id; area_subdirs; toast_id; filename } ->
+    let () = Js_toast.show ~document ~toast_id in
+    let payload = Com.Delete_file.make ~area_id ~subdirs:area_subdirs ~filename
+                  |> Com.Delete_file.yojson_of_t |> Yojson.Safe.to_string
+    in
+    let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Delete_file) in
+    let c = [Api.http_delete ~url ~payload (fun status _ -> Action.Delete_file_done { area_id; area_subdirs; toast_id; filename; status })] in
+    return m ~c
+  | Action.Delete_file_done { area_id; area_subdirs; toast_id; filename; status } ->
+    let m =
+      match status with
+      | 200 ->
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+        { m with area_content = Com.Area_content.(remove_file ~id:area_id ~subdirs:area_subdirs ~filename:filename m.area_content |> sort) }
+      | _ ->
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to delete file " ^ filename);
+        m
+    in
+    let () = Js_toast.clean_hiddens ~document in
+    return m
   | Action.Modal_set_input_content { content } ->
     return { m with modal = Modal.set_input_content content m.modal }
+  | Action.Modal_toggle_switch ->
+    let m = { m with modal = Modal.toggle_input_switch m.modal } in
+    let m = match Modal.get_input_switch m.modal with
+      | true -> { m with modal = Modal.enable_bt_ok m.modal }
+      | false -> { m with modal = Modal.disable_bt_ok m.modal }
+    in
+    return m
   | Action.Modal_close ->
     let () = Js_modal.hide () in
     return m

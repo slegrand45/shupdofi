@@ -36,6 +36,12 @@ let add_new_directory new_directory v =
   else
     v
 
+let remove_file ~id ~subdirs ~filename v =
+  if id = v.id && subdirs = v.subdirs then
+    { v with files = List.filter (fun e -> File.get_name e <> filename) v.files }
+  else
+    v
+
 let sort v =
   let files = List.sort compare v.files in
   { v with files }

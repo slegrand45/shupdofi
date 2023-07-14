@@ -24,3 +24,7 @@ let run_http_post ~url ~payload ~on_done () =
 let run_http_post_file ~url ~file ~on_done () =
   let r = create_request ~verb:"POST" ~url ~on_done () in
   Js_browser.XHR.send r file
+
+let run_http_delete ~url ~payload ~on_done () =
+  let r = create_request ~verb:"DELETE" ~url ~on_done () in
+  Js_browser.XHR.send r (Ojs.string_to_js payload)

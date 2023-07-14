@@ -24,6 +24,7 @@ let concat v1 v2 =
   Com.Directory.make ~name ()
 
 let mkdir root l =
+  (*
   let l = List.map (fun name -> Com.Directory.make ~name ()) l in
   let subdirs_ok = List.for_all Com.Directory.is_defined l in
   let nb = List.length l in
@@ -36,23 +37,23 @@ let mkdir root l =
         | n when n = 1 -> Some (List.hd l)
         | _ -> Some (List.fold_left (fun acc e -> concat acc e) (List.hd l) (List.tl l))
       in
-      match subdir with
-      | None -> None
-      | Some subdir ->
-        try
-          let pathdir = concat root subdir |> Com.Directory.get_name in
-          let () = Sys.mkdir pathdir 0o755 in
-          let stat = Unix.LargeFile.stat pathdir in
-          let mtime = stat.Unix.LargeFile.st_mtime |> Datetime.of_mtime in
-          (* return only last dir of list *)
-          let dir = List.rev l |> List.hd in
-          Some (Com.Directory.set_mdatetime (Some mtime) dir)
-        with
-        | _ -> None
-    )
+      *)
+  let subdir = make_from_list l in
+  if (Com.Directory.is_defined subdir) then (
+    try
+      let pathdir = concat root subdir |> Com.Directory.get_name in
+      let () = Sys.mkdir pathdir 0o755 in
+      let stat = Unix.LargeFile.stat pathdir in
+      let mtime = stat.Unix.LargeFile.st_mtime |> Datetime.of_mtime in
+      (* return only last dir of list *)
+      let dir = List.rev l |> List.hd |> (fun v -> Com.Directory.make ~name:v ()) in
+      Some (Com.Directory.set_mdatetime (Some mtime) dir)
+    with
+    | _ -> None
+  ) else
+    None
 
 let attach_stat root entry =
-  (* mettre dans Directory pour sécuriser *)
   let path = Filename.concat root entry in
   try
     let stat = Unix.LargeFile.stat path in
