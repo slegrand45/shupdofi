@@ -97,7 +97,11 @@ let rename root_dir ~before ~after =
       let after_path = Com.Path.make_absolute absolute_after_dir after_file in
       try
         Sys.rename (to_string before_path) (to_string after_path);
-        Some (before_file, after_file)
+        let after = update_meta_infos root_dir after in
+        let after_file = Com.Path.get_file after in
+        match after_file with
+        | Some after_file -> Some (before_file, after_file)
+        | _ -> None
       with
       | _ -> None
     )
