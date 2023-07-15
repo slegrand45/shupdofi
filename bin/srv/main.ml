@@ -122,6 +122,28 @@ let () =
        S.Response.make_raw ~code:201 json
     );
 
+  S.add_route_handler_stream ~meth:`POST server
+    S.Route.(exact "api" @/ exact "file" @/ exact "rename" @/ return)
+    (fun req ->
+       let body = Tiny_httpd_stream.read_all req.S.Request.body in
+       let rename_file = Yojson.Safe.from_string body |> Com.Rename_file.t_of_yojson in
+       let area_id = Com.Rename_file.get_area_id rename_file in
+       let subdirs = Com.Rename_file.get_subdirs rename_file in
+       let old_filename = Com.Rename_file.get_old_filename rename_file in
+       let new_filename = Com.Rename_file.get_new_filename rename_file in
+       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
+       let relative_path_old = Com.Path.make_relative (Srv.Directory.make_from_list subdirs) (Com.File.make ~name:old_filename ()) in
+       let relative_path_new = Com.Path.make_relative (Srv.Directory.make_from_list subdirs) (Com.File.make ~name:new_filename ()) in
+       let rename = Srv.Path.rename (Com.Area.get_root area) ~before:relative_path_old ~after:relative_path_new in
+       match rename with
+       | None ->
+         S.Response.fail_raise ~code:403 "Cannot rename file %s to %s" old_filename new_filename
+       | Some (old_file, new_file) ->
+         let file_renamed = Com.File_renamed.make ~area_id ~subdirs ~old_file ~new_file in
+         let json = Com.File_renamed.yojson_of_t file_renamed |> Yojson.Safe.to_string in
+         S.Response.make_raw ~code:200 json
+    );
+
   S.add_route_handler_stream ~meth:`GET server
     S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun area_id path req ->

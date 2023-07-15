@@ -14,11 +14,18 @@ type t =
   | New_directory_ask_dirname
   | New_directory_start of { area_id : string; area_subdirs : string list }
   | New_directory of { area_id : string; area_subdirs : string list; toast_id : string; dirname : string }
-  | New_directory_created of { toast_id : string; status : int; json : string; dirname : string }
+  | New_directory_done of { toast_id : string; status : int; json : string; dirname : string }
   | Delete_file_ask_confirm of { file : Com.File.t }
   | Delete_file_start of { area_id : string; area_subdirs : string list; filename : string }
   | Delete_file of { area_id : string; area_subdirs : string list; toast_id : string; filename : string }
   | Delete_file_done of { area_id : string ; area_subdirs : string list; toast_id : string; filename : string; status : int }
+
+  | Rename_file_ask_filename of { file : Com.File.t }
+  | Rename_file_start of { area_id : string; area_subdirs : string list; old_filename : string }
+  | Rename_file of { area_id : string; area_subdirs : string list; toast_id : string; old_filename : string; new_filename : string }
+  | Rename_file_done of { toast_id : string; old_filename : string; new_filename : string; status : int; json : string }
+
+
   | Modal_set_input_content of { content : string }
   | Modal_toggle_switch
   | Modal_close

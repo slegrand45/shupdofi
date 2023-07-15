@@ -80,6 +80,34 @@ let update_meta_infos root_dir v =
     )
   | _, _ -> failwith "Empty directory or file in path"
 
+
+
+
+
+let rename root_dir ~before ~after =
+  let before_dir = Com.Path.get_directory before in
+  let before_file = Com.Path.get_file before in
+  let after_dir = Com.Path.get_directory after in
+  let after_file = Com.Path.get_file after in
+  match before_dir, before_file, after_dir, after_file with
+  | Some before_dir, Some before_file, Some after_dir, Some after_file -> (
+      let absolute_before_dir = Directory.concat root_dir before_dir in
+      let absolute_after_dir = Directory.concat root_dir after_dir in
+      let before_path = Com.Path.make_absolute absolute_before_dir before_file in
+      let after_path = Com.Path.make_absolute absolute_after_dir after_file in
+      try
+        Sys.rename (to_string before_path) (to_string after_path);
+        Some (before_file, after_file)
+      with
+      | _ -> None
+    )
+  | _ -> failwith "Empty directory or file in path"
+
+
+
+
+
+
 let delete root_dir v =
   let dir = Com.Path.get_directory v in
   let file = Com.Path.get_file v in

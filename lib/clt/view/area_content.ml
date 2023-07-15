@@ -53,7 +53,8 @@ let one_line_file area_id area_subdirs acc file =
         ];
       ];
       elt "td" ~a:[class_ "text-center"] [
-        elt "a" ~a:[str_prop "href" ""; class_ "action hide"] [
+        elt "a" ~a:[str_prop "href" ""; class_ "action hide";
+                    onclick_cancel (fun _ -> Some (Action.Rename_file_ask_filename { file }))] [
           Icon.pencil ~label:"Rename" ~class_attr:"icon"
         ];
       ];

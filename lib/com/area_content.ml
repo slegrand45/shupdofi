@@ -36,6 +36,17 @@ let add_new_directory new_directory v =
   else
     v
 
+let rename_file file_renamed v =
+  let area_id = File_renamed.get_area_id file_renamed in
+  let subdirs = File_renamed.get_subdirs file_renamed in
+  let old_file = File_renamed.get_old_file file_renamed in
+  let new_file = File_renamed.get_new_file file_renamed in
+  if area_id = v.id && subdirs = v.subdirs then
+    let l = List.filter (fun e -> File.get_name e <> File.get_name old_file) v.files in
+    { v with files = new_file :: l }
+  else
+    v
+
 let remove_file ~id ~subdirs ~filename v =
   if id = v.id && subdirs = v.subdirs then
     { v with files = List.filter (fun e -> File.get_name e <> filename) v.files }
