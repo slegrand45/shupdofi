@@ -1,6 +1,6 @@
 module S = Tiny_httpd
 module Com = Shupdofi_com
-module Msg_from_clt = Shupdofi_msg_clt_to_srv
+module Msg_from_clt = Shupdofi_msg_srv_from_clt
 module Msg_to_clt = Shupdofi_msg_srv_to_clt
 module Srv = Shupdofi_srv
 
