@@ -2,4 +2,10 @@
  (public_name shupdofi_server)
  (name main)
  (modes byte native)
- (libraries tiny_httpd shupdofi_com shupdofi_msg_srv_from_clt shupdofi_msg_srv_to_clt shupdofi_srv))
+ (libraries
+  yojson
+  tiny_httpd
+  shupdofi_com
+  shupdofi_msg_srv_from_clt
+  shupdofi_msg_srv_to_clt
+  shupdofi_srv))

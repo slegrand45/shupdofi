@@ -1,4 +1,4 @@
 (library
  (name shupdofi_clt_view)
  (modes byte)
- (libraries vdom shupdofi_clt_icon shupdofi_clt_i18n shupdofi_clt_html))
+ (libraries js_of_ocaml vdom.base vdom shupdofi_com shupdofi_clt_icon shupdofi_clt_i18n shupdofi_clt_model shupdofi_clt_html shupdofi_clt_routing))

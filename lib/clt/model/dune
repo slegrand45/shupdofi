@@ -1,4 +1,4 @@
 (library
  (name shupdofi_clt_model)
  (modes byte)
- (libraries vdom shupdofi_com shupdofi_clt_routing))
+ (libraries vdom.base vdom shupdofi_com shupdofi_clt_routing))

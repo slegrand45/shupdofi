@@ -2,4 +2,4 @@
  (name shupdofi_clt_html)
  (modes byte)
  (preprocess (pps js_of_ocaml-ppx))
- (libraries js_of_ocaml-lwt vdom shupdofi_clt_model shupdofi_clt_routing))
+ (libraries js_of_ocaml-lwt vdom.base vdom shupdofi_clt_model shupdofi_clt_routing))

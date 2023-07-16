@@ -15,6 +15,8 @@
 
 (documentation https://url/to/documentation)
 
+ (implicit_transitive_deps false)
+
 (package
  (name shupdofi)
  (synopsis "A short synopsis")

@@ -1,4 +1,4 @@
 (library
  (name shupdofi_clt_icon)
  (modes byte)
- (libraries vdom))
+ (libraries vdom.base))

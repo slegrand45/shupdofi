@@ -2,4 +2,5 @@
  (name shupdofi_com)
  (modes byte native)
  (preprocess
-  (pps ppx_yojson_conv)))
+  (pps ppx_yojson_conv))
+ (libraries yojson))

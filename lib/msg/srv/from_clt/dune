@@ -3,4 +3,4 @@
  (modes byte native)
  (preprocess
   (pps ppx_yojson_conv))
- (libraries shupdofi_com shupdofi_msg_clt_to_srv))
+ (libraries yojson shupdofi_com shupdofi_msg_clt_to_srv))
