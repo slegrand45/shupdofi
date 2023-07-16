@@ -230,7 +230,7 @@ let () =
          | _ ->
            let subdirs = String.split_on_char '/' subdirs |> List.filter (fun e -> e <> "") in
            let content = Srv.Area.get_content ~id ~subdirs in
-           S.Response.make_string (Ok (Msg.Area_content.yojson_of_t content |> Yojson.Safe.to_string))
+           S.Response.make_string (Ok (Com.Area_content.yojson_of_t content |> Yojson.Safe.to_string))
            |> S.Response.set_header "Content-Type" "text/json"
        )
     );

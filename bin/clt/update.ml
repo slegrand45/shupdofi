@@ -26,8 +26,8 @@ let update m a =
       | Areas -> return m ~c:[Api.send (Action.Fetch_start { block = Block.Fetchable.areas })]
       | Area_content (id, subdirs) ->
         let area_content = m.Model.area_content
-                           |> Msg.Area_content.set_id id
-                           |> Msg.Area_content.set_subdirs subdirs
+                           |> Com.Area_content.set_id id
+                           |> Com.Area_content.set_subdirs subdirs
         in
         let m = { m with area_content } in
         return m ~c:[Api.send (Action.Fetch_start { block = (Block.Fetchable.area_content id subdirs) })]
@@ -42,25 +42,25 @@ let update m a =
     let m =
       match Block.Fetchable.get_id block with
       | Block.Fetchable.Areas -> { m with areas = Yojson.Safe.from_string json |> Com.Area.collection_of_yojson }
-      | Block.Fetchable.Area_content _ -> { m with area_content = Yojson.Safe.from_string json |> Msg.Area_content.t_of_yojson }
+      | Block.Fetchable.Area_content _ -> { m with area_content = Yojson.Safe.from_string json |> Com.Area_content.t_of_yojson }
       | _ -> m
     in
     return m
   | Action.Area_go_to_subdir { name } ->
-    let id = Msg.Area_content.get_id m.Model.area_content in
-    let subdirs = Msg.Area_content.get_subdirs m.Model.area_content in
+    let id = Com.Area_content.get_id m.Model.area_content in
+    let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let new_subdirs = subdirs @ [name] in
     let route = Routing.Page.Area_content (id, new_subdirs) in
     let url = Routing.Page.to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) route in
-    return { m with area_content = (Msg.Area_content.set_subdirs new_subdirs m.Model.area_content) }
+    return { m with area_content = (Com.Area_content.set_subdirs new_subdirs m.Model.area_content) }
       ~c:[Api.send (Action.Set_current_url { url })]
   | Action.Upload_file_start { input_file_id } -> (
       let input_file = Document.get_element_by_id document input_file_id in
       match input_file with
       | None -> return m
       | Some e -> (
-          let area_id = Msg.Area_content.get_id m.Model.area_content in
-          let area_subdirs = Msg.Area_content.get_subdirs m.Model.area_content in
+          let area_id = Com.Area_content.get_id m.Model.area_content in
+          let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
           let files = Element.files e in
           let c = Js_toast.append_from_list ~l:files ~prefix_id:area_id ~fun_msg:File.name
               ~fun_cmd:(fun toast_id file -> Api.send (Action.Upload_file { area_id; area_subdirs; toast_id; file })) in
@@ -80,7 +80,10 @@ let update m a =
         | 201 ->
           let uploaded = Yojson.Safe.from_string json |> Msg.Uploaded.t_of_yojson in
           Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
-          { m with area_content = Msg.Area_content.(add_uploaded uploaded m.area_content |> sort) }
+          let area_id = Msg.Uploaded.get_area_id uploaded in
+          let subdirs = Msg.Uploaded.get_subdirs uploaded in
+          let file = Msg.Uploaded.get_file uploaded in
+          { m with area_content = Com.Area_content.(add_uploaded ~id:area_id ~subdirs ~file m.area_content |> sort) }
         | _ ->
           Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to upload file " ^ filename);
           m
@@ -89,8 +92,8 @@ let update m a =
       return m
     )
   | Action.New_directory_ask_dirname ->
-    let area_id = Msg.Area_content.get_id m.Model.area_content in
-    let area_subdirs = Msg.Area_content.get_subdirs m.Model.area_content in
+    let area_id = Com.Area_content.get_id m.Model.area_content in
+    let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let modal = Modal.set_new_directory m.modal
                 |> Modal.set_title "New directory"
                 |> Modal.set_input_content ""
@@ -122,7 +125,10 @@ let update m a =
       | 201 ->
         let new_directory = Yojson.Safe.from_string json |> Msg.New_directory_created.t_of_yojson in
         Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
-        { m with area_content = Msg.Area_content.(add_new_directory new_directory m.area_content |> sort) }
+        let area_id = Msg.New_directory_created.get_area_id new_directory in
+        let subdirs = Msg.New_directory_created.get_subdirs new_directory in
+        let directory = Msg.New_directory_created.get_directory new_directory in
+        { m with area_content = Com.Area_content.(add_new_directory ~id:area_id ~subdirs ~directory m.area_content |> sort) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to create new directory " ^ dirname);
         m
@@ -130,8 +136,8 @@ let update m a =
     let () = Js_toast.clean_hiddens ~document in
     return m
   | Action.Delete_file_ask_confirm { file } ->
-    let area_id = Msg.Area_content.get_id m.Model.area_content in
-    let area_subdirs = Msg.Area_content.get_subdirs m.Model.area_content in
+    let area_id = Com.Area_content.get_id m.Model.area_content in
+    let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let filename = Com.File.get_name file in
     let msg = Printf.sprintf "I understand that the file \"%s\" will be permanently deleted." filename in
     let modal = Modal.set_confirm_delete msg m.modal
@@ -164,7 +170,7 @@ let update m a =
       match status with
       | 200 ->
         Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
-        { m with area_content = Msg.Area_content.(remove_file ~id:area_id ~subdirs:area_subdirs ~filename:filename m.area_content |> sort) }
+        { m with area_content = Com.Area_content.(remove_file ~id:area_id ~subdirs:area_subdirs ~filename:filename m.area_content |> sort) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to delete file " ^ filename);
         m
@@ -172,8 +178,8 @@ let update m a =
     let () = Js_toast.clean_hiddens ~document in
     return m
   | Rename_file_ask_filename { file } ->
-    let area_id = Msg.Area_content.get_id m.Model.area_content in
-    let area_subdirs = Msg.Area_content.get_subdirs m.Model.area_content in
+    let area_id = Com.Area_content.get_id m.Model.area_content in
+    let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let old_filename = Com.File.get_name file in
     let modal = Modal.set_new_directory m.modal
                 |> Modal.set_title "Rename file"
@@ -206,7 +212,11 @@ let update m a =
       | 200 ->
         let file_renamed = Yojson.Safe.from_string json |> Msg.File_renamed.t_of_yojson in
         Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
-        { m with area_content = Msg.Area_content.(rename_file file_renamed m.area_content |> sort) }
+        let area_id = Msg.File_renamed.get_area_id file_renamed in
+        let subdirs = Msg.File_renamed.get_subdirs file_renamed in
+        let old_file = Msg.File_renamed.get_old_file file_renamed in
+        let new_file = Msg.File_renamed.get_new_file file_renamed in
+        { m with area_content = Com.Area_content.(rename_file ~id:area_id ~subdirs ~old_file ~new_file m.area_content |> sort) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to rename file " ^ old_filename ^ " to " ^ new_filename);
         m

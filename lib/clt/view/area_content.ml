@@ -144,10 +144,10 @@ let breadcrumb area_id l =
 let view m =
   if (Block.Fetchable.is_loaded m.Model.block) then (
     let content = m.Model.area_content in
-    let area_id = Msg.Area_content.get_id content in
-    let subdirs = Msg.Area_content.get_subdirs content in
-    let directories = Msg.Area_content.get_directories content in
-    let files = Msg.Area_content.get_files content in
+    let area_id = Com.Area_content.get_id content in
+    let subdirs = Com.Area_content.get_subdirs content in
+    let directories = Com.Area_content.get_directories content in
+    let files = Com.Area_content.get_files content in
     let lines = lines area_id subdirs directories files in
     elt "content" [
       div ~a:[class_ "row justify-content-end"] [

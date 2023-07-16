@@ -1,12 +1,11 @@
 module Com = Shupdofi_com_com
-module Msg = Shupdofi_com_msg
 module Routing = Shupdofi_clt_routing
 
 type t = {
   route : Routing.Page.t;
   block : (Block.Fetchable.id, Block.Fetchable.status) Block.Fetchable.t;
   areas : Com.Area.collection;
-  area_content : Msg.Area_content.t;
+  area_content : Com.Area_content.t;
   modal : Modal.t;
 }
 
@@ -14,7 +13,7 @@ let empty = {
   route = Routing.Page.Home;
   block = Block.Fetchable.default;
   areas = [];
-  area_content = Msg.Area_content.make ~id:"" ~subdirs:[] ~directories:[] ~files:[];
+  area_content = Com.Area_content.make ~id:"" ~subdirs:[] ~directories:[] ~files:[];
   modal = Modal.default;
 }
 
