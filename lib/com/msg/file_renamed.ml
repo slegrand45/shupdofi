@@ -1,11 +1,13 @@
 open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 
+module Com = Shupdofi_com_com
+
 type t = {
   area_id: string;
   (* or Directory.t list ?? *)
   subdirs: string list;
-  old_file: File.t;
-  new_file: File.t;
+  old_file: Com.File.t;
+  new_file: Com.File.t;
 }
 [@@deriving yojson]
 

@@ -1,10 +1,12 @@
 open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 
+module Com = Shupdofi_com_com
+
 type t = {
   id: string;
   subdirs: string list;
-  directories: Directory.relative Directory.t list;
-  files: File.t list
+  directories: Com.Directory.relative Com.Directory.t list;
+  files: Com.File.t list
 }
 [@@deriving yojson]
 
@@ -42,14 +44,14 @@ let rename_file file_renamed v =
   let old_file = File_renamed.get_old_file file_renamed in
   let new_file = File_renamed.get_new_file file_renamed in
   if area_id = v.id && subdirs = v.subdirs then
-    let l = List.filter (fun e -> File.get_name e <> File.get_name old_file) v.files in
+    let l = List.filter (fun e -> Com.File.get_name e <> Com.File.get_name old_file) v.files in
     { v with files = new_file :: l }
   else
     v
 
 let remove_file ~id ~subdirs ~filename v =
   if id = v.id && subdirs = v.subdirs then
-    { v with files = List.filter (fun e -> File.get_name e <> filename) v.files }
+    { v with files = List.filter (fun e -> Com.File.get_name e <> filename) v.files }
   else
     v
 

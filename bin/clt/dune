@@ -4,7 +4,7 @@
  (name main)
  (modes js)
  (preprocess (pps js_of_ocaml-ppx))
- (libraries js_of_ocaml-lwt vdom shupdofi_com shupdofi_clt_model shupdofi_clt_routing shupdofi_clt_view))
+ (libraries js_of_ocaml-lwt vdom shupdofi_com_com shupdofi_clt_model shupdofi_clt_routing shupdofi_clt_view))
 
 ; (env
 ;  (dev

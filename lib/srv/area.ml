@@ -1,4 +1,5 @@
-module Com = Shupdofi_com
+module Com = Shupdofi_com_com
+module Msg = Shupdofi_com_msg
 
 type t = Com.Area.t
 type collection = t list
@@ -14,8 +15,8 @@ let get_all () =
 let get_content ~id ~subdirs =
   let area = List.find_opt (fun e -> Com.Area.get_id e = id) (get_all ()) in
   match area with
-  | None -> Com.Area_content.make ~id:"" ~subdirs ~directories:[] ~files:[] 
+  | None -> Msg.Area_content.make ~id:"" ~subdirs ~directories:[] ~files:[] 
   | Some area ->
     let dir = Directory.concat (Com.Area.get_root area) (Directory.make_from_list subdirs) in
     let (directories, files) = Directory.read dir in
-    Com.Area_content.make ~id ~subdirs ~directories ~files 
+    Msg.Area_content.make ~id ~subdirs ~directories ~files 

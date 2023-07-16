@@ -1,5 +1,5 @@
 (library
- (name shupdofi_com)
+ (name shupdofi_com_com)
  (modes byte native)
  (preprocess
   (pps ppx_yojson_conv)))

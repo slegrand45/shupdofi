@@ -1,4 +1,4 @@
-module Com = Shupdofi_com
+module Com = Shupdofi_com_com
 
 type absolute = Com.Directory.absolute Com.Directory.t
 type relative = Com.Directory.relative Com.Directory.t

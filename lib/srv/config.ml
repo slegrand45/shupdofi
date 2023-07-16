@@ -1,4 +1,4 @@
-module Com = Shupdofi_com
+module Com = Shupdofi_com_com
 
 type t = {
   www_root: Com.Directory.absolute Com.Directory.t;
