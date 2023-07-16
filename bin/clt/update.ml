@@ -3,7 +3,8 @@ module Block = Shupdofi_clt_model.Block
 module Com = Shupdofi_com_com
 module Modal = Shupdofi_clt_model.Modal
 module Model = Shupdofi_clt_model.Model
-module Msg = Shupdofi_com_msg
+module Msg_from_srv = Shupdofi_com_msg_srv_to_clt
+module Msg_to_srv = Shupdofi_com_msg_clt_to_srv
 module Routing = Shupdofi_clt_routing
 
 open Vdom
@@ -78,11 +79,11 @@ let update m a =
       let m =
         match status with
         | 201 ->
-          let uploaded = Yojson.Safe.from_string json |> Msg.Uploaded.t_of_yojson in
+          let uploaded = Yojson.Safe.from_string json |> Msg_from_srv.Uploaded.t_of_yojson in
           Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
-          let area_id = Msg.Uploaded.get_area_id uploaded in
-          let subdirs = Msg.Uploaded.get_subdirs uploaded in
-          let file = Msg.Uploaded.get_file uploaded in
+          let area_id = Msg_from_srv.Uploaded.get_area_id uploaded in
+          let subdirs = Msg_from_srv.Uploaded.get_subdirs uploaded in
+          let file = Msg_from_srv.Uploaded.get_file uploaded in
           { m with area_content = Com.Area_content.(add_uploaded ~id:area_id ~subdirs ~file m.area_content |> sort) }
         | _ ->
           Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to upload file " ^ filename);
@@ -113,8 +114,8 @@ let update m a =
     return m ~c
   | Action.New_directory { area_id; area_subdirs; toast_id; dirname } ->
     let () = Js_toast.show ~document ~toast_id in
-    let payload = Msg.New_directory.make ~area_id ~subdirs:area_subdirs ~dirname
-                  |> Msg.New_directory.yojson_of_t |> Yojson.Safe.to_string
+    let payload = Msg_to_srv.New_directory.make ~area_id ~subdirs:area_subdirs ~dirname
+                  |> Msg_to_srv.New_directory.yojson_of_t |> Yojson.Safe.to_string
     in
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) New_directory) in
     let c = [Api.http_post ~url ~payload (fun status json -> Action.New_directory_done { toast_id; status; json; dirname })] in
@@ -123,11 +124,11 @@ let update m a =
     let m =
       match status with
       | 201 ->
-        let new_directory = Yojson.Safe.from_string json |> Msg.New_directory_created.t_of_yojson in
+        let new_directory = Yojson.Safe.from_string json |> Msg_from_srv.New_directory_created.t_of_yojson in
         Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
-        let area_id = Msg.New_directory_created.get_area_id new_directory in
-        let subdirs = Msg.New_directory_created.get_subdirs new_directory in
-        let directory = Msg.New_directory_created.get_directory new_directory in
+        let area_id = Msg_from_srv.New_directory_created.get_area_id new_directory in
+        let subdirs = Msg_from_srv.New_directory_created.get_subdirs new_directory in
+        let directory = Msg_from_srv.New_directory_created.get_directory new_directory in
         { m with area_content = Com.Area_content.(add_new_directory ~id:area_id ~subdirs ~directory m.area_content |> sort) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to create new directory " ^ dirname);
@@ -159,8 +160,8 @@ let update m a =
     return m ~c
   | Action.Delete_file { area_id; area_subdirs; toast_id; filename } ->
     let () = Js_toast.show ~document ~toast_id in
-    let payload = Msg.Delete_file.make ~area_id ~subdirs:area_subdirs ~filename
-                  |> Msg.Delete_file.yojson_of_t |> Yojson.Safe.to_string
+    let payload = Msg_to_srv.Delete_file.make ~area_id ~subdirs:area_subdirs ~filename
+                  |> Msg_to_srv.Delete_file.yojson_of_t |> Yojson.Safe.to_string
     in
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Delete_file) in
     let c = [Api.http_delete ~url ~payload (fun status _ -> Action.Delete_file_done { area_id; area_subdirs; toast_id; filename; status })] in
@@ -200,8 +201,8 @@ let update m a =
     return m ~c
   | Rename_file { area_id; area_subdirs; toast_id; old_filename; new_filename } ->
     let () = Js_toast.show ~document ~toast_id in
-    let payload = Msg.Rename_file.make ~area_id ~subdirs:area_subdirs ~old_filename ~new_filename
-                  |> Msg.Rename_file.yojson_of_t |> Yojson.Safe.to_string
+    let payload = Msg_to_srv.Rename_file.make ~area_id ~subdirs:area_subdirs ~old_filename ~new_filename
+                  |> Msg_to_srv.Rename_file.yojson_of_t |> Yojson.Safe.to_string
     in
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Rename_file) in
     let c = [Api.http_post ~url ~payload (fun status json -> Action.Rename_file_done { toast_id; old_filename; new_filename; status; json })] in
@@ -210,12 +211,12 @@ let update m a =
     let m =
       match status with
       | 200 ->
-        let file_renamed = Yojson.Safe.from_string json |> Msg.File_renamed.t_of_yojson in
+        let file_renamed = Yojson.Safe.from_string json |> Msg_from_srv.File_renamed.t_of_yojson in
         Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
-        let area_id = Msg.File_renamed.get_area_id file_renamed in
-        let subdirs = Msg.File_renamed.get_subdirs file_renamed in
-        let old_file = Msg.File_renamed.get_old_file file_renamed in
-        let new_file = Msg.File_renamed.get_new_file file_renamed in
+        let area_id = Msg_from_srv.File_renamed.get_area_id file_renamed in
+        let subdirs = Msg_from_srv.File_renamed.get_subdirs file_renamed in
+        let old_file = Msg_from_srv.File_renamed.get_old_file file_renamed in
+        let new_file = Msg_from_srv.File_renamed.get_new_file file_renamed in
         { m with area_content = Com.Area_content.(rename_file ~id:area_id ~subdirs ~old_file ~new_file m.area_content |> sort) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to rename file " ^ old_filename ^ " to " ^ new_filename);

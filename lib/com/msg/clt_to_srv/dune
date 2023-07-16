@@ -1,5 +1,5 @@
 (library
- (name shupdofi_com_msg)
+ (name shupdofi_com_msg_clt_to_srv)
  (modes byte native)
  (preprocess
   (pps ppx_yojson_conv))

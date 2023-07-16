@@ -2,7 +2,7 @@
  (public_name shupdofi_server)
  (name main)
  (modes byte native)
- (libraries tiny_httpd shupdofi_com_com shupdofi_srv))
+ (libraries tiny_httpd shupdofi_com_com shupdofi_com_msg_clt_to_srv shupdofi_com_msg_srv_to_clt shupdofi_srv))
 
 ; (env
 ;  (dev

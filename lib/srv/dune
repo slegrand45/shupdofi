@@ -1,7 +1,7 @@
 (library
  (name shupdofi_srv)
  (modes byte native)
- (libraries unix str magic-mime shupdofi_com_com shupdofi_com_msg))
+ (libraries unix str magic-mime shupdofi_com_com shupdofi_com_msg_srv_to_clt))
 
 ; (env
 ;  (dev
