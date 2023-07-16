@@ -1,19 +1,3 @@
-(*
-open Ppx_yojson_conv_lib.Yojson_conv.Primitives
-
-module Com = Shupdofi_com
-
-type t = {
-  area_id: string;
-  (* or Directory.t list ?? *)
-  subdirs: string list;
-  file: Com.File.t
-}
-[@@deriving yojson]
-
-let make ~area_id ~subdirs ~file = { area_id; subdirs; file }
-*)
-
 module Com = Shupdofi_com
 module Srv = Shupdofi_msg_srv_to_clt.Uploaded
 

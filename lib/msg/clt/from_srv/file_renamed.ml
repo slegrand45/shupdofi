@@ -1,20 +1,3 @@
-(*
-open Ppx_yojson_conv_lib.Yojson_conv.Primitives
-
-module Com = Shupdofi_com
-
-type t = {
-  area_id: string;
-  (* or Directory.t list ?? *)
-  subdirs: string list;
-  old_file: Com.File.t;
-  new_file: Com.File.t;
-}
-[@@deriving yojson]
-
-let make ~area_id ~subdirs ~old_file ~new_file = { area_id; subdirs; old_file; new_file }
-*)
-
 module Com = Shupdofi_com
 module Srv = Shupdofi_msg_srv_to_clt.File_renamed
 

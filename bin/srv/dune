@@ -3,8 +3,3 @@
  (name main)
  (modes byte native)
  (libraries tiny_httpd shupdofi_com shupdofi_msg_srv_from_clt shupdofi_msg_srv_to_clt shupdofi_srv))
-
-; (env
-;  (dev
-;   (flags
-;    (:standard -w -32 -w -69 -w -26))))
