@@ -7,22 +7,20 @@
 (source
  (github username/reponame))
 
-(authors "Author Name")
+(authors "Stéphane Legrand <slegrand45@gmail.com>")
 
-(maintainers "Maintainer Name")
+(maintainers "Stéphane Legrand <slegrand45@gmail.com>")
 
-(license LICENSE)
+(license AGPL)
 
 (documentation https://url/to/documentation)
 
- (implicit_transitive_deps false)
+(implicit_transitive_deps false)
 
 (package
  (name shupdofi)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "SHare UPload DOwnload FIles")
+ (description "A web application to upload/download files")
  (depends ocaml dune)
  (tags
   (topics "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
