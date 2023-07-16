@@ -1,4 +1,4 @@
-module Com = Shupdofi_com_com
+module Com = Shupdofi_com
 module Routing = Shupdofi_clt_routing
 
 type t = {

@@ -1,5 +1,5 @@
 module Block = Shupdofi_clt_model.Block
-module Com = Shupdofi_com_com
+module Com = Shupdofi_com
 module Html = Shupdofi_clt_html.Html
 module Icon = Shupdofi_clt_icon.Icon
 module Model = Shupdofi_clt_model.Model

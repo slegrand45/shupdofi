@@ -1,4 +1,4 @@
-module Com = Shupdofi_com_com
+module Com = Shupdofi_com
 
 open Js_of_ocaml
 

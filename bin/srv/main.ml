@@ -1,7 +1,7 @@
 module S = Tiny_httpd
-module Com = Shupdofi_com_com
-module Msg_from_clt = Shupdofi_com_msg_clt_to_srv
-module Msg_to_clt = Shupdofi_com_msg_srv_to_clt
+module Com = Shupdofi_com
+module Msg_from_clt = Shupdofi_msg_clt_to_srv
+module Msg_to_clt = Shupdofi_msg_srv_to_clt
 module Srv = Shupdofi_srv
 
 (* cat bombardier-linux-amd64 | curl -vvvv -X PUT --data-binary @- http://127.0.0.1:8080/api/upload/xxx *)

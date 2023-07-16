@@ -1,10 +1,10 @@
 module Action = Shupdofi_clt_model.Action
 module Block = Shupdofi_clt_model.Block
-module Com = Shupdofi_com_com
+module Com = Shupdofi_com
 module Modal = Shupdofi_clt_model.Modal
 module Model = Shupdofi_clt_model.Model
-module Msg_from_srv = Shupdofi_com_msg_srv_to_clt
-module Msg_to_srv = Shupdofi_com_msg_clt_to_srv
+module Msg_from_srv = Shupdofi_msg_srv_to_clt
+module Msg_to_srv = Shupdofi_msg_clt_to_srv
 module Routing = Shupdofi_clt_routing
 
 open Vdom
