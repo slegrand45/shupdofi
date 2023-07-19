@@ -16,6 +16,7 @@ let body m =
       ]
     ]
   | false ->
+    let switch_checked = (if (Modal.get_input_switch modal) then bool_prop "checked" true else bool_prop "checked" false) in
     match (Modal.is_confirm_delete modal) with
     | true ->
       elt "form" [
@@ -25,7 +26,7 @@ let body m =
         div ~a:[class_ "my-3"] [
           div ~a:[class_ "form-check form-switch"] [
             elt "input" ~a:[class_ "form-check-input"; type_ "checkbox"; attr "role" "switch"; attr "id" "formConfirmDeleteSwitch";
-                            value (Modal.get_input_content modal); onclick (fun e -> Action.Modal_toggle_switch)] [];
+                            switch_checked; onclick (fun e -> Action.Modal_toggle_switch)] [];
             elt "label" ~a:[class_ "form-check-label"; attr "for" "formConfirmDeleteSwitch"] [
               text (Modal.get_txt_switch modal)
             ]

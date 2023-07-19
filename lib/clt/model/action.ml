@@ -15,6 +15,10 @@ type t =
   | New_directory_start of { area_id : string; area_subdirs : string list }
   | New_directory of { area_id : string; area_subdirs : string list; toast_id : string; dirname : string }
   | New_directory_done of { toast_id : string; status : int; json : string; dirname : string }
+
+  | Rename_directory_ask_dirname of { directory : Com.Directory.relative Com.Directory.t }
+  | Delete_directory_ask_confirm of { directory : Com.Directory.relative Com.Directory.t }
+
   | Delete_file_ask_confirm of { file : Com.File.t }
   | Delete_file_start of { area_id : string; area_subdirs : string list; filename : string }
   | Delete_file of { area_id : string; area_subdirs : string list; toast_id : string; filename : string }

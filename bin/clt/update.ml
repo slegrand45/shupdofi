@@ -136,12 +136,21 @@ let update m a =
     in
     let () = Js_toast.clean_hiddens ~document in
     return m
+
+
+  | Rename_directory_ask_dirname { directory } ->
+    return m
+  | Delete_directory_ask_confirm { directory } ->
+    return m
+
+
   | Action.Delete_file_ask_confirm { file } ->
     let area_id = Com.Area_content.get_id m.Model.area_content in
     let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let filename = Com.File.get_name file in
     let msg = Printf.sprintf "I understand that the file \"%s\" will be permanently deleted." filename in
     let modal = Modal.set_confirm_delete msg m.modal
+                |> Modal.set_input_switch false
                 |> Modal.disable_bt_ok
                 |> Modal.set_title "Delete file"
                 |> Modal.set_input_content ""

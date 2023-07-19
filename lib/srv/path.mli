@@ -9,6 +9,7 @@ val add_extension : string -> 'a t -> 'a t
 val retrieve_stat : 'a t -> Unix.LargeFile.stats option
 val usable : Unix.LargeFile.stats option -> bool
 val mime : 'a t -> string
+val next_if_exists : Com.Directory.absolute Com.Directory.t -> Com.Directory.relative t -> Com.Directory.relative t
 val oc : Com.Directory.absolute Com.Directory.t -> Com.Directory.relative t -> (bytes -> int -> int -> unit) * (unit -> unit)
 val update_meta_infos : Com.Directory.absolute Com.Directory.t -> Com.Directory.relative t -> Com.Directory.relative t
 val rename : Com.Directory.absolute Com.Directory.t -> before:Com.Directory.relative Com.Path.t -> after:Com.Directory.relative Com.Path.t -> (Com.File.t * Com.File.t) option

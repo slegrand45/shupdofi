@@ -22,23 +22,39 @@ let one_line_mdatetime v =
   | None -> ""
   | Some v -> Intl.fmt_date_hm user_language v
 
-let one_line_directory acc v =
-  match Com.Directory.get_name v with
+let one_line_directory area_id area_subdirs acc directory =
+  let dirname = Com.Directory.get_name directory in
+  let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_directory { area_id; area_subdirs; dirname })) in
+  match Com.Directory.get_name directory with
   | "" -> acc
   | name -> 
-    elt "tr" ~a:[onclick_cancel (fun _ -> Some (Action.Area_go_to_subdir { name }))] [
+    elt "tr" ~a:[class_ "line"] [
       elt "td" [ Icon.folder ~class_attr:"" ];
-      elt "td" [ text name ];
-      elt "td" [ text (one_line_mdatetime (Com.Directory.get_mdatetime v)) ];
+      elt "td" ~a:[onclick_cancel (fun _ -> Some (Action.Area_go_to_subdir { name }))] [ text name ];
+      elt "td" [ text (one_line_mdatetime (Com.Directory.get_mdatetime directory)) ];
       elt "td" [ text "" ];
-      elt "td" [ text "" ];
-      elt "td" [ text "" ];
-      elt "td" [ text "" ];
+      elt "td" ~a:[class_ "text-center"] [
+        elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
+          Icon.download ~label:"Download" ~class_attr:"icon"
+        ];
+      ];
+      elt "td" ~a:[class_ "text-center"] [
+        elt "a" ~a:[str_prop "href" ""; class_ "action hide";
+                    onclick_cancel (fun _ -> Some (Action.Rename_directory_ask_dirname { directory }))] [
+          Icon.pencil ~label:"Rename" ~class_attr:"icon"
+        ];
+      ];
+      elt "td" ~a:[class_ "text-center"] [
+        elt "a" ~a:[str_prop "href" ""; class_ "action hide";
+                    onclick_cancel (fun _ -> Some (Action.Delete_directory_ask_confirm { directory }))] [
+          Icon.trash ~label:"Delete" ~class_attr:"icon"
+        ];
+      ];
     ] :: acc
 
 let one_line_file area_id area_subdirs acc file =
   let filename = Com.File.get_name file in
-  let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download { area_id; area_subdirs; filename })) in
+  let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_file { area_id; area_subdirs; filename })) in
   match Com.File.get_name file with
   | "" -> acc
   | name -> 
@@ -74,7 +90,7 @@ let lines area_id subdirs directories files =
   | directories, files ->
     let directories = List.sort (fun e1 e2 -> String.compare (Com.Directory.get_name e1) (Com.Directory.get_name e2)) directories in
     let files = List.sort (fun e1 e2 -> String.compare (Com.File.get_name e1) (Com.File.get_name e2)) files in
-    let trs_directories = List.fold_left one_line_directory [] directories |> List.rev in
+    let trs_directories = List.fold_left (one_line_directory area_id subdirs) [] directories |> List.rev in
     let trs_files = List.fold_left (one_line_file area_id subdirs) [] files |> List.rev in
     [div ~a:[class_ "table-responsive"] [
         elt "table" ~a:[class_ "table table-hover area-content"] [

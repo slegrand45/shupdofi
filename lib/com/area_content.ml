@@ -19,8 +19,9 @@ let set_id id v = { v with id }
 let set_subdirs subdirs v = { v with subdirs }
 
 let add_uploaded ~id ~subdirs ~file v =
+  let l = List.filter (fun e -> File.get_name e <> File.get_name file) v.files in
   if id = v.id && subdirs = v.subdirs then
-    { v with files = file :: v.files }
+    { v with files = file :: l }
   else
     v
 

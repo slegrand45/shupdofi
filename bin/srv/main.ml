@@ -102,6 +102,7 @@ let () =
        let path_string = path in
        let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
        let path = Srv.Path.relative_from_string path in
+       let path = Srv.Path.next_if_exists (Com.Area.get_root area) path in
        let write, close =
          try
            Srv.Path.oc (Com.Area.get_root area) path
@@ -181,6 +182,32 @@ let () =
          S.Response.make_raw ~code:200 ""
        with
        | _ -> S.Response.fail_raise ~code:403 "Cannot delete file %s" filename         
+    );
+
+  S.add_route_handler_stream ~meth:`GET server
+    S.Route.(exact "api" @/ exact "directory" @/ string_urlencoded @/ rest_of_path_urlencoded)
+    (* ~accept:(fun req ->
+       match S.Request.get_header_int req "Content-Length" with
+       | Some n when n > config.max_upload_size ->
+        Error (403, "max upload size is " ^ string_of_int config.max_upload_size)
+       | Some _ when contains_dot_dot req.S.Request.path ->
+        Error (403, "invalid path (contains '..')")
+       | _ -> Ok ()
+       ) *)
+    (fun area_id path req ->
+       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
+       try
+         let archive = Srv.Path.absolute_from_string (Filename.temp_file "shupdofi" "archive") in
+         let () = Srv.Archive.create_archive_of_directory ~archive ~root:(Com.Area.get_root area) ~subdir:(Com.Directory.make_relative ~name:path ()) in
+         let path_archive = Srv.Path.to_string archive in
+         let ch = In_channel.open_bin path_archive in
+         let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
+         let response = S.Response.make_raw_stream ~code:S.Response_code.ok stream |> S.Response.set_header "Content-Type" "application/zip" in
+         let () = Sys.remove path_archive in
+         response
+       with
+       | _ ->
+         S.Response.fail_raise ~code:403 "Cannot download directory %s" path
     );
 
   S.add_route_handler_stream ~meth:`POST server
