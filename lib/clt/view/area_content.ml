@@ -35,19 +35,19 @@ let one_line_directory area_id area_subdirs acc directory =
       elt "td" [ text "" ];
       elt "td" ~a:[class_ "text-center"] [
         elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
-          Icon.download ~label:"Download" ~class_attr:"icon"
+          Icon.file_download ~label:"Download" ~class_attr:"icon"
         ];
       ];
       elt "td" ~a:[class_ "text-center"] [
         elt "a" ~a:[str_prop "href" ""; class_ "action hide";
                     onclick_cancel (fun _ -> Some (Action.Rename_directory_ask_dirname { directory }))] [
-          Icon.pencil ~label:"Rename" ~class_attr:"icon"
+          Icon.edit ~label:"Rename" ~class_attr:"icon"
         ];
       ];
       elt "td" ~a:[class_ "text-center"] [
         elt "a" ~a:[str_prop "href" ""; class_ "action hide";
                     onclick_cancel (fun _ -> Some (Action.Delete_directory_ask_confirm { directory }))] [
-          Icon.trash ~label:"Delete" ~class_attr:"icon"
+          Icon.delete_forever ~label:"Delete" ~class_attr:"icon"
         ];
       ];
     ] :: acc
@@ -65,19 +65,19 @@ let one_line_file area_id area_subdirs acc file =
       elt "td" [ text (one_line_size_bytes file) ];
       elt "td" ~a:[class_ "text-center"] [
         elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
-          Icon.download ~label:"Download" ~class_attr:"icon"
+          Icon.file_download ~label:"Download" ~class_attr:"icon"
         ];
       ];
       elt "td" ~a:[class_ "text-center"] [
         elt "a" ~a:[str_prop "href" ""; class_ "action hide";
                     onclick_cancel (fun _ -> Some (Action.Rename_file_ask_filename { file }))] [
-          Icon.pencil ~label:"Rename" ~class_attr:"icon"
+          Icon.edit ~label:"Rename" ~class_attr:"icon"
         ];
       ];
       elt "td" ~a:[class_ "text-center"] [
         elt "a" ~a:[str_prop "href" ""; class_ "action hide";
                     onclick_cancel (fun _ -> Some (Action.Delete_file_ask_confirm { file }))] [
-          Icon.trash ~label:"Delete" ~class_attr:"icon"
+          Icon.delete_forever ~label:"Delete" ~class_attr:"icon"
         ];
       ];
     ] :: acc
@@ -169,7 +169,7 @@ let view m =
         div ~a:[class_ "col-auto"] [
           elt "form" ~a:[class_ "d-flex"; str_prop "role" "upload"] [
             div ~a:[class_ "input-group input-group-sm"] [
-              div ~a:[class_ "input-group-text"] [ Icon.upload ~class_attr:"" ];
+              div ~a:[class_ "input-group-text"] [ Icon.file_upload ~class_attr:"" ];
               input ~a:[class_ "form-control form-control-sm"; str_prop "type" "file"; value "";
                         attr "aria-label" "upload"; str_prop "id" "fileupload";
                         oninput (fun e -> Action.Upload_file_start { input_file_id = "fileupload" })] []

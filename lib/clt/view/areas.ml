@@ -22,7 +22,7 @@ let area v =
         elt "small" ~a:[class_ "text-body-secondary"] [
           Html.link Routing.Page.(Area_content ((Com.Area.get_id v), [])) ~class_attr:""
             ~title:("Go to area " ^ (Com.Area.get_name v)) [
-            Icon.box_arrow_right ~class_attr:"fs-5"
+            Icon.input ~class_attr:"fs-5"
           ]
         ];
       ]

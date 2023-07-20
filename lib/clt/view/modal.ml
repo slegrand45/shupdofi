@@ -21,7 +21,7 @@ let body m =
     | true ->
       elt "form" [
         div ~a:[class_ "my-3 text-danger fs-1 d-flex justify-content-center"] [
-          Icon.exclamation_triangle ~class_attr:"icon"
+          Icon.warning_amber ~class_attr:"icon"
         ];
         div ~a:[class_ "my-3"] [
           div ~a:[class_ "form-check form-switch"] [

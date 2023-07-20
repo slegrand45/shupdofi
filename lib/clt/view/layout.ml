@@ -10,14 +10,14 @@ let view m content =
       elt "nav" ~a:[class_ "navbar"] [
         div ~a:[class_ "container-fluid"] [
           Html.link Routing.Page.Home ~class_attr:"navbar-brand d-flex" ~title:"Home" [
-            Icon.house ~class_attr:"fs-6"
+            Icon.home ~class_attr:"fs-6"
           ];
           div ~a:[class_ "row justify-content-end"] [
             div ~a:[class_ "col-auto"] [
               elt "form" ~a:[str_prop "role" "link"] [
                 elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm"] [
                   div ~a:[class_ "d-flex align-items-center justify-content-around"] [
-                    Icon.gear ~class_attr:"fs-6";
+                    Icon.settings ~class_attr:"fs-6";
                     elt "span" ~a:[class_ "ms-1"] [ text " Admin " ]
                   ]
                 ]
@@ -27,7 +27,7 @@ let view m content =
               elt "form" ~a:[str_prop "role" "link"] [
                 elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm"] [
                   div ~a:[class_ "d-flex align-items-center justify-content-around"] [
-                    Icon.person_circle ~class_attr:"fs-6";
+                    Icon.account_circle ~class_attr:"fs-6";
                     elt "span" ~a:[class_ "ms-1"] [ text " Stéph. Legrand " ]
                   ]
                 ]

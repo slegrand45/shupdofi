@@ -193,6 +193,7 @@ let update m a =
     let old_filename = Com.File.get_name file in
     let modal = Modal.set_new_directory m.modal
                 |> Modal.set_title "Rename file"
+                |> Modal.enable_bt_ok
                 |> Modal.set_input_content old_filename
                 |> Modal.set_txt_bt_ok "Rename"
                 |> Modal.set_txt_bt_cancel "Cancel"
