@@ -204,11 +204,15 @@ let update m a =
     return m
   | Rename_file_start { area_id; area_subdirs; old_filename } ->
     let new_filename = Modal.get_input_content m.modal in
-    let c = Js_toast.append_from_list ~l:[new_filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename file " ^ old_filename ^ " to " ^ new_filename)
-        ~fun_cmd:(fun toast_id new_filename -> Api.send (Action.Rename_file { area_id; area_subdirs; toast_id; old_filename; new_filename }))
-    in
-    let c = Api.send(Action.Modal_close) :: c in
-    return m ~c
+    let c_default = Api.send(Action.Modal_close) in
+    if old_filename <> new_filename then
+      let c = Js_toast.append_from_list ~l:[new_filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename file " ^ old_filename ^ " to " ^ new_filename)
+          ~fun_cmd:(fun toast_id new_filename -> Api.send (Action.Rename_file { area_id; area_subdirs; toast_id; old_filename; new_filename }))
+      in
+      let c = c_default :: c in
+      return m ~c
+    else
+      return m ~c:[c_default]
   | Rename_file { area_id; area_subdirs; toast_id; old_filename; new_filename } ->
     let () = Js_toast.show ~document ~toast_id in
     let payload = Msg_to_srv.Rename_file.make ~area_id ~subdirs:area_subdirs ~old_filename ~new_filename
