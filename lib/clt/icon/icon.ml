@@ -54,26 +54,26 @@ let file_upload ~class_attr =
     svg_elt "path" ~a:[attr "d" "M18,15v3H6v-3H4v3c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2v-3H18z M7,9l1.41,1.41L11,7.83V16h2V7.83l2.59,2.58L17,9l-5-5L7,9z"][];
   ]
 
-let file_download ~label ~class_attr =
+let file_download ~label ~class_attr ~aria_id =
   svg_elt "svg" ~a:[attr "width" "1.5em"; attr "height" "1.5em"; attr "fill" "currentColor"; attr "class" class_attr;
-                    attr "viewBox" "0 0 24 24"; attr "enable-background" "new 0 0 24 24"; attr "aria-labelledby" "icon-title-file-download"; attr "role" "img"] [
-    svg_elt "title" ~a:[attr "id" "icon-title-file-download"] [text label];
+                    attr "viewBox" "0 0 24 24"; attr "enable-background" "new 0 0 24 24"; attr "aria-labelledby" aria_id; attr "role" "img"] [
+    svg_elt "title" ~a:[attr "id" aria_id] [text label];
     svg_elt "rect" ~a:[attr "width" "1.5em"; attr "height" "1.5em"; attr "fill" "none"][];
     svg_elt "path" ~a:[attr "d" "M18,15v3H6v-3H4v3c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2v-3H18z M17,11l-1.41-1.41L13,12.17V4h-2v8.17L8.41,9.59L7,11l5,5 L17,11z"][];
   ]
 
-let edit ~label ~class_attr =
+let edit ~label ~class_attr ~aria_id =
   svg_elt "svg" ~a:[attr "width" "1.5em"; attr "height" "1.5em"; attr "fill" "currentColor"; attr "class" class_attr;
-                    attr "viewBox" "0 0 24 24"; attr "enable-background" "new 0 0 24 24"; attr "aria-labelledby" "icon-title-edit"; attr "role" "img"] [
-    svg_elt "title" ~a:[attr "id" "icon-title-edit"] [text label];
+                    attr "viewBox" "0 0 24 24"; attr "enable-background" "new 0 0 24 24"; attr "aria-labelledby" aria_id; attr "role" "img"] [
+    svg_elt "title" ~a:[attr "id" aria_id] [text label];
     svg_elt "path" ~a:[attr "d" "M0 0h24v24H0V0z"; attr "fill" "none"][];
     svg_elt "path" ~a:[attr "d" "M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.2-.2-.45-.29-.71-.29zm-3.6 3.19L3 17.25V21h3.75L17.81 9.94l-3.75-3.75z"][];
   ]
 
-let delete_forever ~label ~class_attr =
+let delete_forever ~label ~class_attr ~aria_id =
   svg_elt "svg" ~a:[attr "width" "1.5em"; attr "height" "1.5em"; attr "fill" "currentColor"; attr "class" class_attr;
-                    attr "viewBox" "0 0 24 24"; attr "enable-background" "new 0 0 24 24"; attr "aria-labelledby" "icon-title-delete-forever"; attr "role" "img"] [
-    svg_elt "title" ~a:[attr "id" "icon-title-delete-forever"] [text label];
+                    attr "viewBox" "0 0 24 24"; attr "enable-background" "new 0 0 24 24"; attr "aria-labelledby" aria_id; attr "role" "img"] [
+    svg_elt "title" ~a:[attr "id" aria_id] [text label];
     svg_elt "path" ~a:[attr "d" "M0 0h24v24H0V0z"; attr "fill" "none"][];
     svg_elt "path" ~a:[attr "d" "M14.12 10.47L12 12.59l-2.13-2.12-1.41 1.41L10.59 14l-2.12 2.12 1.41 1.41L12 15.41l2.12 2.12 1.41-1.41L13.41 14l2.12-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4zM6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9z"][];
   ]

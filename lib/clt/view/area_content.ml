@@ -22,65 +22,65 @@ let one_line_mdatetime v =
   | None -> ""
   | Some v -> Intl.fmt_date_hm user_language v
 
-let one_line_directory area_id area_subdirs acc directory =
+let one_line_directory area_id area_subdirs (acc, i) directory =
   let dirname = Com.Directory.get_name directory in
   let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_directory { area_id; area_subdirs; dirname })) in
   match Com.Directory.get_name directory with
-  | "" -> acc
-  | name -> 
-    elt "tr" ~a:[class_ "line"] [
-      elt "td" [ Icon.folder ~class_attr:"" ];
-      elt "td" ~a:[onclick_cancel (fun _ -> Some (Action.Area_go_to_subdir { name }))] [ text name ];
-      elt "td" [ text (one_line_mdatetime (Com.Directory.get_mdatetime directory)) ];
-      elt "td" [ text "" ];
-      elt "td" ~a:[class_ "text-center"] [
-        elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
-          Icon.file_download ~label:"Download" ~class_attr:"icon"
+  | "" -> (acc, i + 1)
+  | name -> (
+      elt "tr" ~a:[class_ "line"] [
+        elt "td" [ Icon.folder ~class_attr:"" ];
+        elt "td" ~a:[onclick_cancel (fun _ -> Some (Action.Area_go_to_subdir { name }))] [ text name ];
+        elt "td" [ text (one_line_mdatetime (Com.Directory.get_mdatetime directory)) ];
+        elt "td" [ text "" ];
+        elt "td" ~a:[class_ "text-center"] [
+          elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
+            Icon.file_download ~label:"Download" ~class_attr:"icon" ~aria_id:("directory-icon-title-file-download" ^ (string_of_int i))
+          ];
         ];
-      ];
-      elt "td" ~a:[class_ "text-center"] [
-        elt "a" ~a:[str_prop "href" ""; class_ "action hide";
-                    onclick_cancel (fun _ -> Some (Action.Rename_directory_ask_dirname { directory }))] [
-          Icon.edit ~label:"Rename" ~class_attr:"icon"
+        elt "td" ~a:[class_ "text-center"] [
+          elt "a" ~a:[str_prop "href" ""; class_ "action hide";
+                      onclick_cancel (fun _ -> Some (Action.Rename_directory_ask_dirname { directory }))] [
+            Icon.edit ~label:"Rename" ~class_attr:"icon" ~aria_id:("directory-icon-title-edit" ^ (string_of_int i))
+          ];
         ];
-      ];
-      elt "td" ~a:[class_ "text-center"] [
-        elt "a" ~a:[str_prop "href" ""; class_ "action hide";
-                    onclick_cancel (fun _ -> Some (Action.Delete_directory_ask_confirm { directory }))] [
-          Icon.delete_forever ~label:"Delete" ~class_attr:"icon"
+        elt "td" ~a:[class_ "text-center"] [
+          elt "a" ~a:[str_prop "href" ""; class_ "action hide";
+                      onclick_cancel (fun _ -> Some (Action.Delete_directory_ask_confirm { directory }))] [
+            Icon.delete_forever ~label:"Delete" ~class_attr:"icon" ~aria_id:("directory-icon-delete-forever" ^ (string_of_int i))
+          ];
         ];
-      ];
-    ] :: acc
+      ] :: acc, i + 1)
 
-let one_line_file area_id area_subdirs acc file =
+let one_line_file area_id area_subdirs (acc, i) file =
   let filename = Com.File.get_name file in
   let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_file { area_id; area_subdirs; filename })) in
   match Com.File.get_name file with
-  | "" -> acc
-  | name -> 
-    elt "tr" ~a:[class_ "line"] [
-      elt "td" [ text "" ];
-      elt "td" [ text name ];
-      elt "td" [ text (one_line_mdatetime (Com.File.get_mdatetime file)) ];
-      elt "td" [ text (one_line_size_bytes file) ];
-      elt "td" ~a:[class_ "text-center"] [
-        elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
-          Icon.file_download ~label:"Download" ~class_attr:"icon"
+  | "" -> (acc, i + 1)
+  | name -> (
+      elt "tr" ~a:[class_ "line"] [
+        elt "td" [ text "" ];
+        elt "td" [ text name ];
+        elt "td" [ text (one_line_mdatetime (Com.File.get_mdatetime file)) ];
+        elt "td" [ text (one_line_size_bytes file) ];
+        elt "td" ~a:[class_ "text-center"] [
+          elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
+            Icon.file_download ~label:"Download" ~class_attr:"icon" ~aria_id:("file-icon-title-file-download" ^ (string_of_int i))
+          ];
         ];
-      ];
-      elt "td" ~a:[class_ "text-center"] [
-        elt "a" ~a:[str_prop "href" ""; class_ "action hide";
-                    onclick_cancel (fun _ -> Some (Action.Rename_file_ask_filename { file }))] [
-          Icon.edit ~label:"Rename" ~class_attr:"icon"
+        elt "td" ~a:[class_ "text-center"] [
+          elt "a" ~a:[str_prop "href" ""; class_ "action hide";
+                      onclick_cancel (fun _ -> Some (Action.Rename_file_ask_filename { file }))] [
+            Icon.edit ~label:"Rename" ~class_attr:"icon" ~aria_id:("file-icon-title-edit" ^ (string_of_int i))
+          ];
         ];
-      ];
-      elt "td" ~a:[class_ "text-center"] [
-        elt "a" ~a:[str_prop "href" ""; class_ "action hide";
-                    onclick_cancel (fun _ -> Some (Action.Delete_file_ask_confirm { file }))] [
-          Icon.delete_forever ~label:"Delete" ~class_attr:"icon"
+        elt "td" ~a:[class_ "text-center"] [
+          elt "a" ~a:[str_prop "href" ""; class_ "action hide";
+                      onclick_cancel (fun _ -> Some (Action.Delete_file_ask_confirm { file }))] [
+            Icon.delete_forever ~label:"Delete" ~class_attr:"icon" ~aria_id:("file-icon-delete-forever" ^ (string_of_int i))
+          ];
         ];
-      ];
-    ] :: acc
+      ] :: acc, i + 1)
 
 let lines area_id subdirs directories files =
   match directories, files with
@@ -90,8 +90,8 @@ let lines area_id subdirs directories files =
   | directories, files ->
     let directories = List.sort (fun e1 e2 -> String.compare (Com.Directory.get_name e1) (Com.Directory.get_name e2)) directories in
     let files = List.sort (fun e1 e2 -> String.compare (Com.File.get_name e1) (Com.File.get_name e2)) files in
-    let trs_directories = List.fold_left (one_line_directory area_id subdirs) [] directories |> List.rev in
-    let trs_files = List.fold_left (one_line_file area_id subdirs) [] files |> List.rev in
+    let trs_directories = List.fold_left (one_line_directory area_id subdirs) ([], 1) directories |> fst |> List.rev in
+    let trs_files = List.fold_left (one_line_file area_id subdirs) ([], 1) files |> fst |> List.rev in
     [div ~a:[class_ "table-responsive"] [
         elt "table" ~a:[class_ "table table-hover area-content"] [
           elt "thead" [
@@ -167,7 +167,7 @@ let view m =
     elt "content" [
       div ~a:[class_ "row justify-content-end"] [
         div ~a:[class_ "col-auto"] [
-          elt "form" ~a:[class_ "d-flex"; str_prop "role" "upload"] [
+          elt "form" ~a:[class_ "d-flex"; str_prop "role" "button"] [
             div ~a:[class_ "input-group input-group-sm"] [
               div ~a:[class_ "input-group-text"] [ Icon.file_upload ~class_attr:"" ];
               input ~a:[class_ "form-control form-control-sm"; str_prop "type" "file"; value "";
