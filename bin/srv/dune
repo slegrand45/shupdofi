@@ -3,6 +3,7 @@
  (name main)
  (modes byte native)
  (libraries
+  unix
   yojson
   tiny_httpd
   shupdofi_com

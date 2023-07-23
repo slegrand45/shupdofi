@@ -6,6 +6,7 @@ type t = Areas
        | Delete_file
        | New_directory
        | Download_directory of { area_id: string; area_subdirs: string list; dirname: string }
+       | Rename_directory
 
 let prefix = "/api"
 
@@ -40,3 +41,5 @@ let to_url ?encode v =
   | Download_directory { area_id; area_subdirs; dirname } ->
     let path = List.map (fun e -> encode e) area_subdirs |> String.concat "/" in
     prefix ^ "/directory/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode dirname)
+  | Rename_directory ->
+    prefix ^ "/directory/rename"

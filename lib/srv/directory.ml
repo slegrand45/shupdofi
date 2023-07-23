@@ -62,6 +62,15 @@ let attach_stat root entry =
   with
   | _ -> (entry, None)
 
+
+let retrieve_mdatetime f (entry, stat) =
+  match stat with
+  | None -> (entry, stat)
+  | Some stat -> 
+    let mtime = stat.Unix.LargeFile.st_mtime in
+    (f (Some (Datetime.of_mtime mtime)) entry, Some stat)
+
+
 let read directory =
   let root = Com.Directory.get_name directory in
   let filter_kind st_kind (_, stat) =
@@ -79,13 +88,6 @@ let read directory =
       let size = stat.Unix.LargeFile.st_size in
       (Com.File.set_size_bytes (Some size) file, Some stat)
   in
-  let retrieve_mdatetime f (entry, stat) =
-    match stat with
-    | None -> (entry, stat)
-    | Some stat -> 
-      let mtime = stat.Unix.LargeFile.st_mtime in
-      (f (Some (Datetime.of_mtime mtime)) entry, Some stat)
-  in
   try
     let l = Sys.readdir root |> Array.to_list |> List.map (attach_stat root) in
     let directories = List.filter (filter_kind Unix.S_DIR) l
@@ -101,3 +103,17 @@ let read directory =
     in (directories, files)
   with
   | _ -> ([], [])
+
+let rename root_dir ~before ~after =
+  let absolute_before = concat root_dir before in
+  let absolute_after = concat root_dir after in
+  try
+    if (Sys.file_exists (Com.Directory.get_name absolute_after)) then
+      None
+    else (
+      Sys.rename (Com.Directory.get_name absolute_before) (Com.Directory.get_name absolute_after);
+      let (_, stat) = attach_stat (Com.Directory.get_name root_dir) (Com.Directory.get_name after) in
+      stat
+    )
+  with
+  | _ -> None

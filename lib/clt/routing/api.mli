@@ -6,5 +6,6 @@ type t = Areas
        | Delete_file
        | New_directory
        | Download_directory of { area_id: string; area_subdirs: string list; dirname: string }
+       | Rename_directory
 
 val to_url : ?encode:(string -> string) -> t -> string

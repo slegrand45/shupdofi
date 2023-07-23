@@ -31,6 +31,13 @@ let add_new_directory ~id ~subdirs ~directory v =
   else
     v
 
+let rename_directory ~id ~subdirs ~old_directory ~new_directory v =
+  if id = v.id && subdirs = v.subdirs then
+    let l = List.filter (fun e -> Directory.get_name e <> Directory.get_name old_directory) v.directories in
+    { v with directories = new_directory :: l }
+  else
+    v
+
 let rename_file ~id ~subdirs ~old_file ~new_file v =
   if id = v.id && subdirs = v.subdirs then
     let l = List.filter (fun e -> File.get_name e <> File.get_name old_file) v.files in

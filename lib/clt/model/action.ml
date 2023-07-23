@@ -17,6 +17,10 @@ type t =
   | New_directory_done of { toast_id : string; status : int; json : string; dirname : string }
 
   | Rename_directory_ask_dirname of { directory : Com.Directory.relative Com.Directory.t }
+  | Rename_directory_start of { area_id : string; area_subdirs : string list; old_dirname : string }
+  | Rename_directory of { area_id : string; area_subdirs : string list; toast_id : string; old_dirname : string; new_dirname : string }
+  | Rename_directory_done of { toast_id : string; old_dirname : string; new_dirname : string; status : int; json : string }
+
   | Delete_directory_ask_confirm of { directory : Com.Directory.relative Com.Directory.t }
 
   | Delete_file_ask_confirm of { file : Com.File.t }

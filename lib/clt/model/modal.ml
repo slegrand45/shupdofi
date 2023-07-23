@@ -1,5 +1,5 @@
 type modal =
-  | New_directory
+  | New_entry
   | Confirm_delete
 
 type t = {
@@ -27,9 +27,9 @@ let default = {
   fun_bt_ok = fun _ -> Action.Nothing;
 }
 
-let is_new_directory v =
+let is_new_entry v =
   match v.modal with
-  | Some New_directory -> true
+  | Some New_entry -> true
   | _ -> false
 
 let is_confirm_delete v =
@@ -37,8 +37,8 @@ let is_confirm_delete v =
   | Some Confirm_delete -> true
   | _ -> false
 
-let set_new_directory v =
-  { v with modal = Some New_directory }
+let set_new_entry v =
+  { v with modal = Some New_entry }
 
 let set_confirm_delete msg v =
   { v with modal = Some Confirm_delete; txt_switch = msg }

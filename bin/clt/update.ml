@@ -95,7 +95,7 @@ let update m a =
   | Action.New_directory_ask_dirname ->
     let area_id = Com.Area_content.get_id m.Model.area_content in
     let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
-    let modal = Modal.set_new_directory m.modal
+    let modal = Modal.set_new_entry m.modal
                 |> Modal.set_title "New directory"
                 |> Modal.set_input_content ""
                 |> Modal.set_txt_bt_ok "Create"
@@ -138,9 +138,60 @@ let update m a =
     return m
 
 
-  | Rename_directory_ask_dirname { directory } ->
+  | Action.Rename_directory_ask_dirname { directory } ->
+    let area_id = Com.Area_content.get_id m.Model.area_content in
+    let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
+    let old_dirname = Com.Directory.get_name directory in
+    let modal = Modal.set_new_entry m.modal
+                |> Modal.set_title "Rename directory"
+                |> Modal.enable_bt_ok
+                |> Modal.set_input_content old_dirname
+                |> Modal.set_txt_bt_ok "Rename"
+                |> Modal.set_txt_bt_cancel "Cancel"
+                |> Modal.set_fun_bt_ok (fun e -> Action.Rename_directory_start { area_id; area_subdirs; old_dirname })
+    in
+    let m = { m with modal } in
+    let () = Js_modal.show () in
     return m
-  | Delete_directory_ask_confirm { directory } ->
+  | Action.Rename_directory_start { area_id; area_subdirs; old_dirname } ->
+    let new_dirname = Modal.get_input_content m.modal in
+    let c_default = Api.send(Action.Modal_close) in
+    if old_dirname <> new_dirname then
+      let c = Js_toast.append_from_list ~l:[new_dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename direcory " ^ old_dirname ^ " to " ^ new_dirname)
+          ~fun_cmd:(fun toast_id new_dirname -> Api.send (Action.Rename_directory { area_id; area_subdirs; toast_id; old_dirname; new_dirname }))
+      in
+      let c = c_default :: c in
+      return m ~c
+    else
+      return m ~c:[c_default]
+  | Action.Rename_directory { area_id; area_subdirs; toast_id; old_dirname; new_dirname } ->
+    let () = Js_toast.show ~document ~toast_id in
+    let payload = Msg_to_srv.Rename_directory.make ~area_id ~subdirs:area_subdirs ~old_dirname ~new_dirname
+                  |> Msg_to_srv.Rename_directory.yojson_of_t |> Yojson.Safe.to_string
+    in
+    let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Rename_directory) in
+    let c = [Api.http_post ~url ~payload (fun status json -> Action.Rename_directory_done { toast_id; old_dirname; new_dirname; status; json })] in
+    return m ~c
+  | Action.Rename_directory_done { toast_id; old_dirname; new_dirname; status; json } ->
+    let m =
+      match status with
+      | 200 ->
+        let directory_renamed = Yojson.Safe.from_string json |> Msg_from_srv.Directory_renamed.t_of_yojson in
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+        let area_id = Msg_from_srv.Directory_renamed.get_area_id directory_renamed in
+        let subdirs = Msg_from_srv.Directory_renamed.get_subdirs directory_renamed in
+        let old_directory = Msg_from_srv.Directory_renamed.get_old_directory directory_renamed in
+        let new_directory = Msg_from_srv.Directory_renamed.get_new_directory directory_renamed in
+        { m with area_content = Com.Area_content.(rename_directory ~id:area_id ~subdirs ~old_directory ~new_directory m.area_content |> sort) }
+      | _ ->
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to rename directory " ^ old_dirname ^ " to " ^ new_dirname);
+        m
+    in
+    let () = Js_toast.clean_hiddens ~document in
+    return m
+
+
+  | Action.Delete_directory_ask_confirm { directory } ->
     return m
 
 
@@ -187,11 +238,11 @@ let update m a =
     in
     let () = Js_toast.clean_hiddens ~document in
     return m
-  | Rename_file_ask_filename { file } ->
+  | Action.Rename_file_ask_filename { file } ->
     let area_id = Com.Area_content.get_id m.Model.area_content in
     let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let old_filename = Com.File.get_name file in
-    let modal = Modal.set_new_directory m.modal
+    let modal = Modal.set_new_entry m.modal
                 |> Modal.set_title "Rename file"
                 |> Modal.enable_bt_ok
                 |> Modal.set_input_content old_filename
@@ -202,7 +253,7 @@ let update m a =
     let m = { m with modal } in
     let () = Js_modal.show () in
     return m
-  | Rename_file_start { area_id; area_subdirs; old_filename } ->
+  | Action.Rename_file_start { area_id; area_subdirs; old_filename } ->
     let new_filename = Modal.get_input_content m.modal in
     let c_default = Api.send(Action.Modal_close) in
     if old_filename <> new_filename then
@@ -213,7 +264,7 @@ let update m a =
       return m ~c
     else
       return m ~c:[c_default]
-  | Rename_file { area_id; area_subdirs; toast_id; old_filename; new_filename } ->
+  | Action.Rename_file { area_id; area_subdirs; toast_id; old_filename; new_filename } ->
     let () = Js_toast.show ~document ~toast_id in
     let payload = Msg_to_srv.Rename_file.make ~area_id ~subdirs:area_subdirs ~old_filename ~new_filename
                   |> Msg_to_srv.Rename_file.yojson_of_t |> Yojson.Safe.to_string
@@ -221,7 +272,7 @@ let update m a =
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Rename_file) in
     let c = [Api.http_post ~url ~payload (fun status json -> Action.Rename_file_done { toast_id; old_filename; new_filename; status; json })] in
     return m ~c
-  | Rename_file_done { toast_id; old_filename; new_filename; status; json } ->
+  | Action.Rename_file_done { toast_id; old_filename; new_filename; status; json } ->
     let m =
       match status with
       | 200 ->

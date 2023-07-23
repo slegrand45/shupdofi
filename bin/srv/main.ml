@@ -184,6 +184,33 @@ let () =
        | _ -> S.Response.fail_raise ~code:403 "Cannot delete file %s" filename         
     );
 
+  S.add_route_handler_stream ~meth:`POST server
+    S.Route.(exact "api" @/ exact "directory" @/ exact "rename" @/ return)
+    (fun req ->
+       let body = Tiny_httpd_stream.read_all req.S.Request.body in
+       let rename_directory = Yojson.Safe.from_string body |> Msg_from_clt.Rename_directory.t_of_yojson in
+       let area_id = Msg_from_clt.Rename_directory.get_area_id rename_directory in
+       let subdirs = Msg_from_clt.Rename_directory.get_subdirs rename_directory in
+       let old_dirname = Msg_from_clt.Rename_directory.get_old_dirname rename_directory in
+       let new_dirname = Msg_from_clt.Rename_directory.get_new_dirname rename_directory in
+       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
+       let relative_dir_old = Srv.Directory.make_from_list (subdirs @ [old_dirname]) in
+       let relative_dir_new = Srv.Directory.make_from_list (subdirs @ [new_dirname]) in
+       let rename = Srv.Directory.rename (Com.Area.get_root area) ~before:relative_dir_old ~after:relative_dir_new in
+       match rename with
+       | None ->
+         S.Response.fail_raise ~code:403 "Cannot rename directory %s to %s" old_dirname new_dirname
+       | Some new_stat ->
+         let mtime = new_stat.Unix.LargeFile.st_mtime in
+         let old_directory = Com.Directory.make_relative ~name:old_dirname () in
+         let new_directory = Com.Directory.make_relative ~name:new_dirname ()
+                             |> Com.Directory.set_mdatetime (Some (Srv.Datetime.of_mtime mtime))
+         in
+         let directory_renamed = Msg_to_clt.Directory_renamed.make ~area_id ~subdirs ~old_directory ~new_directory in
+         let json = Msg_to_clt.Directory_renamed.yojson_of_t directory_renamed |> Yojson.Safe.to_string in
+         S.Response.make_raw ~code:200 json
+    );
+
   S.add_route_handler_stream ~meth:`GET server
     S.Route.(exact "api" @/ exact "directory" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (* ~accept:(fun req ->

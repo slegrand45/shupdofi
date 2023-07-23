@@ -7,11 +7,11 @@ open Vdom
 
 let body m =
   let modal = m.Model.modal in
-  match (Modal.is_new_directory modal) with
+  match (Modal.is_new_entry modal) with
   | true -> 
     elt "form" [
       div ~a:[class_ "my-3"] [
-        elt "input" ~a:[class_ "form-control"; attr "aria-label" "New directory name";
+        elt "input" ~a:[class_ "form-control"; attr "aria-label" "New entry";
                         value (Modal.get_input_content modal); oninput (fun e -> Action.Modal_set_input_content { content = e })] []
       ]
     ]

@@ -2,9 +2,9 @@ type t
 
 val default : t
 
-val is_new_directory : t -> bool
+val is_new_entry : t -> bool
 val is_confirm_delete : t -> bool
-val set_new_directory : t -> t
+val set_new_entry : t -> t
 val set_confirm_delete : string -> t -> t
 
 val get_title : t -> string
