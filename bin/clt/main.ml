@@ -1,4 +1,5 @@
 module Action = Shupdofi_clt_model.Action
+module Api = Shupdofi_clt_api.Api
 module Model = Shupdofi_clt_model.Model
 
 open Vdom

@@ -1,19 +1,19 @@
-(executable
- (name main)
- (modes js)
- (preprocess
-  (pps js_of_ocaml-ppx))
+(library
+ (name shupdofi_clt_update)
+ (modes byte)
  (libraries
   yojson
   ojs
   vdom.base
   vdom
+  js_of_ocaml
   shupdofi_com
   shupdofi_msg_clt_from_srv
   shupdofi_msg_clt_to_srv
-  shupdofi_clt_api
   shupdofi_clt_model
   shupdofi_clt_routing
   shupdofi_clt_js
-  shupdofi_clt_update
-  shupdofi_clt_view))
+  shupdofi_clt_view
+  
+  shupdofi_clt_action
+  shupdofi_clt_api))

@@ -1,4 +1,5 @@
 module Action = Shupdofi_clt_model.Action
+module Action_other = Shupdofi_clt_action
 module Block = Shupdofi_clt_model.Block
 module Com = Shupdofi_com
 module Html = Shupdofi_clt_html.Html
@@ -40,7 +41,7 @@ let one_line_directory area_id area_subdirs (acc, i) directory =
         ];
         elt "td" ~a:[class_ "text-center"] [
           elt "a" ~a:[str_prop "href" ""; class_ "action hide";
-                      onclick_cancel (fun _ -> Some (Action.Rename_directory_ask_dirname { directory }))] [
+                      onclick_cancel (fun _ -> Some (Action.Rename_directory (Action_other.Rename_directory.Ask { directory })))] [
             Icon.edit ~label:"Rename" ~class_attr:"icon" ~aria_id:("directory-icon-title-edit" ^ (string_of_int i))
           ];
         ];
@@ -70,13 +71,13 @@ let one_line_file area_id area_subdirs (acc, i) file =
         ];
         elt "td" ~a:[class_ "text-center"] [
           elt "a" ~a:[str_prop "href" ""; class_ "action hide";
-                      onclick_cancel (fun _ -> Some (Action.Rename_file_ask_filename { file }))] [
+                      onclick_cancel (fun _ -> Some (Action.Rename_file (Action_other.Rename_file.Ask { file })))] [
             Icon.edit ~label:"Rename" ~class_attr:"icon" ~aria_id:("file-icon-title-edit" ^ (string_of_int i))
           ];
         ];
         elt "td" ~a:[class_ "text-center"] [
           elt "a" ~a:[str_prop "href" ""; class_ "action hide";
-                      onclick_cancel (fun _ -> Some (Action.Delete_file_ask_confirm { file }))] [
+                      onclick_cancel (fun _ -> Some (Action.Delete_file (Action_other.Delete_file.Ask { file })))] [
             Icon.delete_forever ~label:"Delete" ~class_attr:"icon" ~aria_id:("file-icon-delete-forever" ^ (string_of_int i))
           ];
         ];
@@ -118,7 +119,7 @@ let breadcrumb_last id e =
       ];
       elt "ul" ~a:[class_ "dropdown-menu"] [
         elt "li" [
-          elt "a" ~a:[class_ "dropdown-item"; str_prop "href" ""; onclick_cancel (fun e -> Some Action.New_directory_ask_dirname)] [
+          elt "a" ~a:[class_ "dropdown-item"; str_prop "href" ""; onclick_cancel (fun e -> Some (Action.New_directory Action_other.New_directory.Ask))] [
             text "New directory"
           ]
         ];

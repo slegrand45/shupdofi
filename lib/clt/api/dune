@@ -1,0 +1,4 @@
+(library
+ (name shupdofi_clt_api)
+ (modes byte)
+ (libraries vdom.base vdom ojs))
