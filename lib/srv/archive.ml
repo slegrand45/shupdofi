@@ -2,16 +2,16 @@ module Com = Shupdofi_com
 
 (* https://github.com/xavierleroy/camlzip/blob/master/test/minizip.ml *)
 let rec add_entry root oc file =
-  let entry = String.sub file (String.length root) ((String.length file) - (String.length root)) in
-  let entry = (if (String.sub entry 0 1) = Filename.dir_sep then (String.sub entry 1 ((String.length entry) - 1)) else entry) in
-  let s = Unix.stat file in
+  let entry = file in
+  let path = Filename.concat root file in
+  let s = Unix.stat path in
   match s.Unix.st_kind with
     Unix.S_REG ->
-    Zip.copy_file_to_entry file oc ~mtime:s.Unix.st_mtime entry
+    Zip.copy_file_to_entry path oc ~mtime:s.Unix.st_mtime entry
   | Unix.S_DIR ->
     Zip.add_entry "" oc ~mtime:s.Unix.st_mtime
       (if Filename.check_suffix file Filename.dir_sep then entry else entry ^ Filename.dir_sep);
-    let d = Unix.opendir file in
+    let d = Unix.opendir path in
     begin try
         while true do
           let e = Unix.readdir d in
@@ -29,6 +29,10 @@ let create zipfile root directory =
   Zip.close_out oc
 
 let create_archive_of_directory ~archive ~root ~subdir =
-  let path_dir = Directory.concat root subdir in
   let path_archive = Path.to_string archive in
-  create path_archive (Com.Directory.get_name root) (Com.Directory.get_name path_dir)
+  let path_root = Com.Directory.get_name root in
+  let path_subdir = Com.Directory.get_name subdir in
+  let path_subdir_base = Filename.dirname path_subdir in
+  let path_subdir_lastdir = Filename.basename path_subdir in
+  let path_root = Filename.concat path_root path_subdir_base in
+  create path_archive path_root path_subdir_lastdir
