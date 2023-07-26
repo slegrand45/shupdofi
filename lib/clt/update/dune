@@ -13,7 +13,6 @@
   shupdofi_clt_model
   shupdofi_clt_routing
   shupdofi_clt_js
-  shupdofi_clt_view
-  
+  shupdofi_clt_view  
   shupdofi_clt_action
   shupdofi_clt_api))

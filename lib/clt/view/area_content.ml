@@ -173,7 +173,7 @@ let view m =
               div ~a:[class_ "input-group-text"] [ Icon.file_upload ~class_attr:"" ];
               input ~a:[class_ "form-control form-control-sm"; str_prop "type" "file"; value "";
                         attr "aria-label" "upload"; str_prop "id" "fileupload";
-                        oninput (fun e -> Action.Upload_file_start { input_file_id = "fileupload" })] []
+                        oninput (fun e -> Action.Upload_file (Action_other.Upload_file.Start { input_file_id = "fileupload" }))] []
             ]
           ];
         ]
