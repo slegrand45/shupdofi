@@ -98,214 +98,43 @@ let () =
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    (fun area_id path req ->
-       let path_string = path in
-       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       let path = Srv.Path.relative_from_string path in
-       let path = Srv.Path.next_if_exists (Com.Area.get_root area) path in
-       let write, close =
-         try
-           Srv.Path.oc (Com.Area.get_root area) path
-         with e ->
-           S.Response.fail_raise ~code:403 "Cannot upload %S: %s"
-             path_string (Printexc.to_string e)
-       in
-       let () = Tiny_httpd_stream.iter write req.S.Request.body in
-       let () = close () in
-       let path = Srv.Path.update_meta_infos (Com.Area.get_root area) path in
-       let directory = Com.Path.get_directory path in
-       let file = Com.Path.get_file path in
-       let json =
-         match directory, file with
-         | Some d, Some f -> 
-           let uploaded = Msg_to_clt.Uploaded.make ~area_id ~subdirs:(Srv.Directory.to_list_of_string d) ~file:f in
-           Msg_to_clt.Uploaded.yojson_of_t uploaded  |> Yojson.Safe.to_string
-         | _ -> ""
-       in
-       S.Response.make_raw ~code:201 json
-    );
+    File.upload;
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "file" @/ exact "rename" @/ return)
-    (fun req ->
-       let body = Tiny_httpd_stream.read_all req.S.Request.body in
-       let rename_file = Yojson.Safe.from_string body |> Msg_from_clt.Rename_file.t_of_yojson in
-       let area_id = Msg_from_clt.Rename_file.get_area_id rename_file in
-       let subdirs = Msg_from_clt.Rename_file.get_subdirs rename_file in
-       let old_filename = Msg_from_clt.Rename_file.get_old_filename rename_file in
-       let new_filename = Msg_from_clt.Rename_file.get_new_filename rename_file in
-       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       let relative_path_old = Com.Path.make_relative (Srv.Directory.make_from_list subdirs) (Com.File.make ~name:old_filename ()) in
-       let relative_path_new = Com.Path.make_relative (Srv.Directory.make_from_list subdirs) (Com.File.make ~name:new_filename ()) in
-       let rename = Srv.Path.rename (Com.Area.get_root area) ~before:relative_path_old ~after:relative_path_new in
-       match rename with
-       | None ->
-         S.Response.fail_raise ~code:403 "Cannot rename file %s to %s" old_filename new_filename
-       | Some (old_file, new_file) ->
-         let file_renamed = Msg_to_clt.File_renamed.make ~area_id ~subdirs ~old_file ~new_file in
-         let json = Msg_to_clt.File_renamed.yojson_of_t file_renamed |> Yojson.Safe.to_string in
-         S.Response.make_raw ~code:200 json
-    );
+    File.rename;
 
   S.add_route_handler_stream ~meth:`GET server
     S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    (fun area_id path req ->
-       let path_string = path in
-       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       let path = Srv.Path.relative_from_string path in
-       let dir = Com.Path.get_directory path in
-       let file = Com.Path.get_file path in
-       match dir, file with
-       | Some dir, Some file -> (
-           let path = Com.Path.make_absolute (Srv.Directory.concat (Com.Area.get_root area) dir) file in
-           let ch = In_channel.open_bin (Srv.Path.to_string path) in
-           let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
-           S.Response.make_raw_stream ~code:S.Response_code.ok stream
-           |> S.Response.set_header "Content-Type" (Srv.Path.mime path)
-         )
-       | _, _ ->
-         S.Response.fail_raise ~code:403 "Cannot download %s" path_string
-    );
+    File.download;
 
   S.add_route_handler_stream ~meth:`DELETE server
     S.Route.(exact "api" @/ exact "file" @/ return)
-    (fun req ->
-       let body = Tiny_httpd_stream.read_all req.S.Request.body in
-       let delete_file = Yojson.Safe.from_string body |> Msg_from_clt.Delete_file.t_of_yojson in
-       let area_id = Msg_from_clt.Delete_file.get_area_id delete_file in
-       let subdirs = Msg_from_clt.Delete_file.get_subdirs delete_file in
-       let filename = Msg_from_clt.Delete_file.get_filename delete_file in
-       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       try
-         Srv.Path.delete (Com.Area.get_root area)
-           (Com.Path.make_relative (Srv.Directory.make_from_list subdirs) (Com.File.make ~name:filename ()));
-         S.Response.make_raw ~code:200 ""
-       with
-       | _ -> S.Response.fail_raise ~code:403 "Cannot delete file %s" filename         
-    );
+    File.delete;
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "directory" @/ exact "rename" @/ return)
-    (fun req ->
-       let body = Tiny_httpd_stream.read_all req.S.Request.body in
-       let rename_directory = Yojson.Safe.from_string body |> Msg_from_clt.Rename_directory.t_of_yojson in
-       let area_id = Msg_from_clt.Rename_directory.get_area_id rename_directory in
-       let subdirs = Msg_from_clt.Rename_directory.get_subdirs rename_directory in
-       let old_dirname = Msg_from_clt.Rename_directory.get_old_dirname rename_directory in
-       let new_dirname = Msg_from_clt.Rename_directory.get_new_dirname rename_directory in
-       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       let relative_dir_old = Srv.Directory.make_from_list (subdirs @ [old_dirname]) in
-       let relative_dir_new = Srv.Directory.make_from_list (subdirs @ [new_dirname]) in
-       let rename = Srv.Directory.rename (Com.Area.get_root area) ~before:relative_dir_old ~after:relative_dir_new in
-       match rename with
-       | None ->
-         S.Response.fail_raise ~code:403 "Cannot rename directory %s to %s" old_dirname new_dirname
-       | Some new_stat ->
-         let mtime = new_stat.Unix.LargeFile.st_mtime in
-         let old_directory = Com.Directory.make_relative ~name:old_dirname () in
-         let new_directory = Com.Directory.make_relative ~name:new_dirname ()
-                             |> Com.Directory.set_mdatetime (Some (Srv.Datetime.of_mtime mtime))
-         in
-         let directory_renamed = Msg_to_clt.Directory_renamed.make ~area_id ~subdirs ~old_directory ~new_directory in
-         let json = Msg_to_clt.Directory_renamed.yojson_of_t directory_renamed |> Yojson.Safe.to_string in
-         S.Response.make_raw ~code:200 json
-    );
+    Directory.rename;
 
   S.add_route_handler_stream ~meth:`GET server
     S.Route.(exact "api" @/ exact "directory" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    (* ~accept:(fun req ->
-       match S.Request.get_header_int req "Content-Length" with
-       | Some n when n > config.max_upload_size ->
-        Error (403, "max upload size is " ^ string_of_int config.max_upload_size)
-       | Some _ when contains_dot_dot req.S.Request.path ->
-        Error (403, "invalid path (contains '..')")
-       | _ -> Ok ()
-       ) *)
-    (fun area_id path req ->
-       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       try
-         let archive = Srv.Path.absolute_from_string (Filename.temp_file "shupdofi" "archive") in
-         let () = Srv.Archive.create_archive_of_directory ~archive ~root:(Com.Area.get_root area) ~subdir:(Com.Directory.make_relative ~name:path ()) in
-         let path_archive = Srv.Path.to_string archive in
-         let ch = In_channel.open_bin path_archive in
-         let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
-         let response = S.Response.make_raw_stream ~code:S.Response_code.ok stream |> S.Response.set_header "Content-Type" "application/zip" in
-         let () = Sys.remove path_archive in
-         response
-       with
-       | _ ->
-         S.Response.fail_raise ~code:403 "Cannot download directory %s" path
-    );
+    Directory.archive;
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "directory" @/ return)
-    (* ~accept:(fun req ->
-       match S.Request.get_header_int req "Content-Length" with
-       | Some n when n > config.max_upload_size ->
-        Error (403, "max upload size is " ^ string_of_int config.max_upload_size)
-       | Some _ when contains_dot_dot req.S.Request.path ->
-        Error (403, "invalid path (contains '..')")
-       | _ -> Ok ()
-       ) *)
-    (fun req ->
-       let body = Tiny_httpd_stream.read_all req.S.Request.body in
-       let new_directory = Yojson.Safe.from_string body |> Msg_from_clt.New_directory.t_of_yojson in
-       let area_id = Msg_from_clt.New_directory.get_area_id new_directory in
-       let subdirs = Msg_from_clt.New_directory.get_subdirs new_directory in
-       let dirname = Msg_from_clt.New_directory.get_dirname new_directory in
-       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       let make_dir = Srv.Directory.mkdir (Com.Area.get_root area) (subdirs @ [dirname]) in
-       match make_dir with
-       | None ->
-         S.Response.fail_raise ~code:403 "Cannot create directory %s" dirname
-       | Some directory ->
-         let new_directory_created = Msg_to_clt.New_directory_created.make ~area_id ~subdirs ~directory in
-         let json = Msg_to_clt.New_directory_created.yojson_of_t new_directory_created |> Yojson.Safe.to_string in
-         S.Response.make_raw ~code:201 json
-    );
+    Directory.create;
 
   S.add_route_handler_stream ~meth:`DELETE server
     S.Route.(exact "api" @/ exact "directory" @/ return)
-    (fun req ->
-       let body = Tiny_httpd_stream.read_all req.S.Request.body in
-       let delete_directory = Yojson.Safe.from_string body |> Msg_from_clt.Delete_directory.t_of_yojson in
-       let area_id = Msg_from_clt.Delete_directory.get_area_id delete_directory in
-       let subdirs = Msg_from_clt.Delete_directory.get_subdirs delete_directory in
-       let dirname = Msg_from_clt.Delete_directory.get_dirname delete_directory in
-       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
-       try
-         Srv.Directory.delete (Com.Area.get_root area)
-           (Srv.Directory.make_from_list (subdirs @ [dirname]));
-         S.Response.make_raw ~code:200 ""
-       with
-       | _ -> S.Response.fail_raise ~code:403 "Cannot delete directory %s" dirname
-    );
+    Directory.delete;
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact_path "api/areas" return)
-    (fun _req -> (
-         let v1_areas = Srv.Area.get_all () in
-         S.Response.make_string (Ok (Com.Area.yojson_of_collection v1_areas |> Yojson.Safe.to_string))
-         |> S.Response.set_header "Content-Type" "text/json"
-       )
-    );
+    Area.list;
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    (fun id subdirs _req -> (
-         (* prerr_endline "** Headers:";
-            S.Headers.pp Format.err_formatter (S.Request.headers _req) ;
-            prerr_endline "** **"; *)
-         match id with
-         | "" ->
-           S.Response.make_raw ~code:404 "Not found"
-         | _ ->
-           let subdirs = String.split_on_char '/' subdirs |> List.filter (fun e -> e <> "") in
-           let content = Srv.Area.get_content ~id ~subdirs in
-           S.Response.make_string (Ok (Com.Area_content.yojson_of_t content |> Yojson.Safe.to_string))
-           |> S.Response.set_header "Content-Type" "text/json"
-       )
-    );
+    Area.content;
 
   (* run the server *)
   Printf.printf "listening on http://%s:%d\n%!" (S.addr server) (S.port server);
