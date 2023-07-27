@@ -9,3 +9,4 @@ val concat : absolute -> relative -> absolute
 val read : absolute -> relative list * Com.File.t list
 val mkdir : absolute -> string list -> relative option
 val rename : absolute -> before:relative -> after:relative -> Unix.LargeFile.stats option
+val delete : absolute -> relative -> unit

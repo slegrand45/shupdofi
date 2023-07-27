@@ -51,6 +51,12 @@ let remove_file ~id ~subdirs ~filename v =
   else
     v
 
+let remove_directory ~id ~subdirs ~dirname v =
+  if id = v.id && subdirs = v.subdirs then
+    { v with directories = List.filter (fun e -> Directory.get_name e <> dirname) v.directories }
+  else
+    v
+
 let sort v =
   let files = List.sort compare v.files in
   { v with files }

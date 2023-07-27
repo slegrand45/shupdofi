@@ -117,3 +117,21 @@ let rename root_dir ~before ~after =
     )
   with
   | _ -> None
+
+let delete root_dir v =
+  let dir = concat root_dir v in
+  let pathname = Com.Directory.get_name dir in
+  (* https://stackoverflow.com/a/56344603 *)
+  let rec rmrf path = match Sys.is_directory path with
+    | true ->
+      Sys.readdir path |>
+      Array.iter (fun name -> rmrf (Filename.concat path name));
+      Sys.rmdir path
+    | false -> Sys.remove path
+  in
+  try
+    rmrf pathname
+  with
+  | _ -> failwith (Printf.sprintf "Unable to delete directory %s" (Com.Directory.get_name v))
+
+

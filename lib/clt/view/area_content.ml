@@ -47,7 +47,7 @@ let one_line_directory area_id area_subdirs (acc, i) directory =
         ];
         elt "td" ~a:[class_ "text-center"] [
           elt "a" ~a:[str_prop "href" ""; class_ "action hide";
-                      onclick_cancel (fun _ -> Some (Action.Delete_directory_ask_confirm { directory }))] [
+                      onclick_cancel (fun _ -> Some (Action.Delete_directory (Action_other.Delete_directory.Ask { directory })))] [
             Icon.delete_forever ~label:"Delete" ~class_attr:"icon" ~aria_id:("directory-icon-delete-forever" ^ (string_of_int i))
           ];
         ];

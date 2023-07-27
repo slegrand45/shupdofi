@@ -12,7 +12,7 @@ type t =
   | Upload_file of Action_other.Upload_file.t
   | New_directory of Action_other.New_directory.t
   | Rename_directory of Action_other.Rename_directory.t
-  | Delete_directory_ask_confirm of { directory : Com.Directory.relative Com.Directory.t }
+  | Delete_directory of Action_other.Delete_directory.t
   | Rename_file of Action_other.Rename_file.t
   | Delete_file of Action_other.Delete_file.t
   | Modal_set_input_content of { content : string }

@@ -12,7 +12,6 @@ module Routing = Shupdofi_clt_routing
 module Update_other = Shupdofi_clt_update
 
 open Vdom
-open Js_of_ocaml
 open Js_browser
 
 let update m a =
@@ -62,8 +61,7 @@ let update m a =
   | Action.Upload_file a -> Update_other.Upload_file.update m a
   | Action.New_directory a -> Update_other.New_directory.update m a
   | Action.Rename_directory a -> Update_other.Rename_directory.update m a
-  | Action.Delete_directory_ask_confirm { directory } ->
-    return m
+  | Action.Delete_directory a -> Update_other.Delete_directory.update m a
   | Action.Rename_file a -> Update_other.Rename_file.update m a
   | Action.Delete_file a -> Update_other.Delete_file.update m a
   | Action.Modal_set_input_content { content } ->

@@ -7,6 +7,7 @@ type t = Areas
        | New_directory
        | Download_directory of { area_id: string; area_subdirs: string list; dirname: string }
        | Rename_directory
+       | Delete_directory
 
 let prefix = "/api"
 
@@ -43,3 +44,5 @@ let to_url ?encode v =
     prefix ^ "/directory/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode dirname)
   | Rename_directory ->
     prefix ^ "/directory/rename"
+  | Delete_directory ->
+    prefix ^ "/directory"

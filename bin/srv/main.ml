@@ -264,6 +264,23 @@ let () =
          S.Response.make_raw ~code:201 json
     );
 
+  S.add_route_handler_stream ~meth:`DELETE server
+    S.Route.(exact "api" @/ exact "directory" @/ return)
+    (fun req ->
+       let body = Tiny_httpd_stream.read_all req.S.Request.body in
+       let delete_directory = Yojson.Safe.from_string body |> Msg_from_clt.Delete_directory.t_of_yojson in
+       let area_id = Msg_from_clt.Delete_directory.get_area_id delete_directory in
+       let subdirs = Msg_from_clt.Delete_directory.get_subdirs delete_directory in
+       let dirname = Msg_from_clt.Delete_directory.get_dirname delete_directory in
+       let area = Com.Area.find_with_id area_id (Srv.Area.get_all ()) in
+       try
+         Srv.Directory.delete (Com.Area.get_root area)
+           (Srv.Directory.make_from_list (subdirs @ [dirname]));
+         S.Response.make_raw ~code:200 ""
+       with
+       | _ -> S.Response.fail_raise ~code:403 "Cannot delete directory %s" dirname
+    );
+
   S.add_route_handler ~meth:`GET server
     S.Route.(exact_path "api/areas" return)
     (fun _req -> (
