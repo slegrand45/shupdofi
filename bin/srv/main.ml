@@ -23,7 +23,8 @@ let () =
   in
 
   let gzip_path_if_exists subdir path _req =
-    let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Filename.concat (Com.Directory.get_name www_root) subdir) ())
+    let subdir = Com.Directory.make_relative ~name:subdir () in
+    let path = Com.Path.make_absolute (Srv.Directory.concat www_root subdir)
         (Com.File.make ~name:(Filename.basename path) ()) in
     let path_gzip = Srv.Path.add_extension "gz" path in
     if (accept_gzip _req) && (Srv.Path.(retrieve_stat path_gzip |> usable)) then
@@ -47,8 +48,8 @@ let () =
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "www" @/ string_urlencoded @/ return)
     (fun path _req ->
-       (* ajouter une méthode concat dans Shupdofi_srv.Directory *)
-       let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Filename.concat (Com.Directory.get_name www_root) (Filename.dirname path)) ())
+       let subdir = Com.Directory.make_relative ~name:(Filename.dirname path) () in
+       let path = Com.Path.make_absolute (Srv.Directory.concat www_root subdir)
            (Com.File.make ~name:(Filename.basename path) ()) in
        let ch = In_channel.open_bin (Srv.Path.to_string path) in
        let stream = Tiny_httpd_stream.of_chan_close_noerr ch in

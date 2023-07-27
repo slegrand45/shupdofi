@@ -27,25 +27,6 @@ let make_absolute ~name ?mdatetime () =
     None
   else
     Some { name; mdatetime }
-  (*
-  (* remove .. *)
-  let regexp = Str.regexp_string Filename.parent_dir_name in
-  let name = Str.global_replace regexp "" name in
-  (* remove multiple separators *)
-  let regexp = Str.regexp_string (Filename.dir_sep ^ Filename.dir_sep) in
-  let rec f s =
-    if Str.string_match regexp s 0 then
-      f (Str.global_replace regexp "" s)
-    else
-      s
-  in
-  let name = f name in
-  (* remove last character if it's a separator *)
-  let regexp = Str.regexp (Filename.dir_sep ^ "$") in
-  let name = Str.global_replace regexp "" name in
-  (* check first character is a separator *)
-  if (String.length name > 0) && (String.sub name 0 1 = Filename.dir_sep) then
-    *)
 
 let make_relative ~name ?mdatetime () =
   let forbidden s =
