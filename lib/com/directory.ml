@@ -16,16 +16,49 @@ type 'a t = ('a directory) option
 [@@deriving yojson]
 
 let make_absolute ~name ?mdatetime () =
-  (* root: Interdire les .. et . (?), supprimer le / en fin, supprimer les / multiples, renvoyer dirname *)
-  (* subdir: Interdire le / au début et les .. et . (?), supprimer le / en fin, supprimer les / multiples, renvoyer dirname *)
-  (* file: Interdire le / partout et les .. et . (?), renvoyer basename *)
-  Some { name; mdatetime }
+  let forbidden s =
+    Str.string_match (Str.regexp_string Filename.parent_dir_name) s 0
+    || Str.string_match (Str.regexp_string (Filename.dir_sep ^ Filename.dir_sep)) s 0
+    || Str.string_match (Str.regexp (Filename.dir_sep ^ "$")) s 0
+    || ((String.length s > 0) && (String.sub name 0 1 <> Filename.dir_sep))
+    || String.length s = 0
+  in
+  if forbidden name then
+    None
+  else
+    Some { name; mdatetime }
+  (*
+  (* remove .. *)
+  let regexp = Str.regexp_string Filename.parent_dir_name in
+  let name = Str.global_replace regexp "" name in
+  (* remove multiple separators *)
+  let regexp = Str.regexp_string (Filename.dir_sep ^ Filename.dir_sep) in
+  let rec f s =
+    if Str.string_match regexp s 0 then
+      f (Str.global_replace regexp "" s)
+    else
+      s
+  in
+  let name = f name in
+  (* remove last character if it's a separator *)
+  let regexp = Str.regexp (Filename.dir_sep ^ "$") in
+  let name = Str.global_replace regexp "" name in
+  (* check first character is a separator *)
+  if (String.length name > 0) && (String.sub name 0 1 = Filename.dir_sep) then
+    *)
 
 let make_relative ~name ?mdatetime () =
-  (* root: Interdire les .. et . (?), supprimer le / en fin, supprimer les / multiples, renvoyer dirname *)
-  (* subdir: Interdire le / au début et les .. et . (?), supprimer le / en fin, supprimer les / multiples, renvoyer dirname *)
-  (* file: Interdire le / partout et les .. et . (?), renvoyer basename *)
-  Some { name; mdatetime }
+  let forbidden s =
+    Str.string_match (Str.regexp_string Filename.parent_dir_name) s 0
+    || Str.string_match (Str.regexp_string (Filename.dir_sep ^ Filename.dir_sep)) s 0
+    || Str.string_match (Str.regexp (Filename.dir_sep ^ "$")) s 0
+    || ((String.length s > 0) && (String.sub name 0 1 = Filename.dir_sep))
+    || String.length s = 0
+  in
+  if forbidden name then
+    None
+  else
+    Some { name; mdatetime }
 
 let is_defined = function
   | None -> false

@@ -3,4 +3,4 @@
  (modes byte native)
  (preprocess
   (pps ppx_yojson_conv))
- (libraries yojson))
+ (libraries str yojson))
