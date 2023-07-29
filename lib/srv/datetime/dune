@@ -1,0 +1,4 @@
+(library
+ (name shupdofi_srv_datetime)
+ (modes byte native)
+ (libraries unix shupdofi_com))

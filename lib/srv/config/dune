@@ -1,0 +1,4 @@
+(library
+ (name shupdofi_srv_config)
+ (modes byte native)
+ (libraries shupdofi_com))

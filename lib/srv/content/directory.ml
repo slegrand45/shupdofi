@@ -1,4 +1,5 @@
 module Com = Shupdofi_com
+module Datetime = Shupdofi_srv_datetime.Datetime
 
 type absolute = Com.Directory.absolute Com.Directory.t
 type relative = Com.Directory.relative Com.Directory.t

@@ -9,4 +9,6 @@
   shupdofi_com
   shupdofi_msg_srv_from_clt
   shupdofi_msg_srv_to_clt
-  shupdofi_srv))
+  shupdofi_srv_config
+  shupdofi_srv_content
+  shupdofi_srv_datetime))

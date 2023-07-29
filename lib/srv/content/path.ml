@@ -1,4 +1,5 @@
 module Com = Shupdofi_com
+module Datetime = Shupdofi_srv_datetime.Datetime
 
 type 'a t = 'a Com.Path.t
 
