@@ -8,6 +8,15 @@ type collection = t list
 
 let make ~id ~name ~description ~root = { id; name; description; root }
 
+let to_string v =
+  Printf.sprintf "id = %s, name = %s, description = %s, root = %s"
+    v.id v.name v.description (Directory.get_name v.root)
+
+let to_toml v =
+  let fmt s = "\"" ^ (String.escaped s) ^ "\"" in
+  Printf.sprintf "[areas.%s]\nname = %s\ndescription = %s\nroot = %s"
+    v.id (fmt v.name) (fmt v.description) (fmt (Directory.get_name v.root))
+
 let get_id v = v.id
 let get_name v = v.name
 let get_description v = v.description

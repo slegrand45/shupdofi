@@ -1,18 +1,12 @@
-module S = Tiny_httpd
 module Com = Shupdofi_com
+module Config = Shupdofi_srv_config
+module Content = Shupdofi_srv_content
 module Msg_from_clt = Shupdofi_msg_srv_from_clt
 module Msg_to_clt = Shupdofi_msg_srv_to_clt
-module Config = Shupdofi_srv_config.Config
-module Content = Shupdofi_srv_content
+module S = Tiny_httpd
 
-(* cat bombardier-linux-amd64 | curl -vvvv -X PUT --data-binary @- http://127.0.0.1:8080/api/upload/xxx *)
-
-let () =
-  let www_root =
-    Com.Directory.make_absolute ~name:"/home/slegrand45/depots-git/perso/shupdofi/www/" ();
-  in
-  let config = Config.make ~www_root in
-  let www_root = Config.get_www_root config in
+let start_server config =
+  let www_root = Config.Config.get_server config |> Config.Server.get_www_root in
   let server = S.create () in
 
   let accept_gzip (req:_ S.Request.t) =
@@ -138,8 +132,27 @@ let () =
     S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string_urlencoded @/ rest_of_path_urlencoded)
     Area.content;
 
-  (* run the server *)
-  Printf.printf "listening on http://%s:%d\n%!" (S.addr server) (S.port server);
   match S.run server with
-  | Ok () -> ()
-  | Error e -> raise e
+  | Ok () -> 
+    Printf.printf "Start shupdofi server, listening on http://%s:%d\n%!" (S.addr server) (S.port server);
+  | Error e -> 
+    prerr_endline ("Unable to start server: " ^ (Printexc.to_string e))
+;;
+
+let usage_msg = Sys.executable_name ^ " -c <configuration file>" in
+let config_file = ref "" in
+let speclist =
+  [("-c", Arg.Set_string config_file, "Configuration file")]
+in
+let () = Arg.parse speclist (fun _ -> ()) usage_msg in
+match ! config_file with
+| "" -> prerr_endline "Error: please specify a configuration file with the -c option"
+| _ ->
+  let config = Config.Config.from_toml_file !config_file in
+  match config with
+  | Ok config -> (
+      start_server config;
+    )
+  | Error err ->
+    prerr_endline "Error in configuration file:";
+    prerr_endline err;

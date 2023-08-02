@@ -2,5 +2,11 @@ module Com = Shupdofi_com
 
 type t
 
-val make : www_root:Com.Directory.absolute Com.Directory.t -> t
-val get_www_root : t -> Com.Directory.absolute Com.Directory.t
+val to_toml : t -> string
+val get_server : t -> Server.t
+val get_areas : t -> Com.Area.t list
+val get_groups : t -> Group.t list
+val get_users : t -> User.t list
+
+(* force absolute path ? *)
+val from_toml_file : string -> (t, string) result

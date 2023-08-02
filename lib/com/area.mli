@@ -2,6 +2,8 @@ type t
 type collection = t list
 
 val make : id:string -> name:string -> description:string -> root:Directory.absolute Directory.t -> t
+val to_string : t -> string
+val to_toml : t -> string
 val get_id : t -> string
 val get_name : t -> string
 val get_description : t -> string

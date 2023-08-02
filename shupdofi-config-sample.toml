@@ -1,0 +1,83 @@
+[server]
+www_root = "/home/slegrand45/depots-git/perso/shupdofi/www/"
+# log_file
+# tmp_root
+
+[application]
+# "http_header" is the only auth method available for now
+authentications = [ "http_header" ]
+
+[authentications.http_header]
+header_name_for_login = "XXX"
+
+# define an area with id = area1
+[areas.area1]
+name = "Area 1"
+description = "This is the area 1"
+root = "/root_directory_for_area1/"
+# quota = ""
+
+# define an area with id = area2
+[areas.area2]
+name = "Area 2"
+description = "This is the area 2"
+root = "/root_directory_for_area2/"
+# quota = ""
+
+# define a group with id = group1
+[groups.group1]
+name = "Group 1"
+description = "This is group 1"
+
+# define a group with id = group2
+[groups.group2]
+name = "Group 2"
+description = "This is group 2"
+
+# define an user with id = user1
+[users.user1]
+# /!\ this login must be the same than the one defined by the http server
+login = "loguser1"
+name = "User 1"
+# this user belongs to group1
+groups = [ "group1" ]
+
+# define an user with id = user2
+[users.user2]
+# /!\ this login must be the same than the one defined by the http server
+login = "loguser2"
+name = "User 2"
+# this user belongs to no group
+groups = []
+
+# by default, acess is denied so you have to explicitly add rights.
+#
+# define access rights for area1
+[areas_accesses.area1]
+# for users
+rights.users.download = [ "user1" ]
+rights.users.upload = [ "user1" ]
+rights.users.rename = [ "user1" ]
+rights.users.move = [ "user1" ]
+rights.users.delete = [ "user1" ]
+rights.users.create_directory = [ "user1" ]
+# for groups
+rights.groups.download = [ "group1" ]
+rights.groups.upload = [ "group1" ]
+rights.groups.rename = [ "group1" ]
+rights.groups.move = [ "group1" ]
+rights.groups.delete = [ "group1" ]
+rights.groups.create_directory = [ "group1" ]
+
+# define access rights for area2
+[areas_accesses.area2]
+# wildcards * and % can be used in user/group id
+# users with login starting with "abc" can upload files
+rights.users.upload = [ "abc%" ]
+# all users can download
+rights.users.download = [ "*" ]
+# wildcards * can be used for right id
+# users of group2 have all rights
+rights.groups."*" = [ "group2" ]
+# rights cannot be empty
+# this is not allowed: rights.groups.delete = []

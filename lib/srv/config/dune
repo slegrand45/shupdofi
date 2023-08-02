@@ -1,4 +1,4 @@
 (library
  (name shupdofi_srv_config)
  (modes byte native)
- (libraries shupdofi_com))
+ (libraries str otoml shupdofi_com))
