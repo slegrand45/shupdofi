@@ -3,7 +3,7 @@ module Toml = Otoml.Base.Make (Otoml.Base.OCamlNumber) (Otoml.Base.StringDate)
 
 type t = {
   server: Server.t;
-  areas: Com.Area.t list;
+  areas: Com.Area.collection;
   groups: Group.t list;
   users: User.t list;
   areas_accesses: Area_access.t list

@@ -1,12 +1,13 @@
 module Com = Shupdofi_com
+module Config = Shupdofi_srv_config
+module Content = Shupdofi_srv_content
 module Msg_from_clt = Shupdofi_msg_srv_from_clt
 module Msg_to_clt = Shupdofi_msg_srv_to_clt
 module S = Tiny_httpd
-module Content = Shupdofi_srv_content
 
-let upload area_id path req =
+let upload config area_id path req =
   let path_string = path in
-  let area = Com.Area.find_with_id area_id (Content.Area.get_all ()) in
+  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
   let path = Content.Path.relative_from_string path in
   let path = Content.Path.next_if_exists (Com.Area.get_root area) path in
   let write, close =
@@ -30,14 +31,14 @@ let upload area_id path req =
   in
   S.Response.make_raw ~code:201 json
 
-let rename req =
+let rename config req =
   let body = Tiny_httpd_stream.read_all req.S.Request.body in
   let rename_file = Yojson.Safe.from_string body |> Msg_from_clt.Rename_file.t_of_yojson in
   let area_id = Msg_from_clt.Rename_file.get_area_id rename_file in
   let subdirs = Msg_from_clt.Rename_file.get_subdirs rename_file in
   let old_filename = Msg_from_clt.Rename_file.get_old_filename rename_file in
   let new_filename = Msg_from_clt.Rename_file.get_new_filename rename_file in
-  let area = Com.Area.find_with_id area_id (Content.Area.get_all ()) in
+  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
   let relative_path_old = Com.Path.make_relative (Content.Directory.make_from_list subdirs) (Com.File.make ~name:old_filename ()) in
   let relative_path_new = Com.Path.make_relative (Content.Directory.make_from_list subdirs) (Com.File.make ~name:new_filename ()) in
   let rename = Content.Path.rename (Com.Area.get_root area) ~before:relative_path_old ~after:relative_path_new in
@@ -49,9 +50,9 @@ let rename req =
     let json = Msg_to_clt.File_renamed.yojson_of_t file_renamed |> Yojson.Safe.to_string in
     S.Response.make_raw ~code:200 json
 
-let download area_id path req =
+let download config area_id path req =
   let path_string = path in
-  let area = Com.Area.find_with_id area_id (Content.Area.get_all ()) in
+  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
   let path = Content.Path.relative_from_string path in
   let dir = Com.Path.get_directory path in
   let file = Com.Path.get_file path in
@@ -66,13 +67,13 @@ let download area_id path req =
   | _, _ ->
     S.Response.fail_raise ~code:403 "Cannot download %s" path_string
 
-let delete req =
+let delete config req =
   let body = Tiny_httpd_stream.read_all req.S.Request.body in
   let delete_file = Yojson.Safe.from_string body |> Msg_from_clt.Delete_file.t_of_yojson in
   let area_id = Msg_from_clt.Delete_file.get_area_id delete_file in
   let subdirs = Msg_from_clt.Delete_file.get_subdirs delete_file in
   let filename = Msg_from_clt.Delete_file.get_filename delete_file in
-  let area = Com.Area.find_with_id area_id (Content.Area.get_all ()) in
+  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
   try
     Content.Path.delete (Com.Area.get_root area)
       (Com.Path.make_relative (Content.Directory.make_from_list subdirs) (Com.File.make ~name:filename ()));

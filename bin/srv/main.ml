@@ -94,43 +94,43 @@ let start_server config =
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    File.upload;
+    (File.upload config);
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "file" @/ exact "rename" @/ return)
-    File.rename;
+    (File.rename config);
 
   S.add_route_handler_stream ~meth:`GET server
     S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    File.download;
+    (File.download config);
 
   S.add_route_handler_stream ~meth:`DELETE server
     S.Route.(exact "api" @/ exact "file" @/ return)
-    File.delete;
+    (File.delete config);
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "directory" @/ exact "rename" @/ return)
-    Directory.rename;
+    (Directory.rename config);
 
   S.add_route_handler_stream ~meth:`GET server
     S.Route.(exact "api" @/ exact "directory" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    Directory.archive;
+    (Directory.archive config);
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "directory" @/ return)
-    Directory.create;
+    (Directory.create config);
 
   S.add_route_handler_stream ~meth:`DELETE server
     S.Route.(exact "api" @/ exact "directory" @/ return)
-    Directory.delete;
+    (Directory.delete config);
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact_path "api/areas" return)
-    Area.list;
+    (Area.list config);
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    Area.content;
+    (Area.content config);
 
   match S.run server with
   | Ok () -> 

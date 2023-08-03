@@ -1,4 +1,4 @@
 (library
  (name shupdofi_srv_content)
  (modes byte native)
- (libraries unix str zip magic-mime shupdofi_com shupdofi_msg_srv_to_clt shupdofi_srv_datetime))
+ (libraries unix str zip magic-mime shupdofi_com shupdofi_msg_srv_to_clt shupdofi_srv_datetime shupdofi_srv_config))

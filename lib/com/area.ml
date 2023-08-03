@@ -22,6 +22,9 @@ let get_name v = v.name
 let get_description v = v.description
 let get_root v = v.root
 
+let set_root root v =
+  { v with root }
+
 let find_with_id id =
   List.find (fun e -> e.id = id)
 
