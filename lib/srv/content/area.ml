@@ -15,7 +15,7 @@ let get_all config =
   List.map (Com.Area.set_root (Com.Directory.make_absolute ~name:"" ())) areas
 
 let get_content config ~id ~subdirs =
-  let area = List.find_opt (fun e -> Com.Area.get_id e = id) (get_all config) in
+  let area = List.find_opt (fun e -> Com.Area.get_id e = id) (Config.Config.get_areas config) in
   match area with
   | None -> Com.Area_content.make ~id:"" ~subdirs ~directories:[] ~files:[] 
   | Some area ->
