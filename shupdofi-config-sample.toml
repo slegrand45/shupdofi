@@ -57,7 +57,7 @@ groups = []
 # define access rights for area1
 [areas_accesses.area1]
 # for users
-rights.users.download = [ "user1" ]
+rights.users.download = [ "user1", "user2" ]
 rights.users.upload = [ "user1" ]
 rights.users.rename = [ "user1" ]
 rights.users.move = [ "user1" ]
