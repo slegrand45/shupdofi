@@ -1,5 +1,5 @@
 [server]
-www_root = "/home/slegrand45/depots-git/perso/shupdofi/www/"
+www_root = "/application_directory/www/"
 # log_file
 # tmp_root
 
@@ -36,7 +36,8 @@ description = "This is group 2"
 
 # define an user with id = user1
 [users.user1]
-# /!\ this login must be the same than the one defined by the http server
+# /!\ for http_header authentication method,
+#     this login must be the same than the one defined by the http server
 login = "loguser1"
 name = "User 1"
 # this user belongs to group1
@@ -44,13 +45,14 @@ groups = [ "group1" ]
 
 # define an user with id = user2
 [users.user2]
-# /!\ this login must be the same than the one defined by the http server
+# /!\ for http_header authentication method,
+#     this login must be the same than the one defined by the http server
 login = "loguser2"
 name = "User 2"
 # this user belongs to no group
 groups = []
 
-# by default, acess is denied so you have to explicitly add rights.
+# by default, acess is denied so you have to explicitly add access rights.
 #
 # define access rights for area1
 [areas_accesses.area1]
