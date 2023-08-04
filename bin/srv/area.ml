@@ -1,11 +1,20 @@
 module S = Tiny_httpd
 module Com = Shupdofi_com
+module Config = Shupdofi_srv_config
 module Content = Shupdofi_srv_content
 module Msg_from_clt = Shupdofi_msg_srv_from_clt
 module Msg_to_clt = Shupdofi_msg_srv_to_clt
 
 let list config _req =
-  let areas = Content.Area.get_all config in
+  (* the root value must not (and doesn't need to) be set.
+
+     TODO: return root only if user have access right
+      (* ~root:(Com.Directory.make_absolute ~name:"..." ()) *)
+  *)
+  let areas = (Config.Config.get_areas config)
+              |> List.filter (fun e -> Com.Area.get_root e |> Content.Directory.is_usable)
+              |> List.map (Com.Area.set_root (Com.Directory.make_absolute ~name:"" ()))
+  in
   S.Response.make_string (Ok (Com.Area.yojson_of_collection areas |> Yojson.Safe.to_string))
   |> S.Response.set_header "Content-Type" "text/json"
 

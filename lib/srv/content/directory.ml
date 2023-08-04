@@ -25,6 +25,16 @@ let concat v1 v2 =
   let name = Filename.concat (Com.Directory.get_name v1) (Com.Directory.get_name v2) in
   Com.Directory.make_absolute ~name ()
 
+let is_usable v =
+  let dirname = Com.Directory.get_name v in
+  try
+    let stat = Unix.LargeFile.stat dirname in
+    match stat.Unix.LargeFile.st_kind with
+    | Unix.S_DIR -> true
+    | _ -> false
+  with
+  | _ -> false
+
 let mkdir root l =
   (*
   let l = List.map (fun name -> Com.Directory.make ~name ()) l in
