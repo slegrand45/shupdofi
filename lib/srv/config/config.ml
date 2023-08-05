@@ -4,6 +4,7 @@ module Toml = Otoml.Base.Make (Otoml.Base.OCamlNumber) (Otoml.Base.StringDate)
 type t = {
   server: Server.t;
   application: Application.t;
+  authentications: Authentication.t list;
   areas: Com.Area.collection;
   groups: Group.t list;
   users: User.t list;
@@ -13,11 +14,12 @@ type t = {
 let to_toml v =
   let server = Server.to_toml v.server in
   let application = Application.to_toml v.application in
+  let authentications = List.map (fun e -> Printf.sprintf "%s" (Authentication.to_toml e)) v.authentications |> String.concat "\n\n" in
   let areas = List.map (fun e -> Printf.sprintf "%s" (Com.Area.to_toml e)) v.areas |> String.concat "\n\n" in
   let groups = List.map (fun e -> Printf.sprintf "%s" (Group.to_toml e)) v.groups |> String.concat "\n\n" in
   let users = List.map (fun e -> Printf.sprintf "%s" (User.to_toml e)) v.users |> String.concat "\n\n" in
   let areas_accesses = List.map (fun e -> Printf.sprintf "%s" (Area_access.to_toml e)) v.areas_accesses |> String.concat "\n\n" in
-  Printf.sprintf "\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n" server application areas groups users areas_accesses
+  Printf.sprintf "\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n" server application authentications areas groups users areas_accesses
 
 let get_server v =
   v.server
@@ -85,6 +87,22 @@ let application_from_toml toml =
     )
   | Error _ ->
     Result.error "[application]: authentications are missing"
+
+let authentications_from_toml toml =
+  let tab = Toml.get_table toml in
+  let f (id, toml) =
+    match Authentication.Id.from_string id with
+    | Authentication.Id.Unknown _ ->
+      Result.error (Printf.sprintf "[authentications.%s] auth method %s is unknown" id id)
+    | Authentication.Id.Http_header -> (
+        match Toml.Helpers.find_string_result toml ["header_name_for_login"] with
+        | Ok header_name_for_login ->
+          Result.ok (Authentication.make_http_header (Authentication.Http_header.make ~header_name_for_login))
+        | Error _ ->
+          Result.error (Printf.sprintf "[authentications.%s] header_name_for_login is missing" id)
+      )
+  in
+  map_values f tab
 
 let areas_from_toml toml =
   let tab = Toml.get_table toml in
@@ -289,9 +307,10 @@ let from_toml_file file =
     (* let tab = Toml.get_table toml in *)
     let server = required_section_from_toml toml "server" server_from_toml "[server] section is missing" in
     let application = required_section_from_toml toml "application" application_from_toml "[application] section is missing" in
+    let authentications = required_section_from_toml toml "authentications" authentications_from_toml "No authentication found" in
     let areas = required_section_from_toml toml "areas" areas_from_toml "No area found" in
-    match server, application, areas with
-    | Ok server, Ok application, Ok areas -> (
+    match server, application, authentications, areas with
+    | Ok server, Ok application, Ok authentications, Ok areas -> (
         let groups = optional_section_from_toml toml "groups" groups_from_toml [] in
         match groups with
         | Ok groups -> (
@@ -301,16 +320,17 @@ let from_toml_file file =
                 let areas_accesses = required_section_from_toml toml "areas_accesses" (areas_accesses_from_toml areas users groups) "No area access found" in
                 match areas_accesses with
                 | Ok areas_accesses ->
-                  Result.ok { server; application; areas; groups; users; areas_accesses }
+                  Result.ok { server; application; authentications; areas; groups; users; areas_accesses }
                 | Error _ as err -> err
               )
             | Error _ as err -> err
           )
         | Error _ as err -> err
       )
-    | (Error _ as err), _, _ -> err
-    | _, (Error _ as err), _ -> err
-    | _, _, (Error _ as err) -> err
+    | (Error _ as err), _, _, _ -> err
+    | _, (Error _ as err), _, _ -> err
+    | _, _, (Error _ as err), _ -> err
+    | _, _, _, (Error _ as err) -> err
   with
   | Toml.Parse_error (pos, err) ->
     Result.error (Toml.Parser.format_parse_error pos err)
