@@ -2,7 +2,7 @@ module Com = Shupdofi_com
 
 module Action = struct
   type t =
-    | Unknown
+    | Unknown of string
     | All
     | Download
     | Upload
@@ -19,7 +19,7 @@ module Action = struct
     | "move" -> Move
     | "delete" -> Delete
     | "create_directory" -> Create_directory
-    | _ -> Unknown
+    | s -> Unknown s
 
   let to_toml = function
     | All -> "\"*\""
@@ -29,10 +29,10 @@ module Action = struct
     | Move -> "move"
     | Delete -> "delete"
     | Create_directory -> "create_directory"
-    | Unknown -> "unknown"
+    | Unknown _ -> "unknown"
 
   let is_unknown = function
-    | Unknown -> true
+    | Unknown _ -> true
     | _ -> false
 end
 
