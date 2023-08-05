@@ -151,6 +151,7 @@ match ! config_file with
   let config = Config.Config.from_toml_file !config_file in
   match config with
   | Ok config -> (
+      let () = prerr_endline (Config.Config.to_toml config) in
       start_server config;
     )
   | Error err ->

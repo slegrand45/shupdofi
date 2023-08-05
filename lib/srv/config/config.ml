@@ -3,6 +3,7 @@ module Toml = Otoml.Base.Make (Otoml.Base.OCamlNumber) (Otoml.Base.StringDate)
 
 type t = {
   server: Server.t;
+  application: Application.t;
   areas: Com.Area.collection;
   groups: Group.t list;
   users: User.t list;
@@ -10,15 +11,19 @@ type t = {
 }
 
 let to_toml v =
-  let server = (Server.to_toml v.server) in
+  let server = Server.to_toml v.server in
+  let application = Application.to_toml v.application in
   let areas = List.map (fun e -> Printf.sprintf "%s" (Com.Area.to_toml e)) v.areas |> String.concat "\n\n" in
   let groups = List.map (fun e -> Printf.sprintf "%s" (Group.to_toml e)) v.groups |> String.concat "\n\n" in
   let users = List.map (fun e -> Printf.sprintf "%s" (User.to_toml e)) v.users |> String.concat "\n\n" in
   let areas_accesses = List.map (fun e -> Printf.sprintf "%s" (Area_access.to_toml e)) v.areas_accesses |> String.concat "\n\n" in
-  Printf.sprintf "\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n" server areas groups users areas_accesses
+  Printf.sprintf "\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n" server application areas groups users areas_accesses
 
 let get_server v =
   v.server
+
+let get_application v =
+  v.application
 
 let get_areas v =
   v.areas
@@ -61,6 +66,25 @@ let server_from_toml toml =
       Result.error "[server]: www_root must be an absolute path"
   | Error _ ->
     Result.error "[server]: www_root is missing"
+
+let application_from_toml toml =
+  let authentications = Toml.Helpers.find_strings_result toml ["authentications"] in
+  match authentications with
+  | Ok ids -> (
+      let ids = List.map Authentication.Id.from_string ids in
+      let (errs, oks) = List.partition Authentication.Id.is_unknown ids in
+      match errs, oks with
+      | [], _::_ ->
+        let application = Application.make ~authentications:oks in
+        Result.ok application
+      | _::_, _ ->
+        let s = List.map Authentication.Id.to_string errs |> String.concat ", " in
+        Result.error (Printf.sprintf "[application]: unknown authentication(s) %s" s)
+      | _, [] ->
+        Result.error "[application]: authentications cannot be empty"
+    )
+  | Error _ ->
+    Result.error "[application]: authentications are missing"
 
 let areas_from_toml toml =
   let tab = Toml.get_table toml in
@@ -264,9 +288,10 @@ let from_toml_file file =
     let toml = Toml.Parser.from_file file in
     (* let tab = Toml.get_table toml in *)
     let server = required_section_from_toml toml "server" server_from_toml "[server] section is missing" in
+    let application = required_section_from_toml toml "application" application_from_toml "[application] section is missing" in
     let areas = required_section_from_toml toml "areas" areas_from_toml "No area found" in
-    match server, areas with
-    | Ok server, Ok areas -> (
+    match server, application, areas with
+    | Ok server, Ok application, Ok areas -> (
         let groups = optional_section_from_toml toml "groups" groups_from_toml [] in
         match groups with
         | Ok groups -> (
@@ -276,15 +301,16 @@ let from_toml_file file =
                 let areas_accesses = required_section_from_toml toml "areas_accesses" (areas_accesses_from_toml areas users groups) "No area access found" in
                 match areas_accesses with
                 | Ok areas_accesses ->
-                  Result.ok { server; areas; groups; users; areas_accesses }
+                  Result.ok { server; application; areas; groups; users; areas_accesses }
                 | Error _ as err -> err
               )
             | Error _ as err -> err
           )
         | Error _ as err -> err
       )
-    | (Error _ as err), _ -> err
-    | _, (Error _ as err) -> err
+    | (Error _ as err), _, _ -> err
+    | _, (Error _ as err), _ -> err
+    | _, _, (Error _ as err) -> err
   with
   | Toml.Parse_error (pos, err) ->
     Result.error (Toml.Parser.format_parse_error pos err)
