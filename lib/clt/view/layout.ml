@@ -6,7 +6,7 @@ open Vdom
 
 let view m content =
   div ~a:[class_ "container-fluid d-flex flex-column min-vh-100"] [
-    elt "header" ~a:[class_ "border-bottom border-info-subtle mb-4"] [
+    elt "header" ~a:[class_ "border-bottom border-info-subtle mb-4 bg-light"] [
       elt "nav" ~a:[class_ "navbar"] [
         div ~a:[class_ "container-fluid"] [
           Html.link Routing.Page.Home ~class_attr:"navbar-brand d-flex" ~title:"Home" [
@@ -38,11 +38,13 @@ let view m content =
       ]
     ];
     content;
-    elt "footer" ~a:[class_ "mt-auto border-top border-info-subtle"] [          
+    elt "footer" ~a:[class_ "mt-auto border-top border-info-subtle bg-light"] [
       div ~a:[class_ "row justify-content-center align-items-center pt-2 pb-2"] [
         div ~a:[class_ "col"] [
-          elt "small" [
-            text "SH.UP.DO.FI v1.1"
+          elt "a" ~a:[str_prop "href" "https://www.../"; str_prop "target" "_blank"] [
+            elt "small" [
+              text "SH.UP.DO.FI v1.1"
+            ]
           ]
         ]
       ]
