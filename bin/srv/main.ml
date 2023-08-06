@@ -7,7 +7,9 @@ module S = Tiny_httpd
 
 let start_server config =
   let www_root = Config.Config.get_server config |> Config.Server.get_www_root in
-  let server = S.create () in
+  let listen_address = Config.Config.get_server config |> Config.Server.get_listen_address in
+  let listen_port = Config.Config.get_server config |> Config.Server.get_listen_port in
+  let server = S.create ~addr:listen_address ~port:listen_port () in
 
   let accept_gzip (req:_ S.Request.t) =
     match
