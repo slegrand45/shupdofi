@@ -58,16 +58,22 @@ let optional_section_from_toml toml name f default =
 
 let server_from_toml toml =
   let www_root = Toml.Helpers.find_string_result toml ["www_root"] in
-  match www_root with
-  | Ok name ->
-    let dir = Com.Directory.make_absolute ~name () in
+  let listen_address = Toml.Helpers.find_string_result toml ["listen_address"] in
+  let listen_port = Toml.Helpers.find_integer_result toml ["listen_port"] in
+  match www_root, listen_address, listen_port with
+  | Ok root, Ok addr, Ok port ->
+    let dir = Com.Directory.make_absolute ~name:root () in
     if (Com.Directory.is_defined dir) then
-      let server = Server.make ~www_root:dir in
+      let server = Server.make ~www_root:dir ~listen_address:addr ~listen_port:port in
       Result.ok server
     else
       Result.error "[server]: www_root must be an absolute path"
-  | Error _ ->
+  | Error _, _, _ ->
     Result.error "[server]: www_root is missing"
+  | _, Error _, _ ->
+    Result.error "[server]: listen_address is missing"
+  | _, _, Error _ ->
+    Result.error "[server]: listen_port is missing"
 
 let application_from_toml toml =
   let authentications = Toml.Helpers.find_strings_result toml ["authentications"] in
