@@ -1,5 +1,7 @@
 [server]
 www_root = "/application_directory/www/"
+listen_address = "127.0.0.1"
+listen_port = 8080
 # log_file
 # tmp_root
 
@@ -8,7 +10,7 @@ www_root = "/application_directory/www/"
 authentications = [ "http_header" ]
 
 [authentications.http_header]
-header_name_for_login = "XXX"
+header_name_for_login = "x-remote-user"
 
 # define an area with id = area1
 [areas.area1]
