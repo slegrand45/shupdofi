@@ -59,6 +59,29 @@ let optional_section_from_toml toml name f default =
   | Some tab -> f tab
   | None -> Result.ok default
 
+  (*
+let check_uniq_id f_get_id f_msg_err l =
+  match l with
+  | Ok l_ok -> (
+      let ids = List.map f_get_id l_ok |> List.sort compare in
+      let rec f acc l =
+        match acc with
+        | None -> (
+            match l with
+            | [] -> acc
+            | v::[] -> acc
+            | v1::v2::l when v1 = v2 -> f (Some v1) l
+            | v1::v2::l -> f acc l
+          )
+        | Some _ as v -> v
+      in
+      match f None ids with
+      | None -> l
+      | Some v -> Result.error (f_msg_err v)
+    )
+  | Error _ as err -> err
+*)
+
 let server_from_toml toml =
   let www_root = Toml.Helpers.find_string_result toml ["www_root"] in
   let listen_address = Toml.Helpers.find_string_result toml ["listen_address"] in
@@ -313,17 +336,13 @@ let areas_accesses_from_toml areas users groups toml =
   map_values f_area tab
 
 let from_toml_file file =
-  (*
-     Récupérer toutes les sections de premier niveau et vérifier que leur nom est valide
-     let tab = Toml.get_table toml in
-  *)
   try
     let toml = Toml.Parser.from_file file in
-    (* let tab = Toml.get_table toml in *)
     let server = required_section_from_toml toml "server" server_from_toml "[server] section is missing" in
     let application = required_section_from_toml toml "application" application_from_toml "[application] section is missing" in
     let authentications = required_section_from_toml toml "authentications" authentications_from_toml "No authentication found" in
     let areas = required_section_from_toml toml "areas" areas_from_toml "No area found" in
+    (* |> check_uniq_id Area.get_area_id (fun s -> Printf.sprintf "[area.%s] section is not unique" s) *)
     match server, application, authentications, areas with
     | Ok server, Ok application, Ok authentications, Ok areas -> (
         let groups = optional_section_from_toml toml "groups" groups_from_toml [] in

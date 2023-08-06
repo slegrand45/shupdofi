@@ -155,5 +155,4 @@ match ! config_file with
       start_server config;
     )
   | Error err ->
-    prerr_endline "Error in configuration file:";
-    prerr_endline err;
+    prerr_endline ("Error in configuration file: " ^ err);
