@@ -1,20 +1,32 @@
 module Com = Shupdofi_com
 
-type t = { area: Com.Area.t; root: Com.Directory.absolute Com.Directory.t }
+type t = { area: Com.Area.t; root: Com.Directory.absolute Com.Directory.t; quota: (string * Com.Size.t option) }
 
 type collection = t list
 
-let make ~area ~root = { area; root }
+let make ~area ~root ~quota = { area; root; quota }
 
 let to_string v =
-  Printf.sprintf "area = %s, root = %s"
-    (Com.Area.to_string v.area) (Com.Directory.get_name v.root)
+  let quota =
+    let (_, q) = v.quota in
+    match q with
+    | Some v -> Com.Size.to_human v
+    | None -> "none"
+  in
+  Printf.sprintf "area = %s, root = %s, quota = %s"
+    (Com.Area.to_string v.area) (Com.Directory.get_name v.root) quota
 
 let to_toml v =
+  let quota =
+    let (s, q) = v.quota in
+    match q with
+    | Some _ -> Printf.sprintf "quota = %s" s
+    | None -> ""
+  in
   let fmt s = "\"" ^ (String.escaped s) ^ "\"" in
-  Printf.sprintf "[areas.%s]\nname = %s\ndescription = %s\nroot = %s"
+  Printf.sprintf "[areas.%s]\nname = %s\ndescription = %s\nroot = %s\n%s"
     (Com.Area.get_id v.area) (fmt (Com.Area.get_name v.area))
-    (fmt (Com.Area.get_description v.area)) (fmt (Com.Directory.get_name v.root))
+    (fmt (Com.Area.get_description v.area)) (fmt (Com.Directory.get_name v.root)) quota
 
 let get_area v = v.area
 
@@ -22,6 +34,8 @@ let get_area_id v =
   Com.Area.get_id v.area
 
 let get_root v = v.root
+
+let get_quota v = v.quota
 
 (*
 let get_all : type a. a t -> a list = fun v -> 

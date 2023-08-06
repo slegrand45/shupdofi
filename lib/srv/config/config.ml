@@ -119,12 +119,17 @@ let areas_from_toml toml =
     let name = Toml.Helpers.find_string_result toml ["name"] in
     let description = Toml.Helpers.find_string_result toml ["description"] in
     let root = Toml.Helpers.find_string_result toml ["root"] in
+    let quota =
+      match Toml.Helpers.find_string_opt toml ["quota"] with
+      | None -> ("", None)
+      | Some s -> (s, Com.Size.from_string s)
+    in
     match name, description, root with
     | Ok name, Ok description, Ok root ->
       let dir = Com.Directory.make_absolute ~name:root () in
       if (Com.Directory.is_defined dir) then
         let com_area = Com.Area.make ~id ~name ~description in
-        Result.ok (Area.make ~area:com_area ~root:dir)
+        Result.ok (Area.make ~area:com_area ~root:dir ~quota)
       else
         Result.error (Printf.sprintf "[areas.%s] root must be an absolute path" id)
     | Error _, Ok _, Ok _ ->
