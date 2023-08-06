@@ -17,14 +17,14 @@ let to_string v =
     (Com.Area.to_string v.area) (Com.Directory.get_name v.root) quota
 
 let to_toml v =
+  let fmt s = "\"" ^ (String.escaped s) ^ "\"" in
   let quota =
     let (s, q) = v.quota in
     match q with
-    | Some _ -> Printf.sprintf "quota = %s" s
+    | Some _ -> Printf.sprintf "\nquota = %s" (fmt s)
     | None -> ""
   in
-  let fmt s = "\"" ^ (String.escaped s) ^ "\"" in
-  Printf.sprintf "[areas.%s]\nname = %s\ndescription = %s\nroot = %s\n%s"
+  Printf.sprintf "[areas.%s]\nname = %s\ndescription = %s\nroot = %s%s"
     (Com.Area.get_id v.area) (fmt (Com.Area.get_name v.area))
     (fmt (Com.Area.get_description v.area)) (fmt (Com.Directory.get_name v.root)) quota
 
