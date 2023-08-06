@@ -7,7 +7,7 @@ module Icon = Shupdofi_clt_icon.Icon
 module Intl = Shupdofi_clt_i18n.Intl
 module Model = Shupdofi_clt_model.Model
 module Routing = Shupdofi_clt_routing
-module Size = Shupdofi_clt_i18n.Size
+module Size = Shupdofi_com.Size
 
 open Vdom
 

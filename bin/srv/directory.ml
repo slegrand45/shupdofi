@@ -13,10 +13,10 @@ let rename config req =
   let subdirs = Msg_from_clt.Rename_directory.get_subdirs rename_directory in
   let old_dirname = Msg_from_clt.Rename_directory.get_old_dirname rename_directory in
   let new_dirname = Msg_from_clt.Rename_directory.get_new_dirname rename_directory in
-  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
+  let area = Config.Config.find_area_with_id area_id config in
   let relative_dir_old = Content.Directory.make_from_list (subdirs @ [old_dirname]) in
   let relative_dir_new = Content.Directory.make_from_list (subdirs @ [new_dirname]) in
-  let rename = Content.Directory.rename (Com.Area.get_root area) ~before:relative_dir_old ~after:relative_dir_new in
+  let rename = Content.Directory.rename (Config.Area.get_root area) ~before:relative_dir_old ~after:relative_dir_new in
   match rename with
   | None ->
     S.Response.fail_raise ~code:403 "Cannot rename directory %s to %s" old_dirname new_dirname
@@ -39,10 +39,10 @@ let rename config req =
    | _ -> Ok ()
    ) *)
 let archive config area_id path req =
-  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
+  let area = Config.Config.find_area_with_id area_id config in
   try
     let archive = Content.Path.absolute_from_string (Filename.temp_file "shupdofi" "archive") in
-    let () = Content.Archive.create_archive_of_directory ~archive ~root:(Com.Area.get_root area) ~subdir:(Com.Directory.make_relative ~name:path ()) in
+    let () = Content.Archive.create_archive_of_directory ~archive ~root:(Config.Area.get_root area) ~subdir:(Com.Directory.make_relative ~name:path ()) in
     let path_archive = Content.Path.to_string archive in
     let ch = In_channel.open_bin path_archive in
     let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
@@ -67,8 +67,8 @@ let create config req =
   let area_id = Msg_from_clt.New_directory.get_area_id new_directory in
   let subdirs = Msg_from_clt.New_directory.get_subdirs new_directory in
   let dirname = Msg_from_clt.New_directory.get_dirname new_directory in
-  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
-  let make_dir = Content.Directory.mkdir (Com.Area.get_root area) (subdirs @ [dirname]) in
+  let area = Config.Config.find_area_with_id area_id config in
+  let make_dir = Content.Directory.mkdir (Config.Area.get_root area) (subdirs @ [dirname]) in
   match make_dir with
   | None ->
     S.Response.fail_raise ~code:403 "Cannot create directory %s" dirname
@@ -83,9 +83,9 @@ let delete config req =
   let area_id = Msg_from_clt.Delete_directory.get_area_id delete_directory in
   let subdirs = Msg_from_clt.Delete_directory.get_subdirs delete_directory in
   let dirname = Msg_from_clt.Delete_directory.get_dirname delete_directory in
-  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
+  let area = Config.Config.find_area_with_id area_id config in
   try
-    Content.Directory.delete (Com.Area.get_root area)
+    Content.Directory.delete (Config.Area.get_root area)
       (Content.Directory.make_from_list (subdirs @ [dirname]));
     S.Response.make_raw ~code:200 ""
   with

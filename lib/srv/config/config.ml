@@ -5,7 +5,7 @@ type t = {
   server: Server.t;
   application: Application.t;
   authentications: Authentication.t list;
-  areas: Com.Area.collection;
+  areas: Area.t list;
   groups: Group.t list;
   users: User.t list;
   areas_accesses: Area_access.t list
@@ -15,7 +15,7 @@ let to_toml v =
   let server = Server.to_toml v.server in
   let application = Application.to_toml v.application in
   let authentications = List.map (fun e -> Printf.sprintf "%s" (Authentication.to_toml e)) v.authentications |> String.concat "\n\n" in
-  let areas = List.map (fun e -> Printf.sprintf "%s" (Com.Area.to_toml e)) v.areas |> String.concat "\n\n" in
+  let areas = List.map (fun e -> Printf.sprintf "%s" (Area.to_toml e)) v.areas |> String.concat "\n\n" in
   let groups = List.map (fun e -> Printf.sprintf "%s" (Group.to_toml e)) v.groups |> String.concat "\n\n" in
   let users = List.map (fun e -> Printf.sprintf "%s" (User.to_toml e)) v.users |> String.concat "\n\n" in
   let areas_accesses = List.map (fun e -> Printf.sprintf "%s" (Area_access.to_toml e)) v.areas_accesses |> String.concat "\n\n" in
@@ -35,6 +35,9 @@ let get_groups v =
 
 let get_users v =
   v.users
+
+let find_area_with_id id v =
+  List.find (fun e -> (Area.get_area_id e) = id) v.areas
 
 let map_values f tab =
   let (oks, errs) = List.map f tab |> List.partition (Result.is_ok) in
@@ -120,7 +123,8 @@ let areas_from_toml toml =
     | Ok name, Ok description, Ok root ->
       let dir = Com.Directory.make_absolute ~name:root () in
       if (Com.Directory.is_defined dir) then
-        Result.ok (Com.Area.make ~id ~name ~description ~root:dir)
+        let com_area = Com.Area.make ~id ~name ~description in
+        Result.ok (Area.make ~area:com_area ~root:dir)
       else
         Result.error (Printf.sprintf "[areas.%s] root must be an absolute path" id)
     | Error _, Ok _, Ok _ ->
@@ -259,7 +263,7 @@ let make_right_groups area_id known str_action toml =
 let areas_accesses_from_toml areas users groups toml =
   let tab = Toml.get_table toml in
   let f_area (area_id, toml) =
-    match List.find_opt (fun e -> Com.Area.get_id e = area_id) areas with
+    match List.find_opt (fun e -> Area.get_area_id e = area_id) areas with
     | None ->
       Result.error (Printf.sprintf "[areas_accesses.%s] area %s is unknown" area_id area_id)
     | Some area ->

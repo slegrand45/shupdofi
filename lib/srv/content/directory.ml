@@ -4,6 +4,27 @@ module Datetime = Shupdofi_srv_datetime.Datetime
 type absolute = Com.Directory.absolute Com.Directory.t
 type relative = Com.Directory.relative Com.Directory.t
 
+(* https://rosettacode.org/wiki/Walk_a_directory/Recursively#OCaml *)
+let walk init f_file v =
+  let rec walk acc = function
+    | [] -> acc
+    | dir::tail ->
+      let contents = Array.to_list (Sys.readdir dir) in
+      let contents = List.rev_map (Filename.concat dir) contents in
+      let dirs, files =
+        List.fold_left (fun (dirs,files) f ->
+            match (Unix.LargeFile.stat f).st_kind with
+            | S_REG -> (dirs, f::files)
+            | S_DIR -> (f::dirs, files)
+            | _ -> (dirs, files)
+          ) ([],[]) contents
+      in
+      let acc = List.fold_left f_file acc files in
+      walk acc (dirs @ tail)
+  in
+  let pathname = Com.Directory.get_name v in
+  walk init [pathname]
+
 let is_without_parent_dir_name s =
   let r = Str.regexp_string ".." in
   not (Str.string_match r s 0)
@@ -145,4 +166,10 @@ let delete root_dir v =
   with
   | _ -> failwith (Printf.sprintf "Unable to delete directory %s" (Com.Directory.get_name v))
 
-
+(* to check: find . -type f | xargs stat -c "%s" | awk '{s+=$1} END {print s}' *)
+let size v =
+  let f acc path =
+    let stat = Unix.LargeFile.stat path in
+    Int64.add acc (stat.Unix.LargeFile.st_size)
+  in
+  walk 0L f v

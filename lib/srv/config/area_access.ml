@@ -133,10 +133,11 @@ module Right = struct
 
 end
 
-type t = (Com.Area.t * Right.t list)
+type t = (Area.t * Right.t list)
 
 let make area rights =
   (area, rights)
 
 let to_toml (area, rights) =
-  Printf.sprintf "[areas_accesses.%s]\n%s" (Com.Area.get_id area) (List.map Right.to_toml rights |> String.concat "\n")
+  Printf.sprintf "[areas_accesses.%s]\n%s" (Area.get_area_id area)
+    (List.map Right.to_toml rights |> String.concat "\n")

@@ -4,7 +4,7 @@ module Routing = Shupdofi_clt_routing
 type t = {
   route : Routing.Page.t;
   block : (Block.Fetchable.id, Block.Fetchable.status) Block.Fetchable.t;
-  areas : Com.Area.collection;
+  areas : Com.Area.t list;
   area_content : Com.Area_content.t;
   modal : Modal.t;
 }

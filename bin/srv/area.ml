@@ -12,8 +12,8 @@ let list config _req =
       (* ~root:(Com.Directory.make_absolute ~name:"..." ()) *)
   *)
   let areas = (Config.Config.get_areas config)
-              |> List.filter (fun e -> Com.Area.get_root e |> Content.Directory.is_usable)
-              |> List.map (Com.Area.set_root (Com.Directory.make_absolute ~name:"" ()))
+              |> List.filter (fun e -> Config.Area.get_root e |> Content.Directory.is_usable)
+              |> List.map Config.Area.get_area
   in
   S.Response.make_string (Ok (Com.Area.yojson_of_collection areas |> Yojson.Safe.to_string))
   |> S.Response.set_header "Content-Type" "text/json"

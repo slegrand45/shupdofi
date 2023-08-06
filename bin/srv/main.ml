@@ -11,6 +11,9 @@ let start_server config =
   let listen_port = Config.Config.get_server config |> Config.Server.get_listen_port in
   let server = S.create ~addr:listen_address ~port:listen_port () in
 
+  let () = prerr_endline (Printf.sprintf "size %s = %Lu"
+                            (Com.Directory.get_name www_root) (Shupdofi_srv_content.Directory.size www_root)) in
+
   let accept_gzip (req:_ S.Request.t) =
     match
       S.Request.get_header req "Accept-Encoding"

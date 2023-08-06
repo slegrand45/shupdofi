@@ -7,19 +7,19 @@ module S = Tiny_httpd
 
 let upload config area_id path req =
   let path_string = path in
-  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
+  let area = Config.Config.find_area_with_id area_id config in
   let path = Content.Path.relative_from_string path in
-  let path = Content.Path.next_if_exists (Com.Area.get_root area) path in
+  let path = Content.Path.next_if_exists (Config.Area.get_root area) path in
   let write, close =
     try
-      Content.Path.oc (Com.Area.get_root area) path
+      Content.Path.oc (Config.Area.get_root area) path
     with e ->
       S.Response.fail_raise ~code:403 "Cannot upload %S: %s"
         path_string (Printexc.to_string e)
   in
   let () = Tiny_httpd_stream.iter write req.S.Request.body in
   let () = close () in
-  let path = Content.Path.update_meta_infos (Com.Area.get_root area) path in
+  let path = Content.Path.update_meta_infos (Config.Area.get_root area) path in
   let directory = Com.Path.get_directory path in
   let file = Com.Path.get_file path in
   let json =
@@ -38,10 +38,10 @@ let rename config req =
   let subdirs = Msg_from_clt.Rename_file.get_subdirs rename_file in
   let old_filename = Msg_from_clt.Rename_file.get_old_filename rename_file in
   let new_filename = Msg_from_clt.Rename_file.get_new_filename rename_file in
-  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
+  let area = Config.Config.find_area_with_id area_id config in
   let relative_path_old = Com.Path.make_relative (Content.Directory.make_from_list subdirs) (Com.File.make ~name:old_filename ()) in
   let relative_path_new = Com.Path.make_relative (Content.Directory.make_from_list subdirs) (Com.File.make ~name:new_filename ()) in
-  let rename = Content.Path.rename (Com.Area.get_root area) ~before:relative_path_old ~after:relative_path_new in
+  let rename = Content.Path.rename (Config.Area.get_root area) ~before:relative_path_old ~after:relative_path_new in
   match rename with
   | None ->
     S.Response.fail_raise ~code:403 "Cannot rename file %s to %s" old_filename new_filename
@@ -52,13 +52,13 @@ let rename config req =
 
 let download config area_id path req =
   let path_string = path in
-  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
+  let area = Config.Config.find_area_with_id area_id config in
   let path = Content.Path.relative_from_string path in
   let dir = Com.Path.get_directory path in
   let file = Com.Path.get_file path in
   match dir, file with
   | Some dir, Some file -> (
-      let path = Com.Path.make_absolute (Content.Directory.concat (Com.Area.get_root area) dir) file in
+      let path = Com.Path.make_absolute (Content.Directory.concat (Config.Area.get_root area) dir) file in
       let ch = In_channel.open_bin (Content.Path.to_string path) in
       let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
       S.Response.make_raw_stream ~code:S.Response_code.ok stream
@@ -73,9 +73,9 @@ let delete config req =
   let area_id = Msg_from_clt.Delete_file.get_area_id delete_file in
   let subdirs = Msg_from_clt.Delete_file.get_subdirs delete_file in
   let filename = Msg_from_clt.Delete_file.get_filename delete_file in
-  let area = Com.Area.find_with_id area_id (Config.Config.get_areas config) in
+  let area = Config.Config.find_area_with_id area_id config in
   try
-    Content.Path.delete (Com.Area.get_root area)
+    Content.Path.delete (Config.Area.get_root area)
       (Com.Path.make_relative (Content.Directory.make_from_list subdirs) (Com.File.make ~name:filename ()));
     S.Response.make_raw ~code:200 ""
   with

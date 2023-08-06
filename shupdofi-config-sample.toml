@@ -17,7 +17,9 @@ header_name_for_login = "x-remote-user"
 name = "Area 1"
 description = "This is the area 1"
 root = "/root_directory_for_area1/"
-# quota = ""
+# maximum total size for this area
+# units can be empty (for size in bytes), KB, MB, GB, TB or PB
+# quota = "1GB"
 
 # define an area with id = area2
 [areas.area2]

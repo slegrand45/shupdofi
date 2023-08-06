@@ -1,29 +1,20 @@
 open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 
-type t = { id: string; name: string; description: string; root: Directory.absolute Directory.t }
+type t = { id: string; name: string; description: string }
 [@@deriving yojson]
 
 type collection = t list
 [@@deriving yojson]
 
-let make ~id ~name ~description ~root = { id; name; description; root }
+let make ~id ~name ~description = { id; name; description }
 
 let to_string v =
-  Printf.sprintf "id = %s, name = %s, description = %s, root = %s"
-    v.id v.name v.description (Directory.get_name v.root)
-
-let to_toml v =
-  let fmt s = "\"" ^ (String.escaped s) ^ "\"" in
-  Printf.sprintf "[areas.%s]\nname = %s\ndescription = %s\nroot = %s"
-    v.id (fmt v.name) (fmt v.description) (fmt (Directory.get_name v.root))
+  Printf.sprintf "id = %s, name = %s, description = %s"
+    v.id v.name v.description
 
 let get_id v = v.id
 let get_name v = v.name
 let get_description v = v.description
-let get_root v = v.root
-
-let set_root root v =
-  { v with root }
 
 let find_with_id id =
   List.find (fun e -> e.id = id)

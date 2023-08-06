@@ -1,5 +1,3 @@
-module Com = Shupdofi_com
-
 module Action : sig
   type t
 
@@ -44,5 +42,5 @@ end
 
 type t
 
-val make : Com.Area.t -> Right.t list -> t
+val make : Area.t -> Right.t list -> t
 val to_toml : t -> string
