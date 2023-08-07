@@ -140,10 +140,14 @@ let start_server config =
     prerr_endline ("Unable to start server: " ^ (Printexc.to_string e))
 ;;
 
-let usage_msg = Sys.executable_name ^ " -c <configuration file>" in
+let usage_msg = Sys.executable_name ^ " -c <configuration file> [-t] " in
 let config_file = ref "" in
+let config_test = ref false in
 let speclist =
-  [("-c", Arg.Set_string config_file, "Configuration file")]
+  [
+    ("-c", Arg.Set_string config_file, "Configuration file");
+    ("-t", Arg.Set config_test, "Do not start the server, just test the configuration file")
+  ]
 in
 let () = Arg.parse speclist (fun _ -> ()) usage_msg in
 match ! config_file with
@@ -152,7 +156,9 @@ match ! config_file with
   let config = Config.Config.from_toml_file !config_file in
   match config with
   | Ok config -> (
-      start_server config;
+      if (not !config_test) then
+        start_server config;
     )
   | Error err ->
     prerr_endline ("Error in configuration file: " ^ err);
+    exit 1;
