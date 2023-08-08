@@ -35,7 +35,7 @@ let update m a =
     let new_filename = Modal.get_input_content m.modal in
     let c_default = Api.send(Action.Modal_close) in
     if old_filename <> new_filename then
-      let c = Js_toast.append_from_list ~l:[new_filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename file " ^ old_filename ^ " to " ^ new_filename)
+      let c = Js_toast.append_from_list ~l:[new_filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "File " ^ old_filename ^ " renamed to " ^ new_filename)
           ~fun_cmd:(fun toast_id new_filename -> Api.send (Action.Rename_file (Action_other.Rename_file.Do { area_id; area_subdirs; toast_id; old_filename; new_filename })))
       in
       let c = c_default :: c in

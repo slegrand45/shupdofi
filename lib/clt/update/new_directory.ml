@@ -31,7 +31,7 @@ let update m a =
     return m
   | Action_other.New_directory.Start { area_id; area_subdirs } ->
     let dirname = Modal.get_input_content m.modal in
-    let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "New directory " ^ dirname)
+    let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Directory " ^ dirname ^ " created")
         ~fun_cmd:(fun toast_id dirname -> Api.send (Action.New_directory (Action_other.New_directory.Do { area_id; area_subdirs; toast_id; dirname })))
     in
     let c = Api.send(Action.Modal_close) :: c in

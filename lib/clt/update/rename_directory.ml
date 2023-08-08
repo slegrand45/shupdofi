@@ -35,7 +35,7 @@ let update m a =
     let new_dirname = Modal.get_input_content m.modal in
     let c_default = Api.send(Action.Modal_close) in
     if old_dirname <> new_dirname then
-      let c = Js_toast.append_from_list ~l:[new_dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename direcory " ^ old_dirname ^ " to " ^ new_dirname)
+      let c = Js_toast.append_from_list ~l:[new_dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Directory " ^ old_dirname ^ " renamed to " ^ new_dirname)
           ~fun_cmd:(fun toast_id new_dirname -> Api.send (Action.Rename_directory (Action_other.Rename_directory.Do { area_id; area_subdirs; toast_id; old_dirname; new_dirname })))
       in
       let c = c_default :: c in

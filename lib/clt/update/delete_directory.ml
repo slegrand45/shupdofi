@@ -34,7 +34,7 @@ let update m a =
     let () = Js_modal.show () in
     return m
   | Action_other.Delete_directory.Start { area_id; area_subdirs; dirname } ->
-    let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Delete directory " ^ dirname)
+    let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Directory " ^ dirname ^ " deleted")
         ~fun_cmd:(fun toast_id dirname -> Api.send (Action.Delete_directory (Action_other.Delete_directory.Do { area_id; area_subdirs; toast_id; dirname })))
     in
     let c = Api.send(Action.Modal_close) :: c in

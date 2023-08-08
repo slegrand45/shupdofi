@@ -24,7 +24,7 @@ let update m a =
           let area_id = Com.Area_content.get_id m.Model.area_content in
           let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
           let files = Element.files e in
-          let c = Js_toast.append_from_list ~l:files ~prefix_id:area_id ~fun_msg:Js_browser.File.name
+          let c = Js_toast.append_from_list ~l:files ~prefix_id:area_id ~fun_msg:(fun e -> "File " ^ Js_browser.File.name e ^ " uploaded")
               ~fun_cmd:(fun toast_id file -> Api.send (Action.Upload_file (Action_other.Upload_file.Do { area_id; area_subdirs; toast_id; file }))) in
           return m ~c
         )
