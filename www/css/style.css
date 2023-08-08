@@ -16,3 +16,7 @@ a:active { text-decoration: none; }
 .area-content .line:hover .hide {
     visibility: visible;
 }
+
+.toast {
+    width: min-content
+}
