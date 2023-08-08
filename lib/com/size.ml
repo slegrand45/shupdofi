@@ -2,6 +2,8 @@ type t = int64
 
 let from_int64 v = v
 
+let to_int64 v = v
+
 let to_human v =
   let v' = Int64.to_float v in
   let sizes = ["Bytes"; "KB"; "MB"; "GB"; "TB"; "PB"; "EB"; "ZB"; "YB"] in

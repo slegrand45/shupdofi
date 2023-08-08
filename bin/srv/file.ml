@@ -5,9 +5,31 @@ module Msg_from_clt = Shupdofi_msg_srv_from_clt
 module Msg_to_clt = Shupdofi_msg_srv_to_clt
 module S = Tiny_httpd
 
+let get_max_upload_size area =
+  let quota = Config.Area.get_quota area |> snd |> Option.fold ~none:Int64.max_int ~some:Com.Size.to_int64 in
+  let current_area_size = Content.Directory.size (Config.Area.get_root area) in
+  Int64.sub quota current_area_size
+
 let upload config area_id path req =
   let path_string = path in
   let area = Config.Config.find_area_with_id area_id config in
+  let max_upload_size = get_max_upload_size area in
+  let () =
+    match S.Request.get_header req "Content-Length" with
+    | Some s -> (
+        match Int64.of_string_opt s with
+        | Some i -> (
+            if (max_upload_size > 0L && i <= max_upload_size) then (
+              ()
+            )
+            else (
+              S.Response.fail_raise ~code:403 "Area quota exceeded"
+            )
+          )
+        | None -> S.Response.fail_raise ~code:403 "Invalid content-length header"
+      )
+    | None -> S.Response.fail_raise ~code:403 "Content-length header is missing"
+  in
   let path = Content.Path.relative_from_string path in
   let path = Content.Path.next_if_exists (Config.Area.get_root area) path in
   let write, close =
@@ -17,6 +39,7 @@ let upload config area_id path req =
       S.Response.fail_raise ~code:403 "Cannot upload %S: %s"
         path_string (Printexc.to_string e)
   in
+  let req = S.Request.limit_body_size ~max_size:(Int64.to_int max_upload_size) req in
   let () = Tiny_httpd_stream.iter write req.S.Request.body in
   let () = close () in
   let path = Content.Path.update_meta_infos (Config.Area.get_root area) path in
