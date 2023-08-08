@@ -28,13 +28,13 @@ let make_absolute ~name ?mdatetime () =
   else
     Some { name; mdatetime }
 
+(* /!\ name can be empty *)
 let make_relative ~name ?mdatetime () =
   let forbidden s =
     Str.string_match (Str.regexp_string Filename.parent_dir_name) s 0
     || Str.string_match (Str.regexp_string (Filename.dir_sep ^ Filename.dir_sep)) s 0
     || Str.string_match (Str.regexp (Filename.dir_sep ^ "$")) s 0
     || ((String.length s > 0) && (String.sub name 0 1 = Filename.dir_sep))
-    || String.length s = 0
   in
   if forbidden name then
     None
