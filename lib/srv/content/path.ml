@@ -83,7 +83,7 @@ let oc root_dir v =
     let name = to_string v in
     let oc = Out_channel.open_bin name in
     let write = Out_channel.output oc in
-    let close () = Out_channel.close oc in
+    let close = (fun () -> Out_channel.close oc) in
     write, close
 
 let update_meta_infos root_dir v =

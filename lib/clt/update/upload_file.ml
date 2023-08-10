@@ -47,7 +47,12 @@ let update m a =
           let file = Msg_from_srv.Uploaded.get_file uploaded in
           { m with area_content = Com.Area_content.(add_uploaded ~id:area_id ~subdirs ~file m.area_content |> sort) }
         | _ ->
-          Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to upload file " ^ filename ^ ": " ^ txt);
+          let msg =
+            match txt with
+            | "" -> "Unable to upload file " ^ filename
+            | _ -> "Unable to upload file " ^ filename ^ ": " ^ txt
+          in
+          Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg;
           m
       in
       let () = Js_toast.clean_hiddens ~document in

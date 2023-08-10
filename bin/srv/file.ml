@@ -11,35 +11,33 @@ let get_max_upload_size area =
   Int64.sub quota current_area_size
 
 let upload config area_id path req =
-  let path_string = path in
   let area = Config.Config.find_area_with_id area_id config in
   let max_upload_size = get_max_upload_size area in
-  let () =
+  let size_ok =
     match S.Request.get_header req "Content-Length" with
     | Some s -> (
         match Int64.of_string_opt s with
-        | Some i -> (
-            if (max_upload_size > 0L && i <= max_upload_size) then (
-              ()
-            )
-            else (
-              S.Response.fail_raise ~code:403 "Area quota exceeded"
-            )
-          )
-        | None -> S.Response.fail_raise ~code:403 "Invalid content-length header"
+        | Some i -> max_upload_size > 0L && i <= max_upload_size
+        | None -> false
       )
-    | None -> S.Response.fail_raise ~code:403 "Content-length header is missing"
+    | None -> false
   in
   let path = Content.Path.relative_from_string path in
   let path = Content.Path.next_if_exists (Config.Area.get_root area) path in
   let write, close =
-    try
+    match size_ok with
+    | true ->
       Content.Path.oc (Config.Area.get_root area) path
-    with e ->
-      S.Response.fail_raise ~code:403 "Cannot upload %S: %s"
-        path_string (Printexc.to_string e)
+    | false ->
+      (* /!\
+        Even if we know that the file is too big we have to read it
+        completely in order to avoid random error (the HTTP server
+        returns an empty response ??!!). So we send the file content
+        to /dev/null
+      *)
+      let oc = Out_channel.open_bin Filename.null in
+      (Out_channel.output oc, (fun () -> Out_channel.close oc))
   in
-  let req = S.Request.limit_body_size ~max_size:(Int64.to_int max_upload_size) req in
   let () = Tiny_httpd_stream.iter write req.S.Request.body in
   let () = close () in
   let path = Content.Path.update_meta_infos (Config.Area.get_root area) path in
@@ -52,7 +50,9 @@ let upload config area_id path req =
       Msg_to_clt.Uploaded.yojson_of_t uploaded  |> Yojson.Safe.to_string
     | _ -> ""
   in
-  S.Response.make_raw ~code:201 json
+  match size_ok with
+  | true -> S.Response.make_raw ~code:201 json
+  | false -> S.Response.fail_raise ~code:403 "Area quota exceeded"
 
 let rename config req =
   let body = Tiny_httpd_stream.read_all req.S.Request.body in
