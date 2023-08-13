@@ -17,16 +17,6 @@ let view m content =
               elt "form" ~a:[str_prop "role" "link"] [
                 elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm"] [
                   div ~a:[class_ "d-flex align-items-center justify-content-around"] [
-                    Icon.settings ~class_attr:"fs-6";
-                    elt "span" ~a:[class_ "ms-1"] [ text " Admin " ]
-                  ]
-                ]
-              ]
-            ];
-            div ~a:[class_ "col-auto"] [
-              elt "form" ~a:[str_prop "role" "link"] [
-                elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm"] [
-                  div ~a:[class_ "d-flex align-items-center justify-content-around"] [
                     Icon.account_circle ~class_attr:"fs-6";
                     elt "span" ~a:[class_ "ms-1"] [ text " Stéph. Legrand " ]
                   ]
