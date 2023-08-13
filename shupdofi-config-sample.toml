@@ -10,7 +10,7 @@ listen_port = 8080
 authentications = [ "http_header" ]
 
 [authentications.http_header]
-header_name_for_login = "x-remote-user"
+header_login = "x-remote-user"
 
 # define an area with id = area1
 [areas.area1]
@@ -66,6 +66,7 @@ rights.users.upload = [ "user1" ]
 rights.users.rename = [ "user1" ]
 rights.users.move = [ "user1" ]
 rights.users.delete = [ "user1" ]
+rights.users.archive = [ "user1" ]
 rights.users.create_directory = [ "user1" ]
 # for groups
 rights.groups.download = [ "group1" ]
@@ -73,6 +74,7 @@ rights.groups.upload = [ "group1" ]
 rights.groups.rename = [ "group1" ]
 rights.groups.move = [ "group1" ]
 rights.groups.delete = [ "group1" ]
+rights.groups.archive = [ "group1" ]
 rights.groups.create_directory = [ "group1" ]
 
 # define access rights for area2

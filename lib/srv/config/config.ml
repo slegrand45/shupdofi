@@ -27,6 +27,9 @@ let get_server v =
 let get_application v =
   v.application
 
+let get_authentications v =
+  v.authentications
+
 let get_areas v =
   v.areas
 
@@ -35,6 +38,9 @@ let get_groups v =
 
 let get_users v =
   v.users
+
+let get_areas_accesses v =
+  v.areas_accesses
 
 let find_area_with_id id v =
   List.find (fun e -> (Area.get_area_id e) = id) v.areas
@@ -127,11 +133,11 @@ let authentications_from_toml toml =
     | Authentication.Id.Unknown _ ->
       Result.error (Printf.sprintf "[authentications.%s] auth method %s is unknown" id id)
     | Authentication.Id.Http_header -> (
-        match Toml.Helpers.find_string_result toml ["header_name_for_login"] with
-        | Ok header_name_for_login ->
-          Result.ok (Authentication.make_http_header (Authentication.Http_header.make ~header_name_for_login))
+        match Toml.Helpers.find_string_result toml ["header_login"] with
+        | Ok header_login ->
+          Result.ok (Authentication.make_http_header (Authentication.Http_header.make ~header_login))
         | Error _ ->
-          Result.error (Printf.sprintf "[authentications.%s] header_name_for_login is missing" id)
+          Result.error (Printf.sprintf "[authentications.%s] header_login is missing" id)
       )
   in
   map_values f tab

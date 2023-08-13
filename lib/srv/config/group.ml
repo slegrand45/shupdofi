@@ -11,6 +11,9 @@ let to_toml v =
   let fmt s = "\"" ^ (String.escaped s) ^ "\"" in
   Printf.sprintf "[groups.%s]\nname = %s\ndescription = %s" v.id (fmt v.name) (fmt v.description)
 
+let to_string v =
+  Printf.sprintf "id=%s name=%s description=%s" v.id v.name v.description
+
 let get_id v =
   v.id
 

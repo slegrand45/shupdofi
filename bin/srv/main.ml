@@ -93,37 +93,55 @@ let start_server config =
        )
     );
 
+  let fail_user_unknown = (fun () -> S.Response.fail ~code:403 "User unknown") in
+
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    (File.upload config);
+    (fun area path req -> Auth.get_user config req
+                          |> Option.fold ~none:(fail_user_unknown())
+                            ~some:(fun user -> File.upload config user area path req));
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "file" @/ exact "rename" @/ return)
-    (File.rename config);
+    (fun req -> Auth.get_user config req
+                |> Option.fold ~none:(fail_user_unknown())
+                  ~some:(fun user -> File.rename config user req));
 
   S.add_route_handler_stream ~meth:`GET server
     S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    (File.download config);
+    (fun area_id path req -> Auth.get_user config req
+                             |> Option.fold ~none:(fail_user_unknown())
+                               ~some:(fun user -> File.download config user area_id path req));
 
   S.add_route_handler_stream ~meth:`DELETE server
     S.Route.(exact "api" @/ exact "file" @/ return)
-    (File.delete config);
+    (fun req -> Auth.get_user config req
+                |> Option.fold ~none:(fail_user_unknown())
+                  ~some:(fun user -> File.delete config user req));
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "directory" @/ exact "rename" @/ return)
-    (Directory.rename config);
+    (fun req -> Auth.get_user config req
+                |> Option.fold ~none:(fail_user_unknown())
+                  ~some:(fun user -> Directory.rename config user req));
 
   S.add_route_handler_stream ~meth:`GET server
     S.Route.(exact "api" @/ exact "directory" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    (Directory.archive config);
+    (fun area_id path req -> Auth.get_user config req
+                             |> Option.fold ~none:(fail_user_unknown())
+                               ~some:(fun user -> Directory.archive config user area_id path req));
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "directory" @/ return)
-    (Directory.create config);
+    (fun req -> Auth.get_user config req
+                |> Option.fold ~none:(fail_user_unknown())
+                  ~some:(fun user -> Directory.create config user req));
 
   S.add_route_handler_stream ~meth:`DELETE server
     S.Route.(exact "api" @/ exact "directory" @/ return)
-    (Directory.delete config);
+    (fun req -> Auth.get_user config req
+                |> Option.fold ~none:(fail_user_unknown())
+                  ~some:(fun user -> Directory.delete config user req));
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact_path "api/areas" return)

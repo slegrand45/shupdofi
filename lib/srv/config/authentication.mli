@@ -12,11 +12,13 @@ end
 module Http_header : sig
   type t
 
-  val make : header_name_for_login:string -> t
+  val make : header_login:string -> t
+  val get_header_login : t -> string
   val to_toml : t -> string
 end
 
-type t
+type t = private
+  | Http_header of Http_header.t
 
 val make_http_header : Http_header.t -> t
 val to_toml : t -> string

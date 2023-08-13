@@ -21,15 +21,18 @@ end
 module Http_header = struct
 
   type t = {
-    header_name_for_login : string;
+    header_login : string;
   }
 
-  let make ~header_name_for_login =
-    { header_name_for_login }
+  let make ~header_login =
+    { header_login }
+
+  let get_header_login v =
+    v.header_login
 
   let to_toml v =
     let fmt s = "\"" ^ (String.escaped s) ^ "\"" in
-    Printf.sprintf "[authentications.http_header]\nheader_name_for_login = %s" (fmt v.header_name_for_login)
+    Printf.sprintf "[authentications.http_header]\nheader_login = %s" (fmt v.header_login)
 
 end
 
