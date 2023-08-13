@@ -44,8 +44,10 @@ let rename config user req =
    ) *)
 let archive config user area_id path req =
   let area = Config.Config.find_area_with_id area_id config in
-  match Auth.user_authorized config req user area Config.Area_access.Action.archive with
-  | true -> (
+  let auth_download = Auth.user_authorized config req user area Config.Area_access.Action.download in
+  let auth_archive = Auth.user_authorized config req user area Config.Area_access.Action.archive in
+  match auth_download, auth_archive with
+  | true, true -> (
       try
         let archive = Content.Path.absolute_from_string (Filename.temp_file "shupdofi" "archive") in
         let () = Content.Archive.create_archive_of_directory ~archive ~root:(Config.Area.get_root area) ~subdir:(Com.Directory.make_relative ~name:path ()) in
@@ -59,7 +61,7 @@ let archive config user area_id path req =
       | _ ->
         S.Response.fail ~code:403 "Cannot download directory %s" path
     )
-  | false -> S.Response.fail ~code:403 "Archive is not authorized"
+  | _, _ -> S.Response.fail ~code:403 "Archive and/or download are not authorized"
 
 (* ~accept:(fun req ->
    match S.Request.get_header_int req "Content-Length" with
