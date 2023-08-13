@@ -40,16 +40,21 @@ let update m a =
     let m = { m with block = Block.Fetchable.to_loading block } in
     return m ~c:[Api.send (Action.Fetch { block })]
   | Action.Fetch { block } ->
-    return m ~c:[Api.http_get ~url:(Routing.Api.(to_url (Block.Fetchable.route_api block))) ~payload:"" (fun _ json -> Action.Fetched { block; json })]
-  | Action.Fetched { block; json } ->
-    let m = { m with block = Block.Fetchable.to_loaded block } in
-    let m =
-      match Block.Fetchable.get_id block with
-      | Block.Fetchable.Areas -> { m with areas = Yojson.Safe.from_string json |> Com.Area.collection_of_yojson }
-      | Block.Fetchable.Area_content _ -> { m with area_content = Yojson.Safe.from_string json |> Com.Area_content.t_of_yojson }
-      | _ -> m
-    in
-    return m
+    return m ~c:[Api.http_get ~url:(Routing.Api.(to_url (Block.Fetchable.route_api block))) ~payload:"" (fun status json -> Action.Fetched { block; status; json })]
+  | Action.Fetched { block; status; json } -> (
+      let m = { m with block = Block.Fetchable.to_loaded block } in
+      match status with
+      | 200 ->
+        let m =
+          match Block.Fetchable.get_id block with
+          | Block.Fetchable.Areas -> { m with areas = Yojson.Safe.from_string json |> Com.Area.collection_of_yojson }
+          | Block.Fetchable.Area_content _ -> { m with area_content = Yojson.Safe.from_string json |> Com.Area_content.t_of_yojson }
+          | _ -> m
+        in
+        return m
+      | _ ->
+        return m
+    )
   | Action.Area_go_to_subdir { name } ->
     let id = Com.Area_content.get_id m.Model.area_content in
     let subdirs = Com.Area_content.get_subdirs m.Model.area_content in

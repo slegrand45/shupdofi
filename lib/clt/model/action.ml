@@ -7,7 +7,7 @@ type t =
   | Current_url_modified
   | Fetch of { block : (Block.Fetchable.id, Block.Fetchable.status) Block.Fetchable.t }
   | Fetch_start of { block : (Block.Fetchable.id, Block.Fetchable.status) Block.Fetchable.t }
-  | Fetched of { block : (Block.Fetchable.id, Block.Fetchable.status) Block.Fetchable.t; json : string }
+  | Fetched of { block : (Block.Fetchable.id, Block.Fetchable.status) Block.Fetchable.t; status : int; json : string }
   | Set_current_url of { url : string }
   | Upload_file of Action_other.Upload_file.t
   | New_directory of Action_other.New_directory.t
