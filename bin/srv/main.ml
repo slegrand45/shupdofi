@@ -145,11 +145,15 @@ let start_server config =
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact_path "api/areas" return)
-    (Area.list config);
+    (fun req -> Auth.get_user config req
+                |> Option.fold ~none:(fail_user_unknown())
+                  ~some:(fun user -> Area.list config user req));
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string_urlencoded @/ rest_of_path_urlencoded)
-    (Area.content config);
+    (fun area_id subdirs req -> Auth.get_user config req
+                                |> Option.fold ~none:(fail_user_unknown())
+                                  ~some:(fun user -> Area.content config user area_id subdirs req));
 
   match S.run server with
   | Ok () -> 

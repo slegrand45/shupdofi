@@ -21,7 +21,7 @@ let rename config user req =
       let rename = Content.Directory.rename (Config.Area.get_root area) ~before:relative_dir_old ~after:relative_dir_new in
       match rename with
       | None ->
-        S.Response.fail_raise ~code:403 "Cannot rename directory %s to %s" old_dirname new_dirname
+        S.Response.fail ~code:403 "Cannot rename directory %s to %s" old_dirname new_dirname
       | Some new_stat ->
         let mtime = new_stat.Unix.LargeFile.st_mtime in
         let old_directory = Com.Directory.make_relative ~name:old_dirname () in
@@ -57,7 +57,7 @@ let archive config user area_id path req =
         response
       with
       | _ ->
-        S.Response.fail_raise ~code:403 "Cannot download directory %s" path
+        S.Response.fail ~code:403 "Cannot download directory %s" path
     )
   | false -> S.Response.fail ~code:403 "Archive is not authorized"
 
@@ -81,7 +81,7 @@ let create config user req =
       let make_dir = Content.Directory.mkdir (Config.Area.get_root area) (subdirs @ [dirname]) in
       match make_dir with
       | None ->
-        S.Response.fail_raise ~code:403 "Cannot create directory %s" dirname
+        S.Response.fail ~code:403 "Cannot create directory %s" dirname
       | Some directory ->
         let new_directory_created = Msg_to_clt.New_directory_created.make ~area_id ~subdirs ~directory in
         let json = Msg_to_clt.New_directory_created.yojson_of_t new_directory_created |> Yojson.Safe.to_string in
@@ -103,6 +103,6 @@ let delete config user req =
           (Content.Directory.make_from_list (subdirs @ [dirname]));
         S.Response.make_raw ~code:200 ""
       with
-      | _ -> S.Response.fail_raise ~code:403 "Cannot delete directory %s" dirname
+      | _ -> S.Response.fail ~code:403 "Cannot delete directory %s" dirname
     )
   | false -> S.Response.fail ~code:403 "Delete is not authorized"

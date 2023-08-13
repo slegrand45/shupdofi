@@ -8,7 +8,7 @@ let groups_of_user config user =
   |> List.map User.get_groups
   |> List.flatten
 
-let user_authorized_to config user action area =
+let user_actions config user area =
   let open Config in
   let areas_accesses_of_area =
     Config.get_areas_accesses config
@@ -28,6 +28,13 @@ let user_authorized_to config user action area =
       ) [] rights
     |> List.fold_left (fun acc e -> match e with None -> acc | Some v -> v :: acc) []
   in
-  let actions = List.sort_uniq compare (actions_user @ actions_groups) in
-  (* List.iter (fun e -> prerr_endline (Printf.sprintf "%s " (Area_access.Action.to_string e))) actions; *)
+  List.sort_uniq compare (actions_user @ actions_groups)
+(* List.iter (fun e -> prerr_endline (Printf.sprintf "%s " (Area_access.Action.to_string e))) actions; *)
+
+let user_authorized_to config user action area =
+  let actions = user_actions config user area in
   List.exists (fun e -> e = action) actions
+
+let user_has_at_least_one_right config user area =
+  let actions = user_actions config user area in
+  List.length actions > 0

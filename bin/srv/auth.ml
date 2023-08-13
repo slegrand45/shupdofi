@@ -22,5 +22,7 @@ let get_user config req =
   | _ -> None
 
 let user_authorized config req user area action =
-  let open Config in
-  Authorization.user_authorized_to config user action (Area.get_area area)
+  Authorization.user_authorized_to config user action (Config.Area.get_area area)
+
+let user_has_at_least_one_right config req user area =
+  Authorization.user_has_at_least_one_right config user (Config.Area.get_area area)
