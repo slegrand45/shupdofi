@@ -29,13 +29,9 @@ let update m a =
       (* fetch de tous les blocs de la page *)
       match route with
       | Home
-      | Areas -> return m ~c:[Api.send (Action.Fetch_start { block = Block.Fetchable.areas }); req_user]
+      | Areas ->
+        return m ~c:[Api.send (Action.Fetch_start { block = Block.Fetchable.areas }); req_user]
       | Area_content (id, subdirs) ->
-        let area_content = m.Model.area_content
-                           |> Com.Area_content.set_id id
-                           |> Com.Area_content.set_subdirs subdirs
-        in
-        let m = { m with area_content } in
         return m ~c:[Api.send (Action.Fetch_start { block = (Block.Fetchable.area_content id subdirs) }); req_user]
     )
   | Action.Fetch_start { block } ->
@@ -58,7 +54,7 @@ let update m a =
         return m
     )
   | Action.Area_go_to_subdir { name } ->
-    let id = Com.Area_content.get_id m.Model.area_content in
+    let id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
     let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let new_subdirs = subdirs @ [name] in
     let route = Routing.Page.Area_content (id, new_subdirs) in

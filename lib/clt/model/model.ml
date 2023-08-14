@@ -14,7 +14,7 @@ let empty = {
   route = Routing.Page.Home;
   block = Block.Fetchable.default;
   areas = [];
-  area_content = Com.Area_content.make ~id:"" ~subdirs:[] ~directories:[] ~files:[];
+  area_content = Com.Area_content.make ~area:Com.Area.empty ~subdirs:[] ~directories:[] ~files:[];
   modal = Modal.default;
   user = Com.User.empty;
 }

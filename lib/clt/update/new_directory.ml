@@ -17,9 +17,10 @@ open Js_of_ocaml
 let update m a =
   match a with
   | Action_other.New_directory.Ask ->
-    let area_id = Com.Area_content.get_id m.Model.area_content in
+    let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
     let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let modal = Modal.set_new_entry m.modal
+                |> Modal.enable_bt_ok
                 |> Modal.set_title "New directory"
                 |> Modal.set_input_content ""
                 |> Modal.set_txt_bt_ok "Create"

@@ -17,7 +17,7 @@ open Js_of_ocaml
 let update m a =
   match a with
   | Action_other.Rename_file.Ask { file } ->
-    let area_id = Com.Area_content.get_id m.Model.area_content in
+    let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
     let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let old_filename = Com.File.get_name file in
     let modal = Modal.set_new_entry m.modal

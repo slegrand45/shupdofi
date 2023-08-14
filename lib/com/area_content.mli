@@ -1,11 +1,11 @@
 type t
 
-val make : id:string -> subdirs:string list -> directories:Directory.relative Directory.t list -> files:File.t list -> t
-val get_id : t -> string
+val make : area:Area.t -> subdirs:string list -> directories:Directory.relative Directory.t list -> files:File.t list -> t
+val get_area : t -> Area.t
 val get_subdirs : t -> string list
 val get_directories : t -> Directory.relative Directory.t list
 val get_files : t -> File.t list
-val set_id : string -> t -> t
+val set_area : Area.t -> t -> t
 val set_subdirs : string list -> t -> t
 val add_uploaded : id:string -> subdirs:string list -> file:File.t -> t -> t
 val add_new_directory : id:string -> subdirs:string list -> directory:Directory.relative Directory.t -> t -> t

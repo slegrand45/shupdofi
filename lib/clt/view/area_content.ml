@@ -127,20 +127,23 @@ let breadcrumb_last id e =
     ]
   ]
 
-let breadcrumb_area id with_menu =
+let breadcrumb_area area with_menu =
+  let area_id = Com.Area.get_id area in
+  let area_name = Com.Area.get_name area in
   match with_menu with
   | false ->
     elt "li" ~a:[class_ "breadcrumb-item d-flex align-items-center"] [
-      Html.link (Routing.Page.Area_content (id, []))
+      Html.link (Routing.Page.Area_content (area_id, []))
         ~class_attr:"btn btn-sm btn-light link-underline-light" ~title:"Area" [
-        text "Area"
+        text area_name
       ]
     ]
-  | true -> breadcrumb_last id "Area"
+  | true -> breadcrumb_last area_id area_name
 
-let breadcrumb area_id l =
+let breadcrumb area l =
+  let area_id = Com.Area.get_id area in
   match l with
-  | [] -> [breadcrumb_area area_id true]
+  | [] -> [breadcrumb_area area true]
   | l ->
     let without_last = List.rev l |> List.tl |> List.rev in
     let only_last = List.rev l |> List.hd in
@@ -155,12 +158,13 @@ let breadcrumb area_id l =
           ], dirs @ [e])
       ) ([], []) without_last
     in
-    [(breadcrumb_area area_id false)] @ elts @ [(breadcrumb_last area_id only_last)]
+    [(breadcrumb_area area false)] @ elts @ [(breadcrumb_last area_id only_last)]
 
 let view m =
   if (Block.Fetchable.is_loaded m.Model.block) then (
     let content = m.Model.area_content in
-    let area_id = Com.Area_content.get_id content in
+    let area = Com.Area_content.get_area content in
+    let area_id = Com.Area.get_id area in
     let subdirs = Com.Area_content.get_subdirs content in
     let directories = Com.Area_content.get_directories content in
     let files = Com.Area_content.get_files content in
@@ -182,7 +186,7 @@ let view m =
         div ~a:[class_ "col"] [
           elt "nav" ~a:[class_ ""; attr "aria-label" "breadcrumb"] [
             elt "ol" ~a:[class_ "breadcrumb mt-2 mb-2 align-items-center"] 
-              (breadcrumb area_id subdirs)
+              (breadcrumb area subdirs)
           ]
         ]
       ];

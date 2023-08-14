@@ -21,7 +21,7 @@ let update m a =
       match input_file with
       | None -> return m
       | Some e -> (
-          let area_id = Com.Area_content.get_id m.Model.area_content in
+          let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
           let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
           let files = Element.files e in
           let c = Js_toast.append_from_list ~l:files ~prefix_id:area_id ~fun_msg:(fun e -> "File " ^ Js_browser.File.name e ^ " uploaded")

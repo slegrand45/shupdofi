@@ -8,6 +8,9 @@ type collection = t list
 
 let make ~id ~name ~description = { id; name; description }
 
+let empty =
+  make ~id:"" ~name:"" ~description:""
+
 let to_string v =
   Printf.sprintf "id = %s, name = %s, description = %s"
     v.id v.name v.description
