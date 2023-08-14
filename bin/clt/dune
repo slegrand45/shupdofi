@@ -11,6 +11,7 @@
   shupdofi_com
   shupdofi_msg_clt_from_srv
   shupdofi_msg_clt_to_srv
+  shupdofi_clt_action
   shupdofi_clt_api
   shupdofi_clt_model
   shupdofi_clt_routing

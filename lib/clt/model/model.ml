@@ -7,6 +7,7 @@ type t = {
   areas : Com.Area.t list;
   area_content : Com.Area_content.t;
   modal : Modal.t;
+  user : Com.User.t;
 }
 
 let empty = {
@@ -15,6 +16,7 @@ let empty = {
   areas = [];
   area_content = Com.Area_content.make ~id:"" ~subdirs:[] ~directories:[] ~files:[];
   modal = Modal.default;
+  user = Com.User.empty;
 }
 
 let set_route r v =

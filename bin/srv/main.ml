@@ -155,6 +155,12 @@ let start_server config =
                                 |> Option.fold ~none:(fail_user_unknown())
                                   ~some:(fun user -> Area.content config user area_id subdirs req));
 
+  S.add_route_handler ~meth:`GET server
+    S.Route.(exact_path "api/user" return)
+    (fun req -> Auth.get_user config req
+                |> Option.fold ~none:(fail_user_unknown())
+                  ~some:(fun user -> User.get config user req));
+
   match S.run server with
   | Ok () -> 
     Printf.printf "Start shupdofi server, listening on http://%s:%d\n%!" (S.addr server) (S.port server);

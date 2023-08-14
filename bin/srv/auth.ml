@@ -26,3 +26,6 @@ let user_authorized config req user area action =
 
 let user_has_at_least_one_right config req user area =
   Authorization.user_has_at_least_one_right config user (Config.Area.get_area area)
+
+let user_actions config user area =
+  Authorization.user_actions config user (Config.Area.get_area area)

@@ -1,4 +1,5 @@
 module Action = Shupdofi_clt_model.Action
+module Action_other = Shupdofi_clt_action
 module Api = Shupdofi_clt_api.Api
 module Block = Shupdofi_clt_model.Block
 module Com = Shupdofi_com
@@ -22,19 +23,20 @@ let update m a =
     let () = Js_browser.(History.push_state (Window.history window) (Ojs.string_to_js "") "" url) in
     return m ~c:[Api.send Action.Current_url_modified]
   | Action.Current_url_modified -> (
+      let req_user = Api.send (Action.User Action_other.User.Do) in
       let route = Routing.Router.from_pathname (Location.pathname (Window.location window)) in
       let m = Model.set_route route m in
       (* fetch de tous les blocs de la page *)
       match route with
       | Home
-      | Areas -> return m ~c:[Api.send (Action.Fetch_start { block = Block.Fetchable.areas })]
+      | Areas -> return m ~c:[Api.send (Action.Fetch_start { block = Block.Fetchable.areas }); req_user]
       | Area_content (id, subdirs) ->
         let area_content = m.Model.area_content
                            |> Com.Area_content.set_id id
                            |> Com.Area_content.set_subdirs subdirs
         in
         let m = { m with area_content } in
-        return m ~c:[Api.send (Action.Fetch_start { block = (Block.Fetchable.area_content id subdirs) })]
+        return m ~c:[Api.send (Action.Fetch_start { block = (Block.Fetchable.area_content id subdirs) }); req_user]
     )
   | Action.Fetch_start { block } ->
     let m = { m with block = Block.Fetchable.to_loading block } in
@@ -69,6 +71,7 @@ let update m a =
   | Action.Delete_directory a -> Update_other.Delete_directory.update m a
   | Action.Rename_file a -> Update_other.Rename_file.update m a
   | Action.Delete_file a -> Update_other.Delete_file.update m a
+  | Action.User a -> Update_other.User.update m a
   | Action.Modal_set_input_content { content } ->
     return { m with modal = Modal.set_input_content content m.modal }
   | Action.Modal_toggle_switch ->

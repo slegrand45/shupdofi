@@ -233,8 +233,8 @@ let has_pct_wildcard s =
   | Some _ -> true
 
 let make_right_users area_id known str_action toml =
-  let action = Area_access.Action.from_string str_action in
-  match Area_access.Action.is_unknown action with
+  let action = Com.Action.from_string str_action in
+  match Com.Action.is_unknown action with
   | false -> (
       let l = Toml.get_array Toml.get_string toml in
       match l with
@@ -264,8 +264,8 @@ let make_right_users area_id known str_action toml =
     Result.error (Printf.sprintf "action %s is unknown" str_action)
 
 let make_right_groups area_id known str_action toml =
-  let action = Area_access.Action.from_string str_action in
-  match Area_access.Action.is_unknown action with
+  let action = Com.Action.from_string str_action in
+  match Com.Action.is_unknown action with
   | false -> (
       let l = Toml.get_array Toml.get_string toml in
       match l with

@@ -2,55 +2,6 @@ module Com = Shupdofi_com
 module Config_group = Group
 module Config_user = User
 
-module Action = struct
-  type t =
-    | Unknown of string
-    | All
-    | Download
-    | Upload
-    | Rename
-    | Move
-    | Delete
-    | Create_directory
-    | Archive
-
-  let download = Download
-  let upload = Upload
-  let rename = Rename
-  let move = Move
-  let delete = Delete
-  let create_directory = Create_directory
-  let archive = Archive
-
-  let from_string = function
-    | "*" -> All
-    | "download" -> Download
-    | "upload" -> Upload
-    | "rename" -> Rename
-    | "move" -> Move
-    | "delete" -> Delete
-    | "create_directory" -> Create_directory
-    | "archive" -> Archive
-    | s -> Unknown s
-
-  let to_toml = function
-    | All -> "\"*\""
-    | Download -> "download"
-    | Upload -> "upload"
-    | Rename -> "rename"
-    | Move -> "move"
-    | Delete -> "delete"
-    | Create_directory -> "create_directory"
-    | Archive -> "archive"
-    | Unknown _ -> "unknown"
-
-  let to_string = to_toml
-
-  let is_unknown = function
-    | Unknown _ -> true
-    | _ -> false
-end
-
 module User = struct
   type t =
     | Actor of User.t
@@ -151,8 +102,8 @@ end
 
 module Right = struct
   type t =
-    | Right_users of (Action.t * Users.t)
-    | Right_groups of (Action.t * Groups.t)
+    | Right_users of (Com.Action.t * Users.t)
+    | Right_groups of (Com.Action.t * Groups.t)
 
   let make_right_users action users =
     Right_users (action, users)
@@ -178,9 +129,9 @@ module Right = struct
 
   let to_toml = function
     | Right_users (action, users) ->
-      Printf.sprintf "rights.users.%s = [ %s ]" (Action.to_toml action) (Users.to_toml users)
+      Printf.sprintf "rights.users.%s = [ %s ]" (Com.Action.to_toml action) (Users.to_toml users)
     | Right_groups (action, groups) ->
-      Printf.sprintf "rights.groups.%s = [ %s ]" (Action.to_toml action) (Groups.to_toml groups)
+      Printf.sprintf "rights.groups.%s = [ %s ]" (Com.Action.to_toml action) (Groups.to_toml groups)
 
 end
 

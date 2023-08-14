@@ -19,3 +19,4 @@ type t =
   | Modal_toggle_switch
   | Modal_close
   | Modal_cancel
+  | User of Action_other.User.t

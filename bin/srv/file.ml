@@ -12,7 +12,7 @@ let get_max_upload_size area =
 
 let upload config user area_id path req =
   let area = Config.Config.find_area_with_id area_id config in
-  match Auth.user_authorized config req user area Config.Area_access.Action.upload with
+  match Auth.user_authorized config req user area Com.Action.upload with
   | true -> (
       let max_upload_size = get_max_upload_size area in
       let size_ok =
@@ -64,7 +64,7 @@ let rename config user req =
   let rename_file = Yojson.Safe.from_string body |> Msg_from_clt.Rename_file.t_of_yojson in
   let area_id = Msg_from_clt.Rename_file.get_area_id rename_file in
   let area = Config.Config.find_area_with_id area_id config in
-  match Auth.user_authorized config req user area Config.Area_access.Action.rename with
+  match Auth.user_authorized config req user area Com.Action.rename with
   | true -> (
       let subdirs = Msg_from_clt.Rename_file.get_subdirs rename_file in
       let old_filename = Msg_from_clt.Rename_file.get_old_filename rename_file in
@@ -85,7 +85,7 @@ let rename config user req =
 let download config user area_id path req =
   let path_string = path in
   let area = Config.Config.find_area_with_id area_id config in
-  match Auth.user_authorized config req user area Config.Area_access.Action.download with
+  match Auth.user_authorized config req user area Com.Action.download with
   | true -> (
       let path = Content.Path.relative_from_string path in
       let dir = Com.Path.get_directory path in
@@ -108,7 +108,7 @@ let delete config user req =
   let delete_file = Yojson.Safe.from_string body |> Msg_from_clt.Delete_file.t_of_yojson in
   let area_id = Msg_from_clt.Delete_file.get_area_id delete_file in
   let area = Config.Config.find_area_with_id area_id config in
-  match Auth.user_authorized config req user area Config.Area_access.Action.delete with
+  match Auth.user_authorized config req user area Com.Action.delete with
   | true -> (
       let subdirs = Msg_from_clt.Delete_file.get_subdirs delete_file in
       let filename = Msg_from_clt.Delete_file.get_filename delete_file in
