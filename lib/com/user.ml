@@ -17,3 +17,12 @@ let get_name v =
 
 let get_areas_rights v =
   v.areas_rights
+
+let can_do_action ~area_id ~action v =
+  let areas_rights = v.areas_rights in
+  match List.find_opt (fun (id, al) -> id = area_id) areas_rights with
+  | None -> false
+  | Some (_, al) ->
+    match List.find_opt (fun e -> e = action) al with
+    | None -> false
+    | _ -> true
