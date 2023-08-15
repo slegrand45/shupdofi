@@ -20,7 +20,7 @@
 (package
  (name shupdofi)
  (synopsis "SHare UPload DOwnload FIles")
- (description "A web application to upload/download files")
+ (description "A web application to upload/download files with user rights management")
  (depends ocaml dune)
  (tags
   (topics "to describe" your project)))

@@ -1,6 +1,6 @@
 (executable
  (public_name shupdofi_server)
- (name main)
+ (name shupdofi)
  (modes byte native)
  (libraries
   unix

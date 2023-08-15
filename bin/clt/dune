@@ -1,5 +1,5 @@
 (executable
- (name main)
+ (name shupdofi)
  (modes js)
  (preprocess
   (pps js_of_ocaml-ppx))
