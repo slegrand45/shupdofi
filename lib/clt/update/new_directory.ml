@@ -32,7 +32,7 @@ let update m a =
     return m
   | Action_other.New_directory.Start { area_id; area_subdirs } ->
     let dirname = Modal.get_input_content m.modal in
-    let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Directory " ^ dirname ^ " created")
+    let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Create directory " ^ dirname)
         ~fun_cmd:(fun toast_id dirname -> Api.send (Action.New_directory (Action_other.New_directory.Do { area_id; area_subdirs; toast_id; dirname })))
     in
     let c = Api.send(Action.Modal_close) :: c in
@@ -50,7 +50,7 @@ let update m a =
       match status with
       | 201 ->
         let new_directory = Yojson.Safe.from_string json |> Msg_from_srv.New_directory_created.t_of_yojson in
-        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Directory " ^ dirname ^ " created");
         let area_id = Msg_from_srv.New_directory_created.get_area_id new_directory in
         let subdirs = Msg_from_srv.New_directory_created.get_subdirs new_directory in
         let directory = Msg_from_srv.New_directory_created.get_directory new_directory in

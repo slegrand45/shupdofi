@@ -35,7 +35,7 @@ let update m a =
     let new_filename = Modal.get_input_content m.modal in
     let c_default = Api.send(Action.Modal_close) in
     if old_filename <> new_filename then
-      let c = Js_toast.append_from_list ~l:[new_filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "File " ^ old_filename ^ " renamed to " ^ new_filename)
+      let c = Js_toast.append_from_list ~l:[new_filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename " ^ old_filename ^ " to " ^ new_filename)
           ~fun_cmd:(fun toast_id new_filename -> Api.send (Action.Rename_file (Action_other.Rename_file.Do { area_id; area_subdirs; toast_id; old_filename; new_filename })))
       in
       let c = c_default :: c in
@@ -55,7 +55,7 @@ let update m a =
       match status with
       | 200 ->
         let file_renamed = Yojson.Safe.from_string json |> Msg_from_srv.File_renamed.t_of_yojson in
-        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:(old_filename ^ " renamed to " ^ new_filename);
         let area_id = Msg_from_srv.File_renamed.get_area_id file_renamed in
         let subdirs = Msg_from_srv.File_renamed.get_subdirs file_renamed in
         let old_file = Msg_from_srv.File_renamed.get_old_file file_renamed in

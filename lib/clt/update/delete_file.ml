@@ -34,7 +34,7 @@ let update m a =
     let () = Js_modal.show () in
     return m
   | Action_other.Delete_file.Start { area_id; area_subdirs; filename } ->
-    let c = Js_toast.append_from_list ~l:[filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "File " ^ filename ^ " deleted")
+    let c = Js_toast.append_from_list ~l:[filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "Delete file " ^ filename)
         ~fun_cmd:(fun toast_id dirname -> Api.send (Action.Delete_file (Action_other.Delete_file.Do { area_id; area_subdirs; toast_id; filename })))
     in
     let c = Api.send(Action.Modal_close) :: c in
@@ -51,7 +51,7 @@ let update m a =
     let m =
       match status with
       | 200 ->
-        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("File " ^ filename ^ " deleted");
         { m with area_content = Com.Area_content.(remove_file ~id:area_id ~subdirs:area_subdirs ~filename:filename m.area_content |> sort) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to delete file " ^ filename);

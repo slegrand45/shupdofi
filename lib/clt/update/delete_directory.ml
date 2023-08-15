@@ -34,7 +34,7 @@ let update m a =
     let () = Js_modal.show () in
     return m
   | Action_other.Delete_directory.Start { area_id; area_subdirs; dirname } ->
-    let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Directory " ^ dirname ^ " deleted")
+    let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Delete directory " ^ dirname)
         ~fun_cmd:(fun toast_id dirname -> Api.send (Action.Delete_directory (Action_other.Delete_directory.Do { area_id; area_subdirs; toast_id; dirname })))
     in
     let c = Api.send(Action.Modal_close) :: c in
@@ -51,7 +51,7 @@ let update m a =
     let m =
       match status with
       | 200 ->
-        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Directory " ^ dirname ^ " deleted");
         { m with area_content = Com.Area_content.(remove_directory ~id:area_id ~subdirs:area_subdirs ~dirname:dirname m.area_content |> sort) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to delete directory " ^ dirname);

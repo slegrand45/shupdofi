@@ -82,7 +82,7 @@ let html ~doc ~id ~msg =
   let () = Dom.appendChild div_flex close_button in
   div
 
-let set_status_ok ~doc ~id ~delay =
+let set_status_ok ~doc ~id ~msg ~delay =
   let div = Dom_html.getElementById id in
   let () = div##.classList##remove (Js.string "text-bg-primary") in
   let () = div##.classList##add (Js.string "text-bg-success") in
@@ -90,6 +90,8 @@ let set_status_ok ~doc ~id ~delay =
   elt##.outerHTML := (Js.string "");
   let elt = Js.Opt.get (div##querySelector (Js.string ".d-flex")) (fun () -> assert false) in
   Dom.insertBefore elt (icon_ok doc) (div##querySelector (Js.string ".toast-body"));
+  let elt = Js.Opt.get (div##querySelector (Js.string ".toast-body")) (fun () -> assert false) in
+  elt##.innerText := (Js.string msg);
   let _ = Lwt.bind (Js_of_ocaml_lwt.Lwt_js.sleep delay) (fun () ->
       let elt = Js_browser.Document.get_element_by_id Js_browser.document id in
       let toast = Option.bind elt (fun e -> Some (getInstance e)) in

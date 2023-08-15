@@ -35,7 +35,7 @@ let update m a =
     let new_dirname = Modal.get_input_content m.modal in
     let c_default = Api.send(Action.Modal_close) in
     if old_dirname <> new_dirname then
-      let c = Js_toast.append_from_list ~l:[new_dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Directory " ^ old_dirname ^ " renamed to " ^ new_dirname)
+      let c = Js_toast.append_from_list ~l:[new_dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename " ^ old_dirname ^ " to " ^ new_dirname)
           ~fun_cmd:(fun toast_id new_dirname -> Api.send (Action.Rename_directory (Action_other.Rename_directory.Do { area_id; area_subdirs; toast_id; old_dirname; new_dirname })))
       in
       let c = c_default :: c in
@@ -55,7 +55,7 @@ let update m a =
       match status with
       | 200 ->
         let directory_renamed = Yojson.Safe.from_string json |> Msg_from_srv.Directory_renamed.t_of_yojson in
-        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:(old_dirname ^ " renamed to " ^ new_dirname);
         let area_id = Msg_from_srv.Directory_renamed.get_area_id directory_renamed in
         let subdirs = Msg_from_srv.Directory_renamed.get_subdirs directory_renamed in
         let old_directory = Msg_from_srv.Directory_renamed.get_old_directory directory_renamed in

@@ -24,7 +24,7 @@ let update m a =
           let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
           let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
           let files = Element.files e in
-          let c = Js_toast.append_from_list ~l:files ~prefix_id:area_id ~fun_msg:(fun e -> "File " ^ Js_browser.File.name e ^ " uploaded")
+          let c = Js_toast.append_from_list ~l:files ~prefix_id:area_id ~fun_msg:(fun e -> "Upload " ^ Js_browser.File.name e)
               ~fun_cmd:(fun toast_id file -> Api.send (Action.Upload_file (Action_other.Upload_file.Do { area_id; area_subdirs; toast_id; file }))) in
           return m ~c
         )
@@ -41,7 +41,7 @@ let update m a =
         match status with
         | 201 ->
           let uploaded = Yojson.Safe.from_string txt |> Msg_from_srv.Uploaded.t_of_yojson in
-          Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0;
+          Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:(filename ^ " uploaded");
           let area_id = Msg_from_srv.Uploaded.get_area_id uploaded in
           let subdirs = Msg_from_srv.Uploaded.get_subdirs uploaded in
           let file = Msg_from_srv.Uploaded.get_file uploaded in
