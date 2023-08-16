@@ -7,7 +7,7 @@ module S = Tiny_httpd
 
 let get_max_upload_size area =
   let quota = Config.Area.get_quota area |> snd |> Option.fold ~none:Int64.max_int ~some:Com.Size.to_int64 in
-  let current_area_size = Content.Directory.size (Config.Area.get_root area) in
+  let current_area_size = Content.Directory.size (Config.Area.get_root area) ~stop:quota in
   Int64.sub quota current_area_size
 
 let upload config user area_id path req =
