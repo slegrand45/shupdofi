@@ -57,7 +57,6 @@ let remove_directory ~id ~subdirs ~dirname v =
   else
     v
 
-(* déplacer dans view *)
 let sort sorting v =
   let criteria = Sorting.get_criteria sorting in
   let direction = Sorting.get_direction sorting in
