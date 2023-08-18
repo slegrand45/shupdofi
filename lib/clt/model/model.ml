@@ -6,6 +6,7 @@ type t = {
   block : (Block.Fetchable.id, Block.Fetchable.status) Block.Fetchable.t;
   areas : Com.Area.t list;
   area_content : Com.Area_content.t;
+  sorting : Com.Sorting.t;
   modal : Modal.t;
   user : Com.User.t;
 }
@@ -15,6 +16,7 @@ let empty = {
   block = Block.Fetchable.default;
   areas = [];
   area_content = Com.Area_content.make ~area:Com.Area.empty ~subdirs:[] ~directories:[] ~files:[];
+  sorting = Com.Sorting.default;
   modal = Modal.default;
   user = Com.User.empty;
 }

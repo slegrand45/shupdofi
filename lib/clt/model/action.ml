@@ -19,4 +19,5 @@ type t =
   | Modal_toggle_switch
   | Modal_close
   | Modal_cancel
+  | Click_sorting of Com.Sorting.Criteria.t
   | User of Action_other.User.t

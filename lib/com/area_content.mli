@@ -13,6 +13,6 @@ val rename_directory : id:string -> subdirs:string list -> old_directory:Directo
 val rename_file : id:string -> subdirs:string list -> old_file:File.t -> new_file:File.t -> t -> t
 val remove_directory : id:string -> subdirs:string list -> dirname:string -> t -> t
 val remove_file : id:string -> subdirs:string list -> filename:string -> t -> t
-val sort : t -> t
+val sort : Sorting.t -> t -> t
 val t_of_yojson : Yojson.Safe.t -> t
 val yojson_of_t : t -> Yojson.Safe.t

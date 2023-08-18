@@ -54,7 +54,7 @@ let update m a =
         let area_id = Msg_from_srv.New_directory_created.get_area_id new_directory in
         let subdirs = Msg_from_srv.New_directory_created.get_subdirs new_directory in
         let directory = Msg_from_srv.New_directory_created.get_directory new_directory in
-        { m with area_content = Com.Area_content.(add_new_directory ~id:area_id ~subdirs ~directory m.area_content |> sort) }
+        { m with area_content = Com.Area_content.(add_new_directory ~id:area_id ~subdirs ~directory m.area_content) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to create new directory " ^ dirname);
         m

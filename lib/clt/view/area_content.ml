@@ -8,6 +8,7 @@ module Intl = Shupdofi_clt_i18n.Intl
 module Model = Shupdofi_clt_model.Model
 module Routing = Shupdofi_clt_routing
 module Size = Shupdofi_com.Size
+module Sorting = Com.Sorting
 
 open Vdom
 
@@ -113,14 +114,38 @@ let one_line_file user area_id area_subdirs (acc, i) file =
         elt "td" ~a:[class_ "text-center"] td_delete;
       ] :: acc, i + 1)
 
-let lines user area_id subdirs directories files =
+let icon_sort sorting criteria =
+  let icon ~aria_id ~visible =
+    let class_attr = if visible then "icon" else "icon invisible" in
+    match Sorting.get_direction sorting with
+    | Sorting.Direction.Ascending ->
+      Icon.arrow_upward ~label:"Sort upward" ~class_attr ~aria_id:(aria_id ^ "-icon-arrow-upward")
+    | Sorting.Direction.Descending ->
+      Icon.arrow_downward ~label:"Sort downward" ~class_attr ~aria_id:(aria_id ^ "-icon-arrow-downward")
+  in
+  match criteria with
+  | Sorting.Criteria.Name -> (
+      match Sorting.get_criteria sorting with
+      | Sorting.Criteria.Name -> [ icon ~aria_id:("name") ~visible:true ]
+      | _ -> [ icon ~aria_id:("name") ~visible:false ]
+    )
+  | Sorting.Criteria.Last_modified -> (
+      match Sorting.get_criteria sorting with
+      | Sorting.Criteria.Last_modified -> [ icon ~aria_id:("lastmodified") ~visible:true ]
+      | _ -> [ icon ~aria_id:("lastmodified") ~visible:false ]
+    )
+  | Sorting.Criteria.Size -> (
+      match Sorting.get_criteria sorting with
+      | Sorting.Criteria.Size -> [ icon ~aria_id:("size") ~visible:true ]
+      | _ -> [ icon ~aria_id:("size") ~visible:false ]
+    )
+
+let lines sorting user area_id subdirs directories files =
   match directories, files with
   | [], [] -> [elt "p"
                  [ text "Empty directory" ]
               ]
   | directories, files ->
-    let directories = List.sort (fun e1 e2 -> String.compare (Com.Directory.get_name e1) (Com.Directory.get_name e2)) directories in
-    let files = List.sort (fun e1 e2 -> String.compare (Com.File.get_name e1) (Com.File.get_name e2)) files in
     let trs_directories = List.fold_left (one_line_directory user area_id subdirs) ([], 1) directories |> fst |> List.rev in
     let trs_files = List.fold_left (one_line_file user area_id subdirs) ([], 1) files |> fst |> List.rev in
     [div ~a:[class_ "table-responsive"] [
@@ -128,9 +153,30 @@ let lines user area_id subdirs directories files =
           elt "thead" [
             elt "tr" [
               elt "th" ~a:[str_prop "scope" "col"; str_prop "style" "width: 1em;"] [ text "" ];
-              elt "th" ~a:[str_prop "scope" "col"] [ text "Name" ];
-              elt "th" ~a:[str_prop "scope" "col"] [ text "Last modified" ];
-              elt "th" ~a:[str_prop "scope" "col"] [ text "Size" ];
+              elt "th" ~a:[str_prop "scope" "col"] [
+                elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm btn-light";
+                                 attr "aria-expanded" "false";
+                                 onclick (fun _ -> Action.Click_sorting Sorting.Criteria.name)] [
+                  elt "span" ~a:[] [ text "Name" ];
+                  elt "span" ~a:[ class_ "px-2" ] (icon_sort sorting Sorting.Criteria.name)
+                ]
+              ];
+              elt "th" ~a:[str_prop "scope" "col"] [
+                elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm btn-light";
+                                 attr "aria-expanded" "false";
+                                 onclick (fun _ -> Action.Click_sorting Sorting.Criteria.last_modified)] [
+                  elt "span" ~a:[] [ text "Last modified" ];
+                  elt "span" ~a:[ class_ "px-2" ] (icon_sort sorting Sorting.Criteria.last_modified)
+                ]
+              ];
+              elt "th" ~a:[str_prop "scope" "col"] [
+                elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm btn-light";
+                                 attr "aria-expanded" "false";
+                                 onclick (fun _ -> Action.Click_sorting Sorting.Criteria.size)] [
+                  elt "span" ~a:[] [ text "Size" ];
+                  elt "span" ~a:[ class_ "px-2" ] (icon_sort sorting Sorting.Criteria.size)
+                ]
+              ];
               elt "th" ~a:[str_prop "scope" "col"] [ text "" ];
               elt "th" ~a:[str_prop "scope" "col"] [ text "" ];
               elt "th" ~a:[str_prop "scope" "col"] [ text "" ];
@@ -204,13 +250,14 @@ let breadcrumb user area l =
 let view m =
   if (Block.Fetchable.is_loaded m.Model.block) then (
     let user = m.Model.user in
-    let content = m.Model.area_content in
+    let content = m.Model.area_content |> Com.Area_content.sort m.sorting in
+    let sorting = m.Model.sorting in
     let area = Com.Area_content.get_area content in
     let area_id = Com.Area.get_id area in
     let subdirs = Com.Area_content.get_subdirs content in
     let directories = Com.Area_content.get_directories content in
     let files = Com.Area_content.get_files content in
-    let lines = lines user area_id subdirs directories files in
+    let lines = lines sorting user area_id subdirs directories files in
     let td_delete =
       match Com.User.can_do_action ~area_id ~action:Com.Action.upload user with
       | true -> [

@@ -10,6 +10,7 @@ module Model = Shupdofi_clt_model.Model
 module Msg_from_srv = Shupdofi_msg_clt_from_srv
 module Msg_to_srv = Shupdofi_msg_clt_to_srv
 module Routing = Shupdofi_clt_routing
+module Sorting = Com.Sorting
 module Update_other = Shupdofi_clt_update
 
 open Vdom
@@ -45,8 +46,10 @@ let update m a =
       | 200 ->
         let m =
           match Block.Fetchable.get_id block with
-          | Block.Fetchable.Areas -> { m with areas = Yojson.Safe.from_string json |> Com.Area.collection_of_yojson }
-          | Block.Fetchable.Area_content _ -> { m with area_content = Yojson.Safe.from_string json |> Com.Area_content.t_of_yojson }
+          | Block.Fetchable.Areas ->
+            { m with areas = Yojson.Safe.from_string json |> Com.Area.collection_of_yojson }
+          | Block.Fetchable.Area_content _ ->
+            { m with area_content = Yojson.Safe.from_string json |> Com.Area_content.t_of_yojson }
           | _ -> m
         in
         return m
@@ -83,3 +86,13 @@ let update m a =
   | Action.Modal_cancel ->
     let () = Js_modal.hide () in
     return m
+  | Action.Click_sorting click_criteria ->
+    let sorting = m.sorting in
+    let criteria = Sorting.get_criteria sorting in
+    let direction = Sorting.get_direction sorting in
+    let new_sorting =
+      match click_criteria with
+      | _ when criteria = click_criteria -> Sorting.make ~criteria ~direction:(Sorting.Direction.alternate direction)
+      | _ -> Sorting.make ~criteria:click_criteria ~direction:(Sorting.Direction.ascending)
+    in
+    return { m with sorting = new_sorting }

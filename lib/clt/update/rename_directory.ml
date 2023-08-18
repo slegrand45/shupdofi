@@ -60,7 +60,7 @@ let update m a =
         let subdirs = Msg_from_srv.Directory_renamed.get_subdirs directory_renamed in
         let old_directory = Msg_from_srv.Directory_renamed.get_old_directory directory_renamed in
         let new_directory = Msg_from_srv.Directory_renamed.get_new_directory directory_renamed in
-        { m with area_content = Com.Area_content.(rename_directory ~id:area_id ~subdirs ~old_directory ~new_directory m.area_content |> sort) }
+        { m with area_content = Com.Area_content.(rename_directory ~id:area_id ~subdirs ~old_directory ~new_directory m.area_content) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to rename directory " ^ old_dirname ^ " to " ^ new_dirname);
         m

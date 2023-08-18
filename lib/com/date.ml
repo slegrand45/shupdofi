@@ -14,5 +14,5 @@ let get_day_of_month v = v.day_of_month
 let get_month v = v.month
 let get_year v = v.year
 
-let to_string v =
-  Printf.sprintf "%02d/%02d/%d" v.day_of_month v.month v.year
+let to_iso8601 v =
+  Printf.sprintf "%04d-%02d-%02d" v.year v.month v.day_of_month

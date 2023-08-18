@@ -77,3 +77,19 @@ let delete_forever ~label ~class_attr ~aria_id =
     svg_elt "path" ~a:[attr "d" "M0 0h24v24H0V0z"; attr "fill" "none"][];
     svg_elt "path" ~a:[attr "d" "M14.12 10.47L12 12.59l-2.13-2.12-1.41 1.41L10.59 14l-2.12 2.12 1.41 1.41L12 15.41l2.12 2.12 1.41-1.41L13.41 14l2.12-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4zM6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9z"][];
   ]
+
+let arrow_upward ~label ~class_attr ~aria_id =
+  svg_elt "svg" ~a:[attr "width" "1.5em"; attr "height" "1.5em"; attr "fill" "currentColor"; attr "class" class_attr;
+                    attr "viewBox" "0 0 24 24"; attr "enable-background" "new 0 0 24 24"; attr "aria-labelledby" aria_id; attr "role" "img"] [
+    svg_elt "title" ~a:[attr "id" aria_id] [text label];
+    svg_elt "path" ~a:[attr "d" "M0 0h24v24H0V0z"; attr "fill" "none"][];
+    svg_elt "path" ~a:[attr "d" "M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"][];
+  ]
+
+let arrow_downward ~label ~class_attr ~aria_id =
+  svg_elt "svg" ~a:[attr "width" "1.5em"; attr "height" "1.5em"; attr "fill" "currentColor"; attr "class" class_attr;
+                    attr "viewBox" "0 0 24 24"; attr "enable-background" "new 0 0 24 24"; attr "aria-labelledby" aria_id; attr "role" "img"] [
+    svg_elt "title" ~a:[attr "id" aria_id] [text label];
+    svg_elt "path" ~a:[attr "d" "M0 0h24v24H0V0z"; attr "fill" "none"][];
+    svg_elt "path" ~a:[attr "d" "M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"][];
+  ]

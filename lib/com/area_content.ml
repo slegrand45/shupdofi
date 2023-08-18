@@ -57,7 +57,25 @@ let remove_directory ~id ~subdirs ~dirname v =
   else
     v
 
-let sort v =
-  let files = List.sort compare v.files in
-  { v with files }
-
+(* déplacer dans view *)
+let sort sorting v =
+  let criteria = Sorting.get_criteria sorting in
+  let direction = Sorting.get_direction sorting in
+  let f_field_directory, f_field_file =
+    match criteria with
+    | Sorting.Criteria.Name ->
+      Directory.get_name, File.get_name
+    | Sorting.Criteria.Last_modified ->
+      (fun e -> Directory.get_mdatetime e |> Option.fold ~none:"" ~some:Datetime.to_iso8601),
+      (fun e -> File.get_mdatetime e |> Option.fold ~none:"" ~some:Datetime.to_iso8601)
+    | Sorting.Criteria.Size ->
+      Directory.get_name, (fun e -> File.get_size_bytes e |> Option.fold ~none:"" ~some:(fun e -> Printf.sprintf "%32Lu" e))
+  in
+  let mult =
+    match direction with
+    | Sorting.Direction.Ascending -> 1
+    | Sorting.Direction.Descending -> -1
+  in
+  let directories = List.sort (fun e1 e2 -> mult * (String.compare (f_field_directory e1) (f_field_directory e2))) v.directories in
+  let files = List.sort (fun e1 e2 -> mult * (String.compare (f_field_file e1) (f_field_file e2))) v.files in
+  { v with directories; files }

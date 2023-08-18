@@ -14,8 +14,5 @@ let get_hour v = v.hour
 let get_minute v = v.minute
 let get_second v = v.second
 
-let to_string v =
+let to_iso8601 v =
   Printf.sprintf "%02d:%02d:%02d" v.hour v.minute v.second
-
-let to_hm v =
-  Printf.sprintf "%02d:%02d" v.hour v.minute

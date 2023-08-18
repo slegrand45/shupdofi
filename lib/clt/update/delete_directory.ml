@@ -52,7 +52,7 @@ let update m a =
       match status with
       | 200 ->
         Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Directory " ^ dirname ^ " deleted");
-        { m with area_content = Com.Area_content.(remove_directory ~id:area_id ~subdirs:area_subdirs ~dirname:dirname m.area_content |> sort) }
+        { m with area_content = Com.Area_content.(remove_directory ~id:area_id ~subdirs:area_subdirs ~dirname:dirname m.area_content) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to delete directory " ^ dirname);
         m

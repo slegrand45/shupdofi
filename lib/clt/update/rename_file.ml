@@ -60,7 +60,7 @@ let update m a =
         let subdirs = Msg_from_srv.File_renamed.get_subdirs file_renamed in
         let old_file = Msg_from_srv.File_renamed.get_old_file file_renamed in
         let new_file = Msg_from_srv.File_renamed.get_new_file file_renamed in
-        { m with area_content = Com.Area_content.(rename_file ~id:area_id ~subdirs ~old_file ~new_file m.area_content |> sort) }
+        { m with area_content = Com.Area_content.(rename_file ~id:area_id ~subdirs ~old_file ~new_file m.area_content) }
       | _ ->
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to rename file " ^ old_filename ^ " to " ^ new_filename);
         m

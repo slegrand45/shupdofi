@@ -45,7 +45,7 @@ let update m a =
           let area_id = Msg_from_srv.Uploaded.get_area_id uploaded in
           let subdirs = Msg_from_srv.Uploaded.get_subdirs uploaded in
           let file = Msg_from_srv.Uploaded.get_file uploaded in
-          { m with area_content = Com.Area_content.(add_uploaded ~id:area_id ~subdirs ~file m.area_content |> sort) }
+          { m with area_content = Com.Area_content.(add_uploaded ~id:area_id ~subdirs ~file m.area_content) }
         | _ ->
           let msg =
             match txt with
