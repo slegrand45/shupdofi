@@ -10,6 +10,7 @@ module Model = Shupdofi_clt_model.Model
 module Msg_from_srv = Shupdofi_msg_clt_from_srv
 module Msg_to_srv = Shupdofi_msg_clt_to_srv
 module Routing = Shupdofi_clt_routing
+module Selection = Com.Selection
 module Sorting = Com.Sorting
 module Update_other = Shupdofi_clt_update
 
@@ -96,3 +97,15 @@ let update m a =
       | _ -> Sorting.make ~criteria:click_criteria ~direction:(Sorting.Direction.ascending)
     in
     return { m with sorting = new_sorting }
+  | Action.Click_select_file { area; subdirs; file } ->
+    let selection = Com.Selection.file ~area ~subdirs file m.selection in
+    let () = prerr_endline (Selection.to_string selection) in
+    return { m with selection }
+  | Action.Click_select_directory { area; subdirs; directory } ->
+    let selection = Com.Selection.directory ~area ~subdirs directory m.selection in
+    let () = prerr_endline (Selection.to_string selection) in
+    return { m with selection }
+  | Action.Click_select_all { area; subdirs; directories; files } ->
+    let selection = Com.Selection.all ~area ~subdirs ~directories ~files m.selection in
+    let () = prerr_endline (Selection.to_string selection) in
+    return { m with selection }

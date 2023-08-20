@@ -20,4 +20,7 @@ type t =
   | Modal_close
   | Modal_cancel
   | Click_sorting of Com.Sorting.Criteria.t
+  | Click_select_file of { area : Com.Area.t; subdirs : string list; file : Com.File.t }
+  | Click_select_directory of { area : Com.Area.t; subdirs : string list; directory : Com.Directory.relative Com.Directory.t }
+  | Click_select_all of { area : Com.Area.t; subdirs : string list; directories : Com.Directory.relative Com.Directory.t list; files : Com.File.t list }
   | User of Action_other.User.t

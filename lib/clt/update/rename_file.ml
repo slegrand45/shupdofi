@@ -18,7 +18,7 @@ let update m a =
   match a with
   | Action_other.Rename_file.Ask { file } ->
     let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
-    let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
+    let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let old_filename = Com.File.get_name file in
     let modal = Modal.set_new_entry m.modal
                 |> Modal.set_title "Rename file"
@@ -26,25 +26,25 @@ let update m a =
                 |> Modal.set_input_content old_filename
                 |> Modal.set_txt_bt_ok "Rename"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun e -> Action.Rename_file (Action_other.Rename_file.Start { area_id; area_subdirs; old_filename }))
+                |> Modal.set_fun_bt_ok (fun e -> Action.Rename_file (Action_other.Rename_file.Start { area_id; subdirs; old_filename }))
     in
     let m = { m with modal } in
     let () = Js_modal.show () in
     return m
-  | Action_other.Rename_file.Start { area_id; area_subdirs; old_filename } ->
+  | Action_other.Rename_file.Start { area_id; subdirs; old_filename } ->
     let new_filename = Modal.get_input_content m.modal in
     let c_default = Api.send(Action.Modal_close) in
     if old_filename <> new_filename then
       let c = Js_toast.append_from_list ~l:[new_filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename " ^ old_filename ^ " to " ^ new_filename)
-          ~fun_cmd:(fun toast_id new_filename -> Api.send (Action.Rename_file (Action_other.Rename_file.Do { area_id; area_subdirs; toast_id; old_filename; new_filename })))
+          ~fun_cmd:(fun toast_id new_filename -> Api.send (Action.Rename_file (Action_other.Rename_file.Do { area_id; subdirs; toast_id; old_filename; new_filename })))
       in
       let c = c_default :: c in
       return m ~c
     else
       return m ~c:[c_default]
-  | Action_other.Rename_file.Do { area_id; area_subdirs; toast_id; old_filename; new_filename } ->
+  | Action_other.Rename_file.Do { area_id; subdirs; toast_id; old_filename; new_filename } ->
     let () = Js_toast.show ~document ~toast_id in
-    let payload = Msg_to_srv.Rename_file.make ~area_id ~subdirs:area_subdirs ~old_filename ~new_filename
+    let payload = Msg_to_srv.Rename_file.make ~area_id ~subdirs:subdirs ~old_filename ~new_filename
                   |> Msg_to_srv.Rename_file.yojson_of_t |> Yojson.Safe.to_string
     in
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Rename_file) in

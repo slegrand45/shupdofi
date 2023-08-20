@@ -6,11 +6,6 @@ module Msg_from_clt = Shupdofi_msg_srv_from_clt
 module Msg_to_clt = Shupdofi_msg_srv_to_clt
 
 let list config user req =
-  (* the root value must not (and doesn't need to) be set.
-
-     TODO: return root only if user have access right
-      (* ~root:(Com.Directory.make_absolute ~name:"..." ()) *)
-  *)
   let areas = (Config.Config.get_areas config)
               |> List.filter (fun e -> Config.Area.get_root e |> Content.Directory.is_usable)
               |> List.filter (fun e -> Auth.user_has_at_least_one_right config req user e)

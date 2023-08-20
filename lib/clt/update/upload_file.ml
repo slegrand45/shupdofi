@@ -22,17 +22,17 @@ let update m a =
       | None -> return m
       | Some e -> (
           let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
-          let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
+          let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
           let files = Element.files e in
           let c = Js_toast.append_from_list ~l:files ~prefix_id:area_id ~fun_msg:(fun e -> "Upload " ^ Js_browser.File.name e)
-              ~fun_cmd:(fun toast_id file -> Api.send (Action.Upload_file (Action_other.Upload_file.Do { area_id; area_subdirs; toast_id; file }))) in
+              ~fun_cmd:(fun toast_id file -> Api.send (Action.Upload_file (Action_other.Upload_file.Do { area_id; subdirs; toast_id; file }))) in
           return m ~c
         )
     )
-  | Action_other.Upload_file.Do { area_id; area_subdirs; toast_id; file } -> (
+  | Action_other.Upload_file.Do { area_id; subdirs; toast_id; file } -> (
       let () = Js_toast.show ~document ~toast_id in
       let filename = Js_browser.File.name file in
-      let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload { area_id; area_subdirs; filename })) in
+      let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Upload { area_id; subdirs; filename })) in
       let c = [Api.http_post_file ~url ~file (fun status txt -> Action.Upload_file (Action_other.Upload_file.Done { toast_id; status; txt; filename }))] in
       return m ~c
     )

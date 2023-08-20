@@ -33,7 +33,7 @@ let user_actions config user area =
 
 let user_authorized_to config user action area =
   let actions = user_actions config user area in
-  List.exists (fun e -> e = action) actions
+  List.exists (fun e -> e = action || e = Com.Action.all) actions
 
 let user_has_at_least_one_right config user area =
   let actions = user_actions config user area in

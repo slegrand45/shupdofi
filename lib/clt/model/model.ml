@@ -9,6 +9,7 @@ type t = {
   sorting : Com.Sorting.t;
   modal : Modal.t;
   user : Com.User.t;
+  selection : Com.Selection.t list;
 }
 
 let empty = {
@@ -19,6 +20,7 @@ let empty = {
   sorting = Com.Sorting.default;
   modal = Modal.default;
   user = Com.User.empty;
+  selection = Com.Selection.empty;
 }
 
 let set_route r v =

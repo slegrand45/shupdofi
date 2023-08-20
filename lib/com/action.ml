@@ -12,6 +12,7 @@ type t =
   | Archive
 [@@deriving yojson]
 
+let all = All
 let download = Download
 let upload = Upload
 let rename = Rename

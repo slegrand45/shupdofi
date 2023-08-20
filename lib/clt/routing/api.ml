@@ -1,11 +1,11 @@
 type t = Areas
-       | Area_content of { area_id: string; area_subdirs: string list }
-       | Upload of { area_id: string; area_subdirs: string list; filename: string }
-       | Download_file of { area_id: string; area_subdirs: string list; filename: string }
+       | Area_content of { area_id: string; subdirs: string list }
+       | Upload of { area_id: string; subdirs: string list; filename: string }
+       | Download_file of { area_id: string; subdirs: string list; filename: string }
        | Rename_file
        | Delete_file
        | New_directory
-       | Download_directory of { area_id: string; area_subdirs: string list; dirname: string }
+       | Download_directory of { area_id: string; subdirs: string list; dirname: string }
        | Rename_directory
        | Delete_directory
        | User
@@ -20,19 +20,19 @@ let to_url ?encode v =
   in
   match v with
   | Areas -> prefix ^ "/areas"
-  | Area_content { area_id; area_subdirs } -> (
-      match area_subdirs with
+  | Area_content { area_id; subdirs } -> (
+      match subdirs with
       | [] ->
         prefix ^ "/area/content/" ^ (encode area_id)
       | l ->
         let s = String.concat "/" l in
         prefix ^ "/area/content/" ^ (encode area_id) ^ "/" ^ s
     )
-  | Upload { area_id; area_subdirs; filename } ->
-    let path = List.map (fun e -> encode e) area_subdirs |> String.concat "/" in
+  | Upload { area_id; subdirs; filename } ->
+    let path = List.map (fun e -> encode e) subdirs |> String.concat "/" in
     prefix ^ "/file/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode filename)
-  | Download_file { area_id; area_subdirs; filename } ->
-    let path = List.map (fun e -> encode e) area_subdirs |> String.concat "/" in
+  | Download_file { area_id; subdirs; filename } ->
+    let path = List.map (fun e -> encode e) subdirs |> String.concat "/" in
     prefix ^ "/file/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode filename)
   | Rename_file ->
     prefix ^ "/file/rename"
@@ -40,8 +40,8 @@ let to_url ?encode v =
     prefix ^ "/file"
   | New_directory ->
     prefix ^ "/directory"
-  | Download_directory { area_id; area_subdirs; dirname } ->
-    let path = List.map (fun e -> encode e) area_subdirs |> String.concat "/" in
+  | Download_directory { area_id; subdirs; dirname } ->
+    let path = List.map (fun e -> encode e) subdirs |> String.concat "/" in
     prefix ^ "/directory/" ^ (encode area_id) ^ "/" ^ path ^ "/" ^ (encode dirname)
   | Rename_directory ->
     prefix ^ "/directory/rename"

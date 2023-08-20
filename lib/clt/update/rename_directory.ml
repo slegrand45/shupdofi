@@ -18,7 +18,7 @@ let update m a =
   match a with
   | Action_other.Rename_directory.Ask { directory } ->
     let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
-    let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
+    let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let old_dirname = Com.Directory.get_name directory in
     let modal = Modal.set_new_entry m.modal
                 |> Modal.set_title "Rename directory"
@@ -26,25 +26,25 @@ let update m a =
                 |> Modal.set_input_content old_dirname
                 |> Modal.set_txt_bt_ok "Rename"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun e -> Action.Rename_directory (Action_other.Rename_directory.Start { area_id; area_subdirs; old_dirname }))
+                |> Modal.set_fun_bt_ok (fun e -> Action.Rename_directory (Action_other.Rename_directory.Start { area_id; subdirs; old_dirname }))
     in
     let m = { m with modal } in
     let () = Js_modal.show () in
     return m
-  | Action_other.Rename_directory.Start { area_id; area_subdirs; old_dirname } ->
+  | Action_other.Rename_directory.Start { area_id; subdirs; old_dirname } ->
     let new_dirname = Modal.get_input_content m.modal in
     let c_default = Api.send(Action.Modal_close) in
     if old_dirname <> new_dirname then
       let c = Js_toast.append_from_list ~l:[new_dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename " ^ old_dirname ^ " to " ^ new_dirname)
-          ~fun_cmd:(fun toast_id new_dirname -> Api.send (Action.Rename_directory (Action_other.Rename_directory.Do { area_id; area_subdirs; toast_id; old_dirname; new_dirname })))
+          ~fun_cmd:(fun toast_id new_dirname -> Api.send (Action.Rename_directory (Action_other.Rename_directory.Do { area_id; subdirs; toast_id; old_dirname; new_dirname })))
       in
       let c = c_default :: c in
       return m ~c
     else
       return m ~c:[c_default]
-  | Action_other.Rename_directory.Do { area_id; area_subdirs; toast_id; old_dirname; new_dirname } ->
+  | Action_other.Rename_directory.Do { area_id; subdirs; toast_id; old_dirname; new_dirname } ->
     let () = Js_toast.show ~document ~toast_id in
-    let payload = Msg_to_srv.Rename_directory.make ~area_id ~subdirs:area_subdirs ~old_dirname ~new_dirname
+    let payload = Msg_to_srv.Rename_directory.make ~area_id ~subdirs:subdirs ~old_dirname ~new_dirname
                   |> Msg_to_srv.Rename_directory.yojson_of_t |> Yojson.Safe.to_string
     in
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Rename_directory) in

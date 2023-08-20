@@ -18,28 +18,28 @@ let update m a =
   match a with
   | Action_other.New_directory.Ask ->
     let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
-    let area_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
+    let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let modal = Modal.set_new_entry m.modal
                 |> Modal.enable_bt_ok
                 |> Modal.set_title "New directory"
                 |> Modal.set_input_content ""
                 |> Modal.set_txt_bt_ok "Create"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun e -> Action.New_directory (Action_other.New_directory.Start { area_id; area_subdirs }))
+                |> Modal.set_fun_bt_ok (fun e -> Action.New_directory (Action_other.New_directory.Start { area_id; subdirs }))
     in
     let m = { m with modal } in
     let () = Js_modal.show () in
     return m
-  | Action_other.New_directory.Start { area_id; area_subdirs } ->
+  | Action_other.New_directory.Start { area_id; subdirs } ->
     let dirname = Modal.get_input_content m.modal in
     let c = Js_toast.append_from_list ~l:[dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Create directory " ^ dirname)
-        ~fun_cmd:(fun toast_id dirname -> Api.send (Action.New_directory (Action_other.New_directory.Do { area_id; area_subdirs; toast_id; dirname })))
+        ~fun_cmd:(fun toast_id dirname -> Api.send (Action.New_directory (Action_other.New_directory.Do { area_id; subdirs; toast_id; dirname })))
     in
     let c = Api.send(Action.Modal_close) :: c in
     return m ~c
-  | Action_other.New_directory.Do { area_id; area_subdirs; toast_id; dirname } ->
+  | Action_other.New_directory.Do { area_id; subdirs; toast_id; dirname } ->
     let () = Js_toast.show ~document ~toast_id in
-    let payload = Msg_to_srv.New_directory.make ~area_id ~subdirs:area_subdirs ~dirname
+    let payload = Msg_to_srv.New_directory.make ~area_id ~subdirs:subdirs ~dirname
                   |> Msg_to_srv.New_directory.yojson_of_t |> Yojson.Safe.to_string
     in
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) New_directory) in

@@ -35,7 +35,7 @@ module Fetchable = struct
 
   let route_api = function
     | (Areas, _) -> Routing.Api.Areas
-    | (Area_content (area_id, area_subdirs) , _) -> Routing.Api.Area_content { area_id; area_subdirs }
+    | (Area_content (area_id, subdirs) , _) -> Routing.Api.Area_content { area_id; subdirs }
     | _ -> assert false
 
 end

@@ -10,6 +10,13 @@ type t = {
 
 let make ~area ~subdirs ~directories ~files = { area; subdirs; directories; files }
 
+let to_string v =
+  let area_id = Area.get_id v.area in
+  let subdirs = String.concat "/" v.subdirs in
+  let directories = String.concat ", " (List.map Directory.get_name v.directories) in
+  let files = String.concat ", " (List.map File.get_name v.files) in
+  Printf.sprintf "%s: %s: directories=%s files=%s" area_id subdirs directories files
+
 let get_area v = v.area
 let get_subdirs v = v.subdirs
 let get_directories v = v.directories
@@ -17,6 +24,8 @@ let get_files v = v.files
 
 let set_area area v = { v with area }
 let set_subdirs subdirs v = { v with subdirs }
+let set_directories directories v = { v with directories }
+let set_files files v = { v with files }
 
 let add_uploaded ~id ~subdirs ~file v =
   let l = List.filter (fun e -> File.get_name e <> File.get_name file) v.files in

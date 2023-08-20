@@ -23,6 +23,6 @@ let can_do_action ~area_id ~action v =
   match List.find_opt (fun (id, al) -> id = area_id) areas_rights with
   | None -> false
   | Some (_, al) ->
-    match List.find_opt (fun e -> e = action) al with
+    match List.find_opt (fun e -> e = action || e = Action.all) al with
     | None -> false
     | _ -> true

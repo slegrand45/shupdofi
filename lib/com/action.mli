@@ -1,5 +1,6 @@
 type t
 
+val all : t
 val download : t
 val upload : t
 val rename : t

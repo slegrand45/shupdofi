@@ -24,9 +24,10 @@ let one_line_mdatetime v =
   | None -> ""
   | Some v -> Intl.fmt_date_hm user_language v
 
-let one_line_directory user area_id area_subdirs (acc, i) directory =
+let one_line_directory selection user area subdirs (acc, i) directory =
+  let area_id = Com.Area.get_id area in
   let dirname = Com.Directory.get_name directory in
-  let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_directory { area_id; area_subdirs; dirname })) in
+  let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_directory { area_id; subdirs; dirname })) in
   let td_download =
     match Com.User.can_do_action ~area_id ~action:Com.Action.download user, Com.User.can_do_action ~area_id ~action:Com.Action.archive user with
     | true, true -> [
@@ -60,6 +61,11 @@ let one_line_directory user area_id area_subdirs (acc, i) directory =
   | "" -> (acc, i + 1)
   | name -> (
       elt "tr" ~a:[class_ "line"] [
+        elt "td" [
+          elt "input" ~a:[type_ "checkbox"; class_ "line form-check-input"; attr "aria-label" "select directory";
+                          bool_prop "checked" (Com.Selection.directory_is_selected ~area ~subdirs ~directory selection);
+                          onclick (fun _ -> Action.Click_select_directory { area; subdirs; directory })] []
+        ];
         elt "td" [ Icon.folder ~class_attr:"" ];
         elt "td" ~a:[onclick_cancel (fun _ -> Some (Action.Area_go_to_subdir { name }))] [ text name ];
         elt "td" [ text (one_line_mdatetime (Com.Directory.get_mdatetime directory)) ];
@@ -69,9 +75,10 @@ let one_line_directory user area_id area_subdirs (acc, i) directory =
         elt "td" ~a:[class_ "text-center"] td_delete;
       ] :: acc, i + 1)
 
-let one_line_file user area_id area_subdirs (acc, i) file =
+let one_line_file selection user area subdirs (acc, i) file =
+  let area_id = Com.Area.get_id area in
   let filename = Com.File.get_name file in
-  let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_file { area_id; area_subdirs; filename })) in
+  let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_file { area_id; subdirs; filename })) in
   let td_download =
     match Com.User.can_do_action ~area_id ~action:Com.Action.download user with
     | true -> [
@@ -105,6 +112,11 @@ let one_line_file user area_id area_subdirs (acc, i) file =
   | "" -> (acc, i + 1)
   | name -> (
       elt "tr" ~a:[class_ "line"] [
+        elt "td" [
+          elt "input" ~a:[type_ "checkbox"; class_ "line form-check-input"; attr "aria-label" "select file";
+                          bool_prop "checked" (Com.Selection.file_is_selected ~area ~subdirs ~file selection);
+                          onclick (fun _ -> Action.Click_select_file { area; subdirs; file })] []
+        ];
         elt "td" [ text "" ];
         elt "td" [ text name ];
         elt "td" [ text (one_line_mdatetime (Com.File.get_mdatetime file)) ];
@@ -140,18 +152,23 @@ let icon_sort sorting criteria =
       | _ -> [ icon ~aria_id:("size") ~visible:false ]
     )
 
-let lines sorting user area_id subdirs directories files =
+let lines sorting selection user area subdirs directories files =
   match directories, files with
   | [], [] -> [elt "p"
                  [ text "Empty directory" ]
               ]
   | directories, files ->
-    let trs_directories = List.fold_left (one_line_directory user area_id subdirs) ([], 1) directories |> fst |> List.rev in
-    let trs_files = List.fold_left (one_line_file user area_id subdirs) ([], 1) files |> fst |> List.rev in
+    let trs_directories = List.fold_left (one_line_directory selection user area subdirs) ([], 1) directories |> fst |> List.rev in
+    let trs_files = List.fold_left (one_line_file selection user area subdirs) ([], 1) files |> fst |> List.rev in
     [div ~a:[class_ "table-responsive"] [
         elt "table" ~a:[class_ "table table-hover area-content"] [
           elt "thead" [
             elt "tr" [
+              elt "th" [
+                elt "input" ~a:[type_ "checkbox"; class_ "line form-check-input"; attr "aria-label" "select all";
+                                bool_prop "checked" (Com.Selection.all_is_selected ~area ~subdirs selection);
+                                onclick (fun _ -> Action.Click_select_all { area; subdirs; directories; files })] []
+              ];
               elt "th" ~a:[str_prop "scope" "col"; str_prop "style" "width: 1em;"] [ text "" ];
               elt "th" ~a:[str_prop "scope" "col"] [
                 elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm btn-light";
@@ -252,12 +269,13 @@ let view m =
     let user = m.Model.user in
     let content = m.Model.area_content |> Com.Area_content.sort m.sorting in
     let sorting = m.Model.sorting in
+    let selection = m.Model.selection in
     let area = Com.Area_content.get_area content in
     let area_id = Com.Area.get_id area in
     let subdirs = Com.Area_content.get_subdirs content in
     let directories = Com.Area_content.get_directories content in
     let files = Com.Area_content.get_files content in
-    let lines = lines sorting user area_id subdirs directories files in
+    let lines = lines sorting selection user area subdirs directories files in
     let td_delete =
       match Com.User.can_do_action ~area_id ~action:Com.Action.upload user with
       | true -> [
