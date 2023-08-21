@@ -11,16 +11,32 @@ let view m content =
   let div_account =
     match user_name with
     | "" -> []
-    | _ -> [div ~a:[class_ "col-auto"] [
-        elt "form" ~a:[str_prop "role" "link"] [
-          elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm"] [
-            div ~a:[class_ "d-flex align-items-center justify-content-around"] [
-              Icon.account_circle ~class_attr:"fs-6";
-              elt "span" ~a:[class_ "ms-1"] [ text user_name ]
+    | _ -> [
+        div ~a:[class_ "col-auto"] [
+          elt "form" ~a:[str_prop "role" "link"] [
+            elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm position-relative"] [
+              div ~a:[class_ "d-flex align-items-center justify-content-around"] [
+                Icon.shopping_basket ~label:"Selection" ~aria_id:("selection-icon-shopping-basket") ~class_attr:"fs-6";
+                elt "span" ~a:[class_ "position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"] [
+                  text "99+"
+                ];
+                elt "span" ~a:[class_ "visually-hidden"] [
+                  text "Selection"
+                ]
+              ]
+            ]
+          ]
+        ];
+        div ~a:[class_ "col-auto"] [
+          elt "form" ~a:[str_prop "role" "link"] [
+            elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm"] [
+              div ~a:[class_ "d-flex align-items-center justify-content-around"] [
+                Icon.account_circle ~class_attr:"fs-6";
+                elt "span" ~a:[class_ "ms-1"] [ text user_name ]
+              ]
             ]
           ]
         ]
-      ]
       ]
   in
   div ~a:[class_ "container-fluid d-flex flex-column min-vh-100"] [
