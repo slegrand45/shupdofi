@@ -69,21 +69,64 @@ let remove_directory ~id ~subdirs ~dirname v =
 let sort sorting v =
   let criteria = Sorting.get_criteria sorting in
   let direction = Sorting.get_direction sorting in
-  let f_field_directory, f_field_file =
+  let f_sort_directory_last_modified e =
+    Directory.get_mdatetime e |> Option.fold ~none:"" ~some:Datetime.to_iso8601
+  in
+  let f_sort_file_last_modified e =
+    File.get_mdatetime e |> Option.fold ~none:"" ~some:Datetime.to_iso8601
+  in
+  let f_sort_file_size e =
+    File.get_size_bytes e |> Option.fold ~none:"" ~some:(fun e -> Printf.sprintf "%32Lu" e)
+  in
+  let f_compare_directory e1 e2 =
     match criteria with
-    | Sorting.Criteria.Name ->
-      Directory.get_name, File.get_name
-    | Sorting.Criteria.Last_modified ->
-      (fun e -> Directory.get_mdatetime e |> Option.fold ~none:"" ~some:Datetime.to_iso8601),
-      (fun e -> File.get_mdatetime e |> Option.fold ~none:"" ~some:Datetime.to_iso8601)
-    | Sorting.Criteria.Size ->
-      Directory.get_name, (fun e -> File.get_size_bytes e |> Option.fold ~none:"" ~some:(fun e -> Printf.sprintf "%32Lu" e))
+    | Sorting.Criteria.Name
+    | Sorting.Criteria.Size -> (
+        match String.compare (Directory.get_name e1) (Directory.get_name e2) with
+        | 0 -> String.compare (f_sort_directory_last_modified e1) (f_sort_directory_last_modified e2)
+        | v -> v
+      )
+    | Sorting.Criteria.Last_modified -> (
+        match String.compare (f_sort_directory_last_modified e1) (f_sort_directory_last_modified e2) with
+        | 0 -> String.compare (Directory.get_name e1) (Directory.get_name e2)
+        | v -> v
+      )
+  in
+  let f_compare_file e1 e2 =
+    match criteria with
+    | Sorting.Criteria.Name -> (
+        match String.compare (File.get_name e1) (File.get_name e2) with
+        | 0 -> (
+            match String.compare (f_sort_file_last_modified e1) (f_sort_file_last_modified e2) with
+            | 0 -> String.compare (f_sort_file_size e1) (f_sort_file_size e2)
+            | v -> v
+          )
+        | v -> v
+      )
+    | Sorting.Criteria.Last_modified -> (
+        match String.compare (f_sort_file_last_modified e1) (f_sort_file_last_modified e2) with
+        | 0 -> (
+            match String.compare (File.get_name e1) (File.get_name e2) with
+            | 0 -> String.compare (f_sort_file_size e1) (f_sort_file_size e2)
+            | v -> v
+          )
+        | v -> v
+      )
+    | Sorting.Criteria.Size -> (
+        match String.compare (f_sort_file_size e1) (f_sort_file_size e2) with
+        | 0 -> (
+            match String.compare (File.get_name e1) (File.get_name e2) with
+            | 0 -> String.compare (f_sort_file_last_modified e1) (f_sort_file_last_modified e2)
+            | v -> v
+          )
+        | v -> v
+      )
   in
   let mult =
     match direction with
     | Sorting.Direction.Ascending -> 1
     | Sorting.Direction.Descending -> -1
   in
-  let directories = List.sort (fun e1 e2 -> mult * (String.compare (f_field_directory e1) (f_field_directory e2))) v.directories in
-  let files = List.sort (fun e1 e2 -> mult * (String.compare (f_field_file e1) (f_field_file e2))) v.files in
+  let directories = List.sort (fun e1 e2 -> mult * (f_compare_directory e1 e2)) v.directories in
+  let files = List.sort (fun e1 e2 -> mult * (f_compare_file e1 e2)) v.files in
   { v with directories; files }
