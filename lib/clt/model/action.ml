@@ -15,6 +15,8 @@ type t =
   | Delete_directory of Action_other.Delete_directory.t
   | Rename_file of Action_other.Rename_file.t
   | Delete_file of Action_other.Delete_file.t
+  | User of Action_other.User.t
+  | Selection of Action_other.Selection.t
   | Modal_set_input_content of { content : string }
   | Modal_toggle_switch
   | Modal_close
@@ -23,4 +25,3 @@ type t =
   | Click_select_file of { area : Com.Area.t; subdirs : string list; file : Com.File.t }
   | Click_select_directory of { area : Com.Area.t; subdirs : string list; directory : Com.Directory.relative Com.Directory.t }
   | Click_select_all of { area : Com.Area.t; subdirs : string list; directories : Com.Directory.relative Com.Directory.t list; files : Com.File.t list }
-  | User of Action_other.User.t

@@ -101,3 +101,27 @@ let shopping_basket ~label ~class_attr ~aria_id =
     svg_elt "path" ~a:[attr "d" "M0 0h24v24H0V0z"; attr "fill" "none"][];
     svg_elt "path" ~a:[attr "d" "M22 9h-4.79l-4.38-6.56c-.19-.28-.51-.42-.83-.42s-.64.14-.83.43L6.79 9H2c-.55 0-1 .45-1 1 0 .09.01.18.04.27l2.54 9.27c.23.84 1 1.46 1.92 1.46h13c.92 0 1.69-.62 1.93-1.46l2.54-9.27L23 10c0-.55-.45-1-1-1zM12 4.8L14.8 9H9.2L12 4.8zM18.5 19l-12.99.01L3.31 11H20.7l-2.2 8zM12 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"][];
   ]
+
+let clear ~label ~class_attr ~aria_id =
+  svg_elt "svg" ~a:[attr "width" "1.5em"; attr "height" "1.5em"; attr "fill" "currentColor"; attr "class" class_attr;
+                    attr "viewBox" "0 0 24 24"; attr "aria-labelledby" aria_id; attr "role" "img"] [
+    svg_elt "title" ~a:[attr "id" aria_id] [text label];
+    svg_elt "path" ~a:[attr "d" "M0 0h24v24H0V0z"; attr "fill" "none"][];
+    svg_elt "path" ~a:[attr "d" "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"][];
+  ]
+
+let content_copy ~label ~class_attr ~aria_id =
+  svg_elt "svg" ~a:[attr "width" "1.5em"; attr "height" "1.5em"; attr "fill" "currentColor"; attr "class" class_attr;
+                    attr "viewBox" "0 0 24 24"; attr "aria-labelledby" aria_id; attr "role" "img"] [
+    svg_elt "title" ~a:[attr "id" aria_id] [text label];
+    svg_elt "path" ~a:[attr "d" "M0 0h24v24H0V0z"; attr "fill" "none"][];
+    svg_elt "path" ~a:[attr "d" "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"][];
+  ]
+
+let content_cut ~label ~class_attr ~aria_id =
+  svg_elt "svg" ~a:[attr "width" "1.5em"; attr "height" "1.5em"; attr "fill" "currentColor"; attr "class" class_attr;
+                    attr "viewBox" "0 0 24 24"; attr "aria-labelledby" aria_id; attr "role" "img"] [
+    svg_elt "title" ~a:[attr "id" aria_id] [text label];
+    svg_elt "path" ~a:[attr "d" "M0 0h24v24H0V0z"; attr "fill" "none"][];
+    svg_elt "path" ~a:[attr "d" "M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.89-2-2s.9-2 2-2 2 .89 2 2-.9 2-2 2zm0 12c-1.1 0-2-.89-2-2s.9-2 2-2 2 .89 2 2-.9 2-2 2zm6-7.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5zM19 3l-6 6 2 2 7-7V3h-3z"][];
+  ]

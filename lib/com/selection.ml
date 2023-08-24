@@ -99,3 +99,23 @@ let file_is_selected ~area ~subdirs ~file v =
 
 let all_is_selected ~area ~subdirs v =
   List.exists (fun e -> e.all && same_area_and_subdirs area subdirs e) v
+
+let count v =
+  let f acc e =
+    acc
+    + (Area_content.get_files e.content |> List.length)
+    + (Area_content.get_directories e.content |> List.length)
+  in
+  List.fold_left f 0 v
+
+let clear ~area ~subdirs v =
+  let is_same e =
+    Area_content.get_area e.content |> Area.get_id = Area.get_id area
+    && Area_content.get_subdirs e.content = subdirs
+  in
+  List.map (fun e ->
+      if is_same e then
+        { e with content = Area_content.set_directories [] e.content |> Area_content.set_files [] }
+      else
+        e
+    ) v

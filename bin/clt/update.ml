@@ -72,6 +72,7 @@ let update m a =
   | Action.Rename_file a -> Update_other.Rename_file.update m a
   | Action.Delete_file a -> Update_other.Delete_file.update m a
   | Action.User a -> Update_other.User.update m a
+  | Action.Selection a -> Update_other.Selection.update m a
   | Action.Modal_set_input_content { content } ->
     return { m with modal = Modal.set_input_content content m.modal }
   | Action.Modal_toggle_switch ->
