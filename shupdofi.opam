@@ -17,7 +17,6 @@ depends: [
   "yojson"
   "tiny_httpd"
   "ojs"
-  "vdom.base"
   "vdom"
   "odoc" {with-doc}
 ]
