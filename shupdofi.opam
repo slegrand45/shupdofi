@@ -13,6 +13,12 @@ bug-reports: "https://github.com/username/reponame/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.7"}
+  "unix"
+  "yojson"
+  "tiny_httpd"
+  "ojs"
+  "vdom.base"
+  "vdom"
   "odoc" {with-doc}
 ]
 build: [
