@@ -21,6 +21,6 @@
  (name shupdofi)
  (synopsis "SHare UPload DOwnload FIles")
  (description "A web application to upload/download files with user rights management")
- (depends ocaml dune unix yojson tiny_httpd ojs vdom)
+ (depends ocaml dune yojson tiny_httpd ojs vdom)
  (tags
   (topics "to describe" your project)))
