@@ -12,9 +12,8 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-          - windows-latest
         ocaml-compiler:
-          - 5.x
+          - 5.2.0
 
     runs-on: ${{ matrix.os }}
 
@@ -36,5 +35,5 @@ jobs:
       - name: Upload the build artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.os }}-${{ matrix.ocaml-version }}-world.exe
-          path: _build/default/world.exe
+          name: ${{ matrix.os }}-${{ matrix.ocaml-version }}-shupdofi.exe
+          path: _build/default/bin/srv/shupdofi.exe
