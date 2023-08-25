@@ -16,7 +16,6 @@ depends: [
   "yojson"
   "tiny_httpd"
   "ojs"
-  "vdom"
   "odoc" {with-doc}
 ]
 build: [
