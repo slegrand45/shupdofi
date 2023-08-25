@@ -14,8 +14,14 @@ depends: [
   "ocaml"
   "dune" {>= "3.7"}
   "yojson"
+  "js_of_ocaml"
+  "js_of_ocaml-lwt"
+  "ppx_yojson_conv"
+  "js_of_ocaml-ppx"
+  "magic-mime"
   "tiny_httpd"
   "ojs"
+  "otoml"
   "odoc" {with-doc}
 ]
 build: [
