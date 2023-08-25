@@ -22,7 +22,7 @@ depends: [
   "tiny_httpd"
   "ojs"
   "otoml"
-  "zip"
+  "camlzip"
   "odoc" {with-doc}
 ]
 build: [
