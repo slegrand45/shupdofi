@@ -11,7 +11,7 @@ let rename config user req =
   let rename_directory = Yojson.Safe.from_string body |> Msg_from_clt.Rename_directory.t_of_yojson in
   let area_id = Msg_from_clt.Rename_directory.get_area_id rename_directory in
   let area = Config.Config.find_area_with_id area_id config in
-  match Auth.user_authorized config req user area Com.Action.rename with
+  match Auth.user_authorized config user area Com.Action.rename with
   | true -> (
       let subdirs = Msg_from_clt.Rename_directory.get_subdirs rename_directory in
       let old_dirname = Msg_from_clt.Rename_directory.get_old_dirname rename_directory in
@@ -44,8 +44,8 @@ let rename config user req =
    ) *)
 let archive config user area_id path req =
   let area = Config.Config.find_area_with_id area_id config in
-  let auth_download = Auth.user_authorized config req user area Com.Action.download in
-  let auth_archive = Auth.user_authorized config req user area Com.Action.archive in
+  let auth_download = Auth.user_authorized config user area Com.Action.download in
+  let auth_archive = Auth.user_authorized config user area Com.Action.archive in
   match auth_download, auth_archive with
   | true, true -> (
       try
@@ -76,7 +76,7 @@ let create config user req =
   let new_directory = Yojson.Safe.from_string body |> Msg_from_clt.New_directory.t_of_yojson in
   let area_id = Msg_from_clt.New_directory.get_area_id new_directory in
   let area = Config.Config.find_area_with_id area_id config in
-  match Auth.user_authorized config req user area Com.Action.create_directory with
+  match Auth.user_authorized config user area Com.Action.create_directory with
   | true -> (
       let subdirs = Msg_from_clt.New_directory.get_subdirs new_directory in
       let dirname = Msg_from_clt.New_directory.get_dirname new_directory in
@@ -96,7 +96,7 @@ let delete config user req =
   let delete_directory = Yojson.Safe.from_string body |> Msg_from_clt.Delete_directory.t_of_yojson in
   let area_id = Msg_from_clt.Delete_directory.get_area_id delete_directory in
   let area = Config.Config.find_area_with_id area_id config in
-  match Auth.user_authorized config req user area Com.Action.delete with
+  match Auth.user_authorized config user area Com.Action.delete with
   | true -> (
       let subdirs = Msg_from_clt.Delete_directory.get_subdirs delete_directory in
       let dirname = Msg_from_clt.Delete_directory.get_dirname delete_directory in

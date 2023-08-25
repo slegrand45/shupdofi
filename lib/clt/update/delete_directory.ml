@@ -28,7 +28,7 @@ let update m a =
                 |> Modal.set_input_content ""
                 |> Modal.set_txt_bt_ok "Delete"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun e -> Action.Delete_directory (Action_other.Delete_directory.Start { area_id; subdirs; dirname }))
+                |> Modal.set_fun_bt_ok (fun _ -> Action.Delete_directory (Action_other.Delete_directory.Start { area_id; subdirs; dirname }))
     in
     let m = { m with modal } in
     let () = Js_modal.show () in

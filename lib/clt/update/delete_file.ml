@@ -28,14 +28,14 @@ let update m a =
                 |> Modal.set_input_content ""
                 |> Modal.set_txt_bt_ok "Delete"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun e -> Action.Delete_file (Action_other.Delete_file.Start { area_id; subdirs; filename }))
+                |> Modal.set_fun_bt_ok (fun _ -> Action.Delete_file (Action_other.Delete_file.Start { area_id; subdirs; filename }))
     in
     let m = { m with modal } in
     let () = Js_modal.show () in
     return m
   | Action_other.Delete_file.Start { area_id; subdirs; filename } ->
     let c = Js_toast.append_from_list ~l:[filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "Delete file " ^ filename)
-        ~fun_cmd:(fun toast_id dirname -> Api.send (Action.Delete_file (Action_other.Delete_file.Do { area_id; subdirs; toast_id; filename })))
+        ~fun_cmd:(fun toast_id _ -> Api.send (Action.Delete_file (Action_other.Delete_file.Do { area_id; subdirs; toast_id; filename })))
     in
     let c = Api.send(Action.Modal_close) :: c in
     return m ~c

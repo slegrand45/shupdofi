@@ -29,15 +29,6 @@ let walk init f_file f_stop v =
   let pathname = Com.Directory.get_name v in
   walk init [pathname]
 
-let is_without_parent_dir_name s =
-  let r = Str.regexp_string ".." in
-  not (Str.string_match r s 0)
-
-let remove_sep_first s =
-  if (String.starts_with ~prefix:Filename.dir_sep s) then (
-    String.sub s 1 ((String.length s) - 1)
-  ) else s
-
 let make_from_list l =
   let name = String.concat (Filename.dir_sep) l in
   Com.Directory.make_relative ~name ()

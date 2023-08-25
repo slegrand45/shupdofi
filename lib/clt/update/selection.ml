@@ -8,7 +8,6 @@ module Routing = Shupdofi_clt_routing
 
 open Vdom
 open Js_browser
-open Js_of_ocaml
 
 let update m a =
   match a with

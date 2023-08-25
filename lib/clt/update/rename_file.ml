@@ -26,7 +26,7 @@ let update m a =
                 |> Modal.set_input_content old_filename
                 |> Modal.set_txt_bt_ok "Rename"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun e -> Action.Rename_file (Action_other.Rename_file.Start { area_id; subdirs; old_filename }))
+                |> Modal.set_fun_bt_ok (fun _ -> Action.Rename_file (Action_other.Rename_file.Start { area_id; subdirs; old_filename }))
     in
     let m = { m with modal } in
     let () = Js_modal.show () in

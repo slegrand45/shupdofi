@@ -21,10 +21,10 @@ let get_user config req =
   | Some login -> Authentication.get_user_from_login config login
   | _ -> None
 
-let user_authorized config req user area action =
+let user_authorized config user area action =
   Authorization.user_authorized_to config user action (Config.Area.get_area area)
 
-let user_has_at_least_one_right config req user area =
+let user_has_at_least_one_right config user area =
   Authorization.user_has_at_least_one_right config user (Config.Area.get_area area)
 
 let user_actions config user area =

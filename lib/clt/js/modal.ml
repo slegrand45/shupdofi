@@ -1,5 +1,3 @@
-open Js_of_ocaml
-
 class type modal =
   object
     method dispose : unit -> unit Js_of_ocaml.Js.meth

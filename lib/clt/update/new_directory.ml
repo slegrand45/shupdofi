@@ -25,7 +25,7 @@ let update m a =
                 |> Modal.set_input_content ""
                 |> Modal.set_txt_bt_ok "Create"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun e -> Action.New_directory (Action_other.New_directory.Start { area_id; subdirs }))
+                |> Modal.set_fun_bt_ok (fun _ -> Action.New_directory (Action_other.New_directory.Start { area_id; subdirs }))
     in
     let m = { m with modal } in
     let () = Js_modal.show () in
