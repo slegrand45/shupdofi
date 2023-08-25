@@ -30,7 +30,7 @@ jobs:
 
       - run: opam install dune
 
-      - run: opam pin --assume-depexts -y add vdom https://github.com/LexiFi/ocaml-vdom.git
+      - run: opam pin -y add vdom https://github.com/LexiFi/ocaml-vdom.git
 
       - run: opam exec -- dune build
 
