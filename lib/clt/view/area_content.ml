@@ -19,10 +19,9 @@ let one_line_size_bytes v =
   | Some v -> Size.(to_human (from_int64 v))
 
 let one_line_mdatetime v =
-  let user_language = Intl.user_language () in
   match v with
   | None -> ""
-  | Some v -> Intl.fmt_date_hm user_language v
+  | Some v -> Intl.fmt_date_hm v
 
 let one_line_directory selection user area subdirs (acc, i) directory =
   let area_id = Com.Area.get_id area in
@@ -214,7 +213,7 @@ let breadcrumb_last user area_id e =
         ];
         elt "ul" ~a:[class_ "dropdown-menu"] [
           elt "li" [
-            elt "a" ~a:[class_ "dropdown-item"; str_prop "href" ""; onclick_cancel (fun e -> Some (Action.New_directory Action_other.New_directory.Ask))] [
+            elt "a" ~a:[class_ "dropdown-item"; str_prop "href" ""; onclick_cancel (fun _ -> Some (Action.New_directory Action_other.New_directory.Ask))] [
               text "New directory"
             ]
           ];
@@ -285,7 +284,7 @@ let view m =
                 div ~a:[class_ "input-group-text"] [ Icon.file_upload ~class_attr:"" ];
                 input ~a:[class_ "form-control form-control-sm"; str_prop "type" "file"; value "";
                           attr "aria-label" "upload"; str_prop "id" "fileupload"; bool_prop "multiple" true;
-                          oninput (fun e -> Action.Upload_file (Action_other.Upload_file.Start { input_file_id = "fileupload" }))] []
+                          oninput (fun _ -> Action.Upload_file (Action_other.Upload_file.Start { input_file_id = "fileupload" }))] []
               ]
             ];
           ]

@@ -22,7 +22,7 @@ let user_actions config user area =
   let groups_of_user = groups_of_user config user in
   let actions_groups =
     List.fold_left (fun acc_rights right -> 
-        List.fold_left (fun acc_groups group ->
+        List.fold_left (fun _ group ->
             (Area_access.Right.get_action_of_group group right) :: acc_rights
           ) [] groups_of_user
       ) [] rights

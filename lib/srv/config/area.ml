@@ -2,8 +2,6 @@ module Com = Shupdofi_com
 
 type t = { area: Com.Area.t; root: Com.Directory.absolute Com.Directory.t; quota: (string * Com.Size.t option) }
 
-type collection = t list
-
 let make ~area ~root ~quota = { area; root; quota }
 
 let to_string v =

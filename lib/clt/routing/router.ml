@@ -5,7 +5,7 @@ let nth l pos =
     List.nth_opt l pos
 
 let after_nth l pos =
-  List.filteri (fun i v -> i > pos) l
+  List.filteri (fun i _ -> i > pos) l
 
 let from_split_path l =
   let first = nth l 0 in
@@ -17,7 +17,7 @@ let from_split_path l =
   | _ -> (
       match first, second, third, fourth with
       | Some "area", Some "content", Some id, None -> Page.Area_content (id, [])
-      | Some "area", Some "content", Some id, Some s ->
+      | Some "area", Some "content", Some id, Some _ ->
         let subdirs = after_nth l 2 |> List.filter (fun e -> e <> "") in
         Page.Area_content (id, subdirs)
       | _ -> Page.Home

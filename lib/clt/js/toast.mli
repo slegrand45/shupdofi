@@ -1,5 +1,4 @@
 open Js_browser
-open Js_of_ocaml
 
 class type toast =
   object

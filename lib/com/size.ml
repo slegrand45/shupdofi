@@ -26,7 +26,7 @@ let to_human v =
 
 let from_string s =
   match Int64.of_string_opt s with
-  | Some i as v -> v
+  | Some _ as v -> v
   | None ->
     let length = String.length s in
     match length with

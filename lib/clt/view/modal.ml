@@ -26,7 +26,7 @@ let body m =
         div ~a:[class_ "my-3"] [
           div ~a:[class_ "form-check form-switch"] [
             elt "input" ~a:[class_ "form-check-input"; type_ "checkbox"; attr "role" "switch"; attr "id" "formConfirmDeleteSwitch";
-                            switch_checked; onclick (fun e -> Action.Modal_toggle_switch)] [];
+                            switch_checked; onclick (fun _ -> Action.Modal_toggle_switch)] [];
             elt "label" ~a:[class_ "form-check-label"; attr "for" "formConfirmDeleteSwitch"] [
               text (Modal.get_txt_switch modal)
             ]
@@ -53,14 +53,14 @@ let view m =
             text (Modal.get_title modal)
           ];
           elt "button" ~a:[class_ "btn-close"; type_ "button"; attr "data-bs-dismiss" "modal"; attr "aria-label" "Close";
-                           onclick (fun e -> Action.Modal_close)] [];
+                           onclick (fun _ -> Action.Modal_close)] [];
         ];
         div ~a:[class_ "modal-body"; str_prop "id" "modal-body"] [
           body
         ];
         div ~a:[class_ "modal-footer"] [
           elt "button" ~a:[class_ "btn btn-secondary"; type_ "button"; attr "data-bs-dismiss" "modal";
-                           str_prop "id" "modal-btn-cancel"; onclick (fun e -> Action.Modal_cancel)] [
+                           str_prop "id" "modal-btn-cancel"; onclick (fun _ -> Action.Modal_cancel)] [
             text (Modal.get_txt_bt_cancel modal)
           ];
           elt "button" ~a:[class_ "btn btn-primary"; type_ "button"; str_prop "id" "modal-btn-ok";

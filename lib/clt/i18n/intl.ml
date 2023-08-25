@@ -26,7 +26,7 @@ let user_language () =
   in
   language_from_string s
 
-let fmt_date_hm lang dt =
+let fmt_date_hm dt =
   let year = Com.(Datetime.get_date dt |> Date.get_year) in
   let month = Com.(Datetime.get_date dt |> Date.get_month) in
   let day_of_month = Com.(Datetime.get_date dt |> Date.get_day_of_month) in

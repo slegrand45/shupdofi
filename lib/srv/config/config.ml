@@ -232,7 +232,7 @@ let has_pct_wildcard s =
   | None -> false
   | Some _ -> true
 
-let make_right_users area_id known str_action toml =
+let make_right_users known str_action toml =
   let action = Com.Action.from_string str_action in
   match Com.Action.is_unknown action with
   | false -> (
@@ -263,7 +263,7 @@ let make_right_users area_id known str_action toml =
   | true ->
     Result.error (Printf.sprintf "action %s is unknown" str_action)
 
-let make_right_groups area_id known str_action toml =
+let make_right_groups known str_action toml =
   let action = Com.Action.from_string str_action in
   match Com.Action.is_unknown action with
   | false -> (
@@ -304,7 +304,7 @@ let areas_accesses_from_toml areas users groups toml =
       let rights_users =
         match Toml.find_opt toml (Toml.get_table) ["rights"; "users"] with
         | Some ru -> (
-            let f (action, toml) = make_right_users area_id users action toml in
+            let f (action, toml) = make_right_users users action toml in
             match List.map f ru |> List.partition Result.is_ok with
             | oks, [] ->
               Result.ok (List.map Result.get_ok oks)
@@ -318,7 +318,7 @@ let areas_accesses_from_toml areas users groups toml =
       let rights_groups =
         match Toml.find_opt toml (Toml.get_table) ["rights"; "groups"] with
         | Some rg -> (
-            let f (action, toml) = make_right_groups area_id groups action toml in
+            let f (action, toml) = make_right_groups groups action toml in
             match List.map f rg |> List.partition Result.is_ok with
             | oks, [] ->
               Result.ok (List.map Result.get_ok oks)
@@ -334,9 +334,9 @@ let areas_accesses_from_toml areas users groups toml =
         Result.ok (Area_access.(make area (ru @ rg)))
       | Error err1, Error err2 ->
         Result.error (err1 ^ err2)
-      | Error err as r, _ ->
+      | Error _ as r, _ ->
         r
-      | _, (Error err as r) ->
+      | _, (Error _ as r) ->
         r
   in
   map_values f_area tab

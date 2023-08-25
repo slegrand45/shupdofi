@@ -1,5 +1,4 @@
 open Js_browser
-open Vdom
 
 type 'msg Vdom.Cmd.t +=
   | Http_get of {url: string; payload: string; on_done: (int -> string -> 'msg)}
