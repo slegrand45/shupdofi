@@ -37,5 +37,5 @@ jobs:
       - name: Upload the build artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.os }}-${{ matrix.ocaml-version }}-shupdofi.exe
+          name: ${{ matrix.os }}-${{ matrix.ocaml-version }}shupdofi.exe
           path: _build/default/bin/srv/shupdofi.exe
