@@ -159,7 +159,7 @@ let start_server config =
     S.Route.(exact_path "api/user" return)
     (fun req -> Auth.get_user config req
                 |> Option.fold ~none:(fail_user_unknown())
-                  ~some:(fun user -> User.get config user req));
+                  ~some:(fun user -> User.get config user));
 
   match S.run server with
   | Ok () -> 

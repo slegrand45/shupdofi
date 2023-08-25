@@ -2,7 +2,7 @@ module Config = Shupdofi_srv_config
 module Com = Shupdofi_com
 module S = Tiny_httpd
 
-let get config user req =
+let get config user =
   let name = Config.User.get_name user in
   let areas_rights =
     Config.Config.get_areas_accesses config
