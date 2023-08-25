@@ -5,7 +5,7 @@ module Content = Shupdofi_srv_content
 module Msg_from_clt = Shupdofi_msg_srv_from_clt
 module Msg_to_clt = Shupdofi_msg_srv_to_clt
 
-let list config user req =
+let list config user =
   let areas = (Config.Config.get_areas config)
               |> List.filter (fun e -> Config.Area.get_root e |> Content.Directory.is_usable)
               |> List.filter (fun e -> Auth.user_has_at_least_one_right config user e)
@@ -14,7 +14,7 @@ let list config user req =
   S.Response.make_string (Ok (Com.Area.yojson_of_collection areas |> Yojson.Safe.to_string))
   |> S.Response.set_header "Content-Type" "text/json"
 
-let content config user area_id subdirs req =
+let content config user area_id subdirs =
   (* prerr_endline "** Headers:";
      S.Headers.pp Format.err_formatter (S.Request.headers _req) ;
      prerr_endline "** **"; *)

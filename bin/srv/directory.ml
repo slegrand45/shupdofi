@@ -42,7 +42,7 @@ let rename config user req =
     Error (403, "invalid path (contains '..')")
    | _ -> Ok ()
    ) *)
-let archive config user area_id path req =
+let archive config user area_id path =
   let area = Config.Config.find_area_with_id area_id config in
   let auth_download = Auth.user_authorized config user area Com.Action.download in
   let auth_archive = Auth.user_authorized config user area Com.Action.archive in

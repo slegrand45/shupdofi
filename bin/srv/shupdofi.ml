@@ -111,7 +111,7 @@ let start_server config =
     S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun area_id path req -> Auth.get_user config req
                              |> Option.fold ~none:(fail_user_unknown())
-                               ~some:(fun user -> File.download config user area_id path req));
+                               ~some:(fun user -> File.download config user area_id path));
 
   S.add_route_handler_stream ~meth:`DELETE server
     S.Route.(exact "api" @/ exact "file" @/ return)
@@ -129,7 +129,7 @@ let start_server config =
     S.Route.(exact "api" @/ exact "directory" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun area_id path req -> Auth.get_user config req
                              |> Option.fold ~none:(fail_user_unknown())
-                               ~some:(fun user -> Directory.archive config user area_id path req));
+                               ~some:(fun user -> Directory.archive config user area_id path));
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "directory" @/ return)
@@ -147,13 +147,13 @@ let start_server config =
     S.Route.(exact_path "api/areas" return)
     (fun req -> Auth.get_user config req
                 |> Option.fold ~none:(fail_user_unknown())
-                  ~some:(fun user -> Area.list config user req));
+                  ~some:(fun user -> Area.list config user));
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun area_id subdirs req -> Auth.get_user config req
                                 |> Option.fold ~none:(fail_user_unknown())
-                                  ~some:(fun user -> Area.content config user area_id subdirs req));
+                                  ~some:(fun user -> Area.content config user area_id subdirs));
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact_path "api/user" return)

@@ -82,7 +82,7 @@ let rename config user req =
     )
   | false -> S.Response.fail ~code:403 "Rename is not authorized"
 
-let download config user area_id path req =
+let download config user area_id path =
   let path_string = path in
   let area = Config.Config.find_area_with_id area_id config in
   match Auth.user_authorized config user area Com.Action.download with

@@ -7,7 +7,6 @@ module Model = Shupdofi_clt_model.Model
 module Routing = Shupdofi_clt_routing
 
 open Vdom
-open Js_browser
 
 let update m a =
   match a with
