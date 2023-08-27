@@ -115,7 +115,7 @@ let clear ~area ~subdirs v =
   in
   List.map (fun e ->
       if is_same e then
-        { e with content = Area_content.set_directories [] e.content |> Area_content.set_files [] }
+        { all = false; content = Area_content.set_directories [] e.content |> Area_content.set_files [] }
       else
         e
     ) v
