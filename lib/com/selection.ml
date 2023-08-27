@@ -36,7 +36,7 @@ let file ~area ~subdirs file v =
     List.map f v
   | false ->
     let content = Area_content.make ~area ~subdirs ~directories:[] ~files:[file] in
-    { all = false; content } :: v
+    [ { all = false; content } ]
 
 let directory ~area ~subdirs directory v =
   let already_in_selection e =
@@ -59,7 +59,7 @@ let directory ~area ~subdirs directory v =
     List.map f v
   | false ->
     let content = Area_content.make ~area ~subdirs ~directories:[directory] ~files:[] in
-    { all = false; content } :: v
+    [ { all = false; content } ]
 
 let all ~area ~subdirs ~directories ~files v =
   match List.exists (same_area_and_subdirs area subdirs) v with
@@ -83,7 +83,7 @@ let all ~area ~subdirs ~directories ~files v =
     List.map f v
   | false ->
     let content = Area_content.make ~area ~subdirs ~directories ~files in
-    { all = true; content } :: v
+    [ { all = true; content } ]
 
 let directory_is_selected ~area ~subdirs ~directory v =
   let f e =
