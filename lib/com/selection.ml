@@ -11,7 +11,7 @@ let to_string v =
   in
   List.fold_left f [] v |> List.rev |> String.concat "\n"
 
-let same_area_and_subdirs area subdirs e =
+let same_location ~area ~subdirs e =
   Area_content.get_area e.content |> Area.get_id = Area.get_id area
   && Area_content.get_subdirs e.content = subdirs
 
@@ -19,10 +19,10 @@ let file ~area ~subdirs file v =
   let already_in_selection e =
     List.exists (fun e -> File.get_name e = File.get_name file) (Area_content.get_files e.content)
   in
-  match List.exists (same_area_and_subdirs area subdirs) v with
+  match List.exists (same_location ~area ~subdirs) v with
   | true ->
     let f e =
-      match same_area_and_subdirs area subdirs e with
+      match same_location ~area ~subdirs e with
       | true ->
         let l =
           match already_in_selection e with
@@ -42,10 +42,10 @@ let directory ~area ~subdirs directory v =
   let already_in_selection e =
     List.exists (fun e -> Directory.get_name e = Directory.get_name directory) (Area_content.get_directories e.content)
   in
-  match List.exists (same_area_and_subdirs area subdirs) v with
+  match List.exists (same_location ~area ~subdirs) v with
   | true ->
     let f e =
-      match same_area_and_subdirs area subdirs e with
+      match same_location ~area ~subdirs e with
       | true ->
         let l =
           match already_in_selection e with
@@ -62,10 +62,10 @@ let directory ~area ~subdirs directory v =
     [ { all = false; content } ]
 
 let all ~area ~subdirs ~directories ~files v =
-  match List.exists (same_area_and_subdirs area subdirs) v with
+  match List.exists (same_location ~area ~subdirs) v with
   | true ->
     let f e =
-      match same_area_and_subdirs area subdirs e with
+      match same_location ~area ~subdirs e with
       | true -> (
           match e.all with
           | true ->
@@ -89,16 +89,16 @@ let directory_is_selected ~area ~subdirs ~directory v =
   let f e =
     List.exists (fun e -> Directory.get_name e = Directory.get_name directory) (Area_content.get_directories e.content)
   in
-  List.exists (fun e -> f e && same_area_and_subdirs area subdirs e) v
+  List.exists (fun e -> f e && same_location ~area ~subdirs e) v
 
 let file_is_selected ~area ~subdirs ~file v =
   let f e =
     List.exists (fun e -> File.get_name e = File.get_name file) (Area_content.get_files e.content)
   in
-  List.exists (fun e -> f e && same_area_and_subdirs area subdirs e) v
+  List.exists (fun e -> f e && same_location ~area ~subdirs e) v
 
 let all_is_selected ~area ~subdirs v =
-  List.exists (fun e -> e.all && same_area_and_subdirs area subdirs e) v
+  List.exists (fun e -> e.all && same_location ~area ~subdirs e) v
 
 let count v =
   let f acc e =
