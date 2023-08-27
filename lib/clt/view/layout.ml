@@ -54,7 +54,7 @@ let view m content =
                 ];
                 elt "li" [
                   elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_clear_delete); str_prop "href" "#";
-                               onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Clear { area; subdirs })))]
+                               onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Clear)))]
                               @ menu_aria_disabled) [
                     Icon.clear ~class_attr:"fs-6" ~label:"Clear"
                       ~aria_id:("shopping-basket-icon-clear");
@@ -65,7 +65,9 @@ let view m content =
                   elt "hr" ~a:[class_ "dropdown-divider"] []
                 ];
                 elt "li" [
-                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_clear_delete); str_prop "href" "#"] @ menu_aria_disabled) [
+                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_clear_delete); str_prop "href" "#";
+                               onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Delete)))]
+                              @ menu_aria_disabled) [
                     Icon.delete_forever ~class_attr:"fs-6" ~label:"Delete"
                       ~aria_id:("shopping-basket-icon-delete-forever");
                     elt "span" ~a:[class_ "ms-1 fs-6"] [ text "Delete" ]

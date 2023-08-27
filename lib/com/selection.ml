@@ -108,14 +108,5 @@ let count v =
   in
   List.fold_left f 0 v
 
-let clear ~area ~subdirs v =
-  let is_same e =
-    Area_content.get_area e.content |> Area.get_id = Area.get_id area
-    && Area_content.get_subdirs e.content = subdirs
-  in
-  List.map (fun e ->
-      if is_same e then
-        { all = false; content = Area_content.set_directories [] e.content |> Area_content.set_files [] }
-      else
-        e
-    ) v
+let clear v =
+  []

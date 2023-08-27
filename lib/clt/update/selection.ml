@@ -10,7 +10,11 @@ open Vdom
 
 let update m a =
   match a with
-  | Action_other.Selection.Clear { area; subdirs } ->
-    let selection = Com.Selection.clear ~area ~subdirs m.Model.selection in
+  | Action_other.Selection.Clear ->
+    let selection = Com.Selection.clear m.Model.selection in
     let m = { m with selection } in
+    return m
+  | Action_other.Selection.Delete ->
+    prerr_endline "DELETE";
+    prerr_endline (Com.Selection.to_string m.selection);
     return m

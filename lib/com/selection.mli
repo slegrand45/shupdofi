@@ -10,4 +10,4 @@ val directory_is_selected : area:Area.t -> subdirs:string list -> directory:Dire
 val file_is_selected : area:Area.t -> subdirs:string list -> file:File.t -> t list -> bool
 val all_is_selected : area:Area.t -> subdirs:string list -> t list -> bool
 val count : t list -> int
-val clear : area:Area.t -> subdirs:string list -> t list -> t list
+val clear : t list -> t list
