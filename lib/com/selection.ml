@@ -1,112 +1,89 @@
-type t = {
+type selection = {
   all : bool;
   content : Area_content.t
 }
 
-let empty = []
+type t = selection option
 
-let to_string v =
-  let f acc e =
-    (Printf.sprintf "all=%B content=%s" e.all (Area_content.to_string e.content)) :: acc
-  in
-  List.fold_left f [] v |> List.rev |> String.concat "\n"
+let empty = None
 
-let same_location ~area ~subdirs e =
-  Area_content.get_area e.content |> Area.get_id = Area.get_id area
-  && Area_content.get_subdirs e.content = subdirs
+let to_string = function
+  | None -> "empty selection"
+  | Some v -> Printf.sprintf "all=%B content=%s" v.all (Area_content.to_string v.content)
+
+let same_location ~area ~subdirs = function
+  | Some v ->
+    Area_content.get_area v.content |> Area.get_id = Area.get_id area
+    && Area_content.get_subdirs v.content = subdirs
+  | None -> false
 
 let file ~area ~subdirs file v =
   let already_in_selection e =
     List.exists (fun e -> File.get_name e = File.get_name file) (Area_content.get_files e.content)
   in
-  match List.exists (same_location ~area ~subdirs) v with
-  | true ->
-    let f e =
-      match same_location ~area ~subdirs e with
-      | true ->
-        let l =
-          match already_in_selection e with
-          | true -> List.filter (fun e -> File.get_name e <> File.get_name file) (Area_content.get_files e.content)
-          | false -> file::(Area_content.get_files e.content)
-        in
-        { all = false; content = (Area_content.set_files l e.content) }
-      | false ->
-        { e with all = false }
+  match v, same_location ~area ~subdirs v with
+  | Some v, true ->
+    let l =
+      match already_in_selection v with
+      | true -> List.filter (fun e -> File.get_name e <> File.get_name file) (Area_content.get_files v.content)
+      | false -> file::(Area_content.get_files v.content)
     in
-    List.map f v
-  | false ->
+    Some { all = false; content = (Area_content.set_files l v.content) }
+  | _, _ ->
     let content = Area_content.make ~area ~subdirs ~directories:[] ~files:[file] in
-    [ { all = false; content } ]
+    Some { all = false; content }
 
 let directory ~area ~subdirs directory v =
   let already_in_selection e =
     List.exists (fun e -> Directory.get_name e = Directory.get_name directory) (Area_content.get_directories e.content)
   in
-  match List.exists (same_location ~area ~subdirs) v with
-  | true ->
-    let f e =
-      match same_location ~area ~subdirs e with
-      | true ->
-        let l =
-          match already_in_selection e with
-          | true -> List.filter (fun e -> Directory.get_name e <> Directory.get_name directory) (Area_content.get_directories e.content)
-          | false -> directory::(Area_content.get_directories e.content)
-        in
-        { all = false; content = (Area_content.set_directories l e.content) }
-      | false ->
-        { e with all = false }
+  match v, same_location ~area ~subdirs v with
+  | Some v, true ->
+    let l =
+      match already_in_selection v with
+      | true -> List.filter (fun e -> Directory.get_name e <> Directory.get_name directory) (Area_content.get_directories v.content)
+      | false -> directory::(Area_content.get_directories v.content)
     in
-    List.map f v
-  | false ->
+    Some { all = false; content = (Area_content.set_directories l v.content) }
+  | _, _ ->
     let content = Area_content.make ~area ~subdirs ~directories:[directory] ~files:[] in
-    [ { all = false; content } ]
+    Some { all = false; content }
 
 let all ~area ~subdirs ~directories ~files v =
-  match List.exists (same_location ~area ~subdirs) v with
-  | true ->
-    let f e =
-      match same_location ~area ~subdirs e with
-      | true -> (
-          match e.all with
-          | true ->
-            let content =
-              Area_content.set_directories [] e.content |> Area_content.set_files []
-            in
-            { all = false; content }
-          | false ->
-            let e = { e with content = Area_content.set_directories directories e.content } in
-            let e = { e with content = Area_content.set_files files e.content } in
-            { e with all = true }
-        )
-      | false -> e
-    in
-    List.map f v
-  | false ->
+  match v, same_location ~area ~subdirs v with
+  | Some v, true -> (
+      match v.all with
+      | true ->
+        let content =
+          Area_content.set_directories [] v.content |> Area_content.set_files []
+        in
+        Some { all = false; content }
+      | false ->
+        let e = { v with content = Area_content.set_directories directories v.content } in
+        let e = { v with content = Area_content.set_files files e.content } in
+        Some { e with all = true }
+    )
+  | _, _ ->
     let content = Area_content.make ~area ~subdirs ~directories ~files in
-    [ { all = true; content } ]
+    Some { all = true; content }
 
 let directory_is_selected ~area ~subdirs ~directory v =
-  let f e =
-    List.exists (fun e -> Directory.get_name e = Directory.get_name directory) (Area_content.get_directories e.content)
-  in
-  List.exists (fun e -> f e && same_location ~area ~subdirs e) v
+  match v, same_location ~area ~subdirs v with
+  | Some v, true -> List.exists (fun e -> Directory.get_name e = Directory.get_name directory) (Area_content.get_directories v.content)
+  | _, _ -> false
 
 let file_is_selected ~area ~subdirs ~file v =
-  let f e =
-    List.exists (fun e -> File.get_name e = File.get_name file) (Area_content.get_files e.content)
-  in
-  List.exists (fun e -> f e && same_location ~area ~subdirs e) v
+  match v, same_location ~area ~subdirs v with
+  | Some v, true -> List.exists (fun e -> File.get_name e = File.get_name file) (Area_content.get_files v.content)
+  | _, _ -> false
 
 let all_is_selected ~area ~subdirs v =
-  List.exists (fun e -> e.all && same_location ~area ~subdirs e) v
+  match v, same_location ~area ~subdirs v with
+  | Some v, true -> v.all
+  | _, _ -> false
 
-let count v =
-  let f acc e =
-    acc
-    + (Area_content.get_files e.content |> List.length)
-    + (Area_content.get_directories e.content |> List.length)
-  in
-  List.fold_left f 0 v
-
-let clear v =
-  []
+let count = function
+  | Some v ->
+    (Area_content.get_files v.content |> List.length)
+    + (Area_content.get_directories v.content |> List.length)
+  | _ -> 0
