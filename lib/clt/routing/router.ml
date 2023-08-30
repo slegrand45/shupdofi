@@ -9,13 +9,10 @@ let after_nth l pos =
 
 let from_split_path l =
   let first = nth l 0 in
-  let second = nth l 1 in
-  let third = nth l 2 in
-  let fourth = nth l 3 in
   match first with
   | Some "areas" -> Page.Areas
   | _ -> (
-      match first, second, third, fourth with
+      match first, nth l 1, nth l 2, nth l 3 with
       | Some "area", Some "content", Some id, None -> Page.Area_content (id, [])
       | Some "area", Some "content", Some id, Some _ ->
         let subdirs = after_nth l 2 |> List.filter (fun e -> e <> "") in
