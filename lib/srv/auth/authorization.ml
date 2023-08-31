@@ -29,7 +29,6 @@ let user_actions config user area =
     |> List.fold_left (fun acc e -> match e with None -> acc | Some v -> v :: acc) []
   in
   List.sort_uniq compare (actions_user @ actions_groups)
-(* List.iter (fun e -> prerr_endline (Printf.sprintf "%s " (Area_access.Action.to_string e))) actions; *)
 
 let user_authorized_to config user action area =
   let actions = user_actions config user area in

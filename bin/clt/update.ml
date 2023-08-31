@@ -99,10 +99,10 @@ let update m a =
     in
     return { m with sorting = new_sorting }
   | Action.Click_select_file { area; subdirs; file } ->
-    let selection = Com.Selection.file ~area ~subdirs file m.selection in
+    let selection = Com.Selection.add_file ~area ~subdirs file m.selection in
     return { m with selection }
   | Action.Click_select_directory { area; subdirs; directory } ->
-    let selection = Com.Selection.directory ~area ~subdirs directory m.selection in
+    let selection = Com.Selection.add_directory ~area ~subdirs directory m.selection in
     return { m with selection }
   | Action.Click_select_all { area; subdirs; directories; files } ->
     let selection = Com.Selection.all ~area ~subdirs ~directories ~files m.selection in

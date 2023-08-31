@@ -7,21 +7,25 @@ type t = selection option
 
 let empty = None
 
+let get_area_content = function
+  | None -> None
+  | Some v -> Some v.content
+
 let to_string = function
   | None -> "empty selection"
   | Some v -> Printf.sprintf "all=%B content=%s" v.all (Area_content.to_string v.content)
 
-let same_location ~area ~subdirs = function
+let same_location ~area_id ~subdirs = function
   | Some v ->
-    Area_content.get_area v.content |> Area.get_id = Area.get_id area
+    Area_content.get_area v.content |> Area.get_id = area_id
     && Area_content.get_subdirs v.content = subdirs
   | None -> false
 
-let file ~area ~subdirs file v =
+let add_file ~area ~subdirs file v =
   let already_in_selection e =
     List.exists (fun e -> File.get_name e = File.get_name file) (Area_content.get_files e.content)
   in
-  match v, same_location ~area ~subdirs v with
+  match v, same_location ~area_id:(Area.get_id area) ~subdirs v with
   | Some v, true ->
     let l =
       match already_in_selection v with
@@ -33,11 +37,18 @@ let file ~area ~subdirs file v =
     let content = Area_content.make ~area ~subdirs ~directories:[] ~files:[file] in
     Some { all = false; content }
 
-let directory ~area ~subdirs directory v =
+let remove_file ~area_id ~subdirs file v =
+  match v, same_location ~area_id ~subdirs v with
+  | Some v, true ->
+    let l = List.filter (fun e -> File.get_name e <> File.get_name file) (Area_content.get_files v.content) in
+    Some { all = false; content = (Area_content.set_files l v.content) }
+  | _, _ -> v
+
+let add_directory ~area ~subdirs directory v =
   let already_in_selection e =
     List.exists (fun e -> Directory.get_name e = Directory.get_name directory) (Area_content.get_directories e.content)
   in
-  match v, same_location ~area ~subdirs v with
+  match v, same_location ~area_id:(Area.get_id area) ~subdirs v with
   | Some v, true ->
     let l =
       match already_in_selection v with
@@ -49,8 +60,15 @@ let directory ~area ~subdirs directory v =
     let content = Area_content.make ~area ~subdirs ~directories:[directory] ~files:[] in
     Some { all = false; content }
 
+let remove_directory ~area_id ~subdirs directory v =
+  match v, same_location ~area_id ~subdirs v with
+  | Some v, true ->
+    let l = List.filter (fun e -> Directory.get_name e <> Directory.get_name directory) (Area_content.get_directories v.content) in
+    Some { all = false; content = (Area_content.set_directories l v.content) }
+  | _, _ -> v
+
 let all ~area ~subdirs ~directories ~files v =
-  match v, same_location ~area ~subdirs v with
+  match v, same_location ~area_id:(Area.get_id area) ~subdirs v with
   | Some v, true -> (
       match v.all with
       | true ->
@@ -68,17 +86,17 @@ let all ~area ~subdirs ~directories ~files v =
     Some { all = true; content }
 
 let directory_is_selected ~area ~subdirs ~directory v =
-  match v, same_location ~area ~subdirs v with
+  match v, same_location ~area_id:(Area.get_id area) ~subdirs v with
   | Some v, true -> List.exists (fun e -> Directory.get_name e = Directory.get_name directory) (Area_content.get_directories v.content)
   | _, _ -> false
 
 let file_is_selected ~area ~subdirs ~file v =
-  match v, same_location ~area ~subdirs v with
+  match v, same_location ~area_id:(Area.get_id area) ~subdirs v with
   | Some v, true -> List.exists (fun e -> File.get_name e = File.get_name file) (Area_content.get_files v.content)
   | _, _ -> false
 
 let all_is_selected ~area ~subdirs v =
-  match v, same_location ~area ~subdirs v with
+  match v, same_location ~area_id:(Area.get_id area) ~subdirs v with
   | Some v, true -> v.all
   | _, _ -> false
 

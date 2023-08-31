@@ -9,7 +9,7 @@ type t = {
   sorting : Com.Sorting.t;
   modal : Modal.t;
   user : Com.User.t;
-  selection : Com.Selection.t list;
+  selection : Com.Selection.t;
 }
 
 let empty = {

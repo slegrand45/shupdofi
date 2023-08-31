@@ -15,7 +15,7 @@ let view m content =
   let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
   let user_name = User.get_name m.Model.user in
   let selection_count = Selection.count m.selection in
-  let same_location = List.exists (Com.Selection.same_location ~area ~subdirs) m.selection in
+  let same_location = Com.Selection.same_location ~area_id:(Com.Area.get_id area) ~subdirs m.selection in
   let visibility_badge = if (selection_count > 0) then "visible" else "invisible" in
   let menu_disabled_clear_delete = if (selection_count > 0) then "" else "disabled" in
   let menu_disabled_paste = if (selection_count > 0 && not same_location) then "" else "disabled" in
@@ -66,7 +66,7 @@ let view m content =
                 ];
                 elt "li" [
                   elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_clear_delete); str_prop "href" "#";
-                               onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Delete)))]
+                               onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Delete_ask)))]
                               @ menu_aria_disabled) [
                     Icon.delete_forever ~class_attr:"fs-6" ~label:"Delete"
                       ~aria_id:("shopping-basket-icon-delete-forever");
