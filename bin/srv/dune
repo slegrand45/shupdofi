@@ -3,6 +3,7 @@
  (name shupdofi)
  (modes byte native)
  (libraries
+  str
   unix
   yojson
   tiny_httpd

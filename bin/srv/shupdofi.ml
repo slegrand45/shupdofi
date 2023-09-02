@@ -34,10 +34,19 @@ let start_server config =
     (fun _req ->
        let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Com.Directory.get_name www_root) ())
            (Com.File.make ~name:"index.html" ()) in
-       let ch = In_channel.open_bin (Content.Path.to_string path) in
-       let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
-       S.Response.make_raw_stream ~code:S.Response_code.ok stream
+       let regexp = Str.regexp_string "${NONCE}" in
+       let nonce =
+         Random.self_init ();
+         String.init 32 (fun _ -> Char.chr ((Random.int 26) + 65))
+       in
+       let html =
+         In_channel.with_open_bin (Content.Path.to_string path) In_channel.input_all
+         |> Str.global_replace regexp nonce
+       in
+       let csp = Printf.sprintf "script-src 'nonce-%s' 'strict-dynamic' https: 'unsafe-inline'; object-src 'none'; base-uri 'none';" nonce in
+       S.Response.make_raw ~code:S.Response_code.ok html
        |> S.Response.set_header "Content-Type" "text/html"
+       |> S.Response.set_header "Content-Security-Policy" csp
     );
 
   (* static files *)
