@@ -13,7 +13,7 @@ let getInstance (elt : Js_browser.Element.t) : toast Js_of_ocaml.Js.t =
 let getOrCreateInstance (elt : Js_browser.Element.t) : toast Js_of_ocaml.Js.t =
   Js_of_ocaml.Js.Unsafe.fun_call (Js_of_ocaml.Js.Unsafe.js_expr "bootstrap.Toast.getOrCreateInstance") [|Js_of_ocaml.Js.Unsafe.inject elt|]
 
-let spinner_uploading doc =
+let spinner doc =
   let div_spinner = Dom_html.createDiv doc in
   let () = div_spinner##setAttribute (Js.string "class") (Js.string "spinner-border spinner-border-sm ms-2") in
   let () = div_spinner##setAttribute (Js.string "role") (Js.string "status") in
@@ -74,7 +74,7 @@ let html ~doc ~id ~msg =
   let div_body = Dom_html.createDiv doc in
   let () = div_body##setAttribute (Js.string "class") (Js.string "toast-body") in
   let text_body = Dom_html.document##createTextNode (Js.string msg) in
-  let div_spinner = spinner_uploading doc in
+  let div_spinner = spinner doc in
   let () = Dom.appendChild div div_flex in
   let () = Dom.appendChild div_flex div_spinner in
   let () = Dom.appendChild div_flex div_body in
@@ -86,9 +86,8 @@ let set_status_ok ~doc ~id ~msg ~delay =
   let div = Dom_html.getElementById id in
   let () = div##.classList##remove (Js.string "text-bg-primary") in
   let () = div##.classList##add (Js.string "text-bg-success") in
-  let elt = Js.Opt.get (div##querySelector (Js.string ".spinner-border")) (fun () -> assert false) in
-  elt##.outerHTML := (Js.string "");
   let elt = Js.Opt.get (div##querySelector (Js.string ".d-flex")) (fun () -> assert false) in
+  Dom.removeChild elt (Js.Opt.get (div##querySelector (Js.string ".spinner-border")) (fun () -> assert false));
   Dom.insertBefore elt (icon_ok doc) (div##querySelector (Js.string ".toast-body"));
   let elt = Js.Opt.get (div##querySelector (Js.string ".toast-body")) (fun () -> assert false) in
   elt##.innerText := (Js.string msg);
@@ -103,9 +102,8 @@ let set_status_ko ~doc ~id ~msg =
   let div = Dom_html.getElementById id in
   let () = div##.classList##remove (Js.string "text-bg-primary") in
   let () = div##.classList##add (Js.string "text-bg-danger") in
-  let elt = Js.Opt.get (div##querySelector (Js.string ".spinner-border")) (fun () -> assert false) in
-  elt##.outerHTML := (Js.string "");
   let elt = Js.Opt.get (div##querySelector (Js.string ".d-flex")) (fun () -> assert false) in
+  Dom.removeChild elt (Js.Opt.get (div##querySelector (Js.string ".spinner-border")) (fun () -> assert false));
   Dom.insertBefore elt (icon_ko doc) (div##querySelector (Js.string ".toast-body"));
   let elt = Js.Opt.get (div##querySelector (Js.string ".toast-body")) (fun () -> assert false) in
   elt##.innerText := (Js.string msg)
@@ -142,5 +140,5 @@ let clean_hiddens ~document =
       let elt = Js_browser.Document.get_element_by_id document (Js.to_string id) in
       let toast = Option.bind elt (fun e -> Some (getInstance e)) in
       Option.iter (fun e -> e##dispose()) toast;
-      e##.outerHTML := (Js.string "")
+      Dom.removeChild container e;
     )
