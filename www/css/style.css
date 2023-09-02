@@ -21,3 +21,9 @@ a:active { text-decoration: none; }
     width: min-content;
     min-width: 20rem;
 }
+
+.toast .spinner-border {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 1rem;
+}
