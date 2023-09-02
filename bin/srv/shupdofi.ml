@@ -43,7 +43,7 @@ let start_server config =
          In_channel.with_open_bin (Content.Path.to_string path) In_channel.input_all
          |> Str.global_replace regexp nonce
        in
-       let csp = Printf.sprintf "script-src 'nonce-%s' 'strict-dynamic' https: 'unsafe-inline'; object-src 'none'; base-uri 'none';" nonce in
+       let csp = Printf.sprintf "script-src 'nonce-%s' 'strict-dynamic' https: 'unsafe-inline'; object-src 'none'; base-uri 'none'; require-trusted-types-for 'script';" nonce in
        S.Response.make_raw ~code:S.Response_code.ok html
        |> S.Response.set_header "Content-Type" "text/html"
        |> S.Response.set_header "Content-Security-Policy" csp
