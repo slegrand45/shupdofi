@@ -106,9 +106,9 @@ let update m a =
                   |> Msg_to_srv.Selection.yojson_of_t |> Yojson.Safe.to_string
     in
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Download_selection) in
-    let c = [Api.http_post_response_blob ~url ~payload (fun status data -> Action.Selection (Action_other.Selection.Download_done { toast_id; area_id; subdirs; status; data }))] in
+    let c = [Api.http_post_response_blob ~url ~payload (fun status data -> Action.Selection (Action_other.Selection.Download_done { toast_id; status; data }))] in
     return m ~c
-  | Action_other.Selection.Download_done { toast_id; area_id; subdirs; status; data } ->
+  | Action_other.Selection.Download_done { toast_id; status; data } ->
     let m =
       match status with
       | 200 -> (

@@ -6,4 +6,4 @@ type t =
   | Delete_done of { toast_id : string; area_id : string; subdirs : string list; status : int; json : string }
   | Download_start
   | Download_do of { toast_id : string; area_id : string; subdirs : string list; dirnames : string list; filenames : string list }
-  | Download_done of { toast_id : string; area_id : string; subdirs : string list; status : int; data : Ojs.t }
+  | Download_done of { toast_id : string; status : int; data : Ojs.t }
