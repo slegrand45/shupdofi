@@ -170,6 +170,12 @@ let start_server config =
                 |> Option.fold ~none:(fail_user_unknown())
                   ~some:(fun user -> User.get config user));
 
+  S.add_route_handler_stream ~meth:`POST server
+    S.Route.(exact_path "api/selection/download" return)
+    (fun req -> Auth.get_user config req
+                |> Option.fold ~none:(fail_user_unknown())
+                  ~some:(fun user -> Selection.archive config user req));
+
   S.add_route_handler_stream ~meth:`DELETE server
     S.Route.(exact_path "api/selection" return)
     (fun req -> Auth.get_user config req

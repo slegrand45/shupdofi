@@ -1,6 +1,7 @@
 (library
  (name shupdofi_clt_update)
  (modes byte)
+ (preprocess (pps js_of_ocaml-ppx))
  (libraries
   yojson
   ojs

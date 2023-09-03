@@ -1,4 +1,4 @@
 (library
  (name shupdofi_clt_action)
  (modes byte)
- (libraries vdom shupdofi_com))
+ (libraries vdom ojs shupdofi_com))

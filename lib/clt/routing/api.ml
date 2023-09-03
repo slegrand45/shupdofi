@@ -9,6 +9,7 @@ type t = Areas
        | Rename_directory
        | Delete_directory
        | Delete_selection
+       | Download_selection
        | User
 
 let prefix = "/api"
@@ -50,5 +51,7 @@ let to_url ?encode v =
     prefix ^ "/directory"
   | Delete_selection ->
     prefix ^ "/selection"
+  | Download_selection ->
+    prefix ^ "/selection/download"
   | User ->
     prefix ^ "/user"

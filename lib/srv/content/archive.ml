@@ -20,12 +20,12 @@ let rec add_entry root oc file =
       with End_of_file -> ()
     end;
     Unix.closedir d
-  | _ -> ()  
+  | _ -> ()
 
 (* https://github.com/xavierleroy/camlzip/blob/master/test/minizip.ml *)
-let create zipfile root directory =
+let create zipfile root files =
   let oc = Zip.open_out zipfile in
-  add_entry root oc directory;
+  List.iter (fun e -> add_entry root oc e) files;
   Zip.close_out oc
 
 let create_archive_of_directory ~archive ~root ~subdir =
@@ -35,4 +35,13 @@ let create_archive_of_directory ~archive ~root ~subdir =
   let path_subdir_base = Filename.dirname path_subdir in
   let path_subdir_lastdir = Filename.basename path_subdir in
   let path_root = Filename.concat path_root path_subdir_base in
-  create path_archive path_root path_subdir_lastdir
+  create path_archive path_root [path_subdir_lastdir]
+
+let create_archive_of_names ~archive ~root ~subdir ~dirnames ~filenames =
+  let path_archive = Path.to_string archive in
+  let path_root = Com.Directory.get_name root in
+  let path_subdir = Com.Directory.get_name subdir in
+  (* let path_subdir_base = Filename.dirname path_subdir in *)
+  (*let path_subdir_lastdir = Filename.basename path_subdir in*)
+  let path_root = Filename.concat path_root path_subdir in
+  create path_archive path_root (dirnames @ filenames)

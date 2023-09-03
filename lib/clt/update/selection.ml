@@ -87,3 +87,47 @@ let update m a =
     in
     let () = Js_toast.clean_hiddens ~document in
     return m
+  | Action_other.Selection.Download_start -> (
+      match Com.Selection.get_area_content m.selection with
+      | None ->
+        return m
+      | Some area_content ->
+        let area_id = Com.Area_content.get_area area_content |> Com.Area.get_id in
+        let subdirs = Com.Area_content.get_subdirs area_content in
+        let dirnames = Com.Area_content.get_directories area_content |> List.map Com.Directory.get_name in
+        let filenames = Com.Area_content.get_files area_content |> List.map Com.File.get_name in
+        let c = Js_toast.append_from_list ~l:[""] ~prefix_id:area_id ~fun_msg:(fun _ -> "Download selection")
+            ~fun_cmd:(fun toast_id _ -> Api.send (Action.Selection (Action_other.Selection.Download_do { toast_id; area_id; subdirs; dirnames; filenames })))
+        in
+        return m ~c
+    )
+  | Action_other.Selection.Download_do { toast_id; area_id; subdirs; dirnames; filenames } ->
+    let payload = Msg_to_srv.Selection.make ~area_id ~subdirs ~dirnames ~filenames
+                  |> Msg_to_srv.Selection.yojson_of_t |> Yojson.Safe.to_string
+    in
+    let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Download_selection) in
+    let c = [Api.http_post_response_blob ~url ~payload (fun status data -> Action.Selection (Action_other.Selection.Download_done { toast_id; area_id; subdirs; status; data }))] in
+    return m ~c
+  | Action_other.Selection.Download_done { toast_id; area_id; subdirs; status; data } ->
+    let m =
+      match status with
+      | 200 -> (
+          (* https://www.alexhadik.com/writing/xhr-file-download/ *)
+          let blob = Js_of_ocaml.File.blob_from_string ~contentType:"application/zip" (Ojs.string_of_js data) in
+          let url = Js_of_ocaml.Dom_html.window##._URL##createObjectURL(blob) in
+          let a = Dom_html.(createA document) in
+          a##.style##.display := Js.string "none";
+          Dom.appendChild Dom_html.window##.document##.body a;
+          a##.href := url;
+          a##.target := Js.string "_blank";
+          a##click;
+          Js_of_ocaml.Dom_html.window##._URL##revokeObjectURL(url);
+          m
+        )
+      | _ ->
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to delete selection");
+        Js_toast.show ~document ~toast_id;
+        m
+    in
+    let () = Js_toast.clean_hiddens ~document in
+    return m

@@ -17,7 +17,7 @@ let view m content =
   let selection_count = Selection.count m.selection in
   let same_location = Com.Selection.same_location ~area_id:(Com.Area.get_id area) ~subdirs m.selection in
   let visibility_badge = if (selection_count > 0) then "visible" else "invisible" in
-  let menu_disabled_clear_delete = if (selection_count > 0) then "" else "disabled" in
+  let menu_disabled_no_paste = if (selection_count > 0) then "" else "disabled" in
   let menu_disabled_paste = if (selection_count > 0 && not same_location) then "" else "disabled" in
   let menu_aria_disabled = if (selection_count > 0) then [] else [attr "aria-disabled" "true"] in
   let div_account =
@@ -53,8 +53,17 @@ let view m content =
                   ]
                 ];
                 elt "li" [
-                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_clear_delete); str_prop "href" "#";
-                               onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Clear)))]
+                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_no_paste); str_prop "href" "#";
+                               onclick_cancel (fun _ -> Some (Action.Selection Action_other.Selection.Download_start))]
+                              @ menu_aria_disabled) [
+                    Icon.file_download ~class_attr:"fs-6" ~label:"Download"
+                      ~aria_id:("shopping-basket-icon-file-download");
+                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text "Download" ]
+                  ]
+                ];
+                elt "li" [
+                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_no_paste); str_prop "href" "#";
+                               onclick_cancel (fun _ -> Some (Action.Selection Action_other.Selection.Clear))]
                               @ menu_aria_disabled) [
                     Icon.clear ~class_attr:"fs-6" ~label:"Clear"
                       ~aria_id:("shopping-basket-icon-clear");
@@ -65,7 +74,7 @@ let view m content =
                   elt "hr" ~a:[class_ "dropdown-divider"] []
                 ];
                 elt "li" [
-                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_clear_delete); str_prop "href" "#";
+                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_no_paste); str_prop "href" "#";
                                onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Delete_ask)))]
                               @ menu_aria_disabled) [
                     Icon.delete_forever ~class_attr:"fs-6" ~label:"Delete"
