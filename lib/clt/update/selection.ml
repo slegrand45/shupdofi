@@ -119,7 +119,6 @@ let update m a =
           a##.style##.display := Js.string "none";
           Dom.appendChild Dom_html.window##.document##.body a;
           a##.href := url;
-          a##.target := Js.string "_blank";
           a##click;
           Js_of_ocaml.Dom_html.window##._URL##revokeObjectURL(url);
           m
