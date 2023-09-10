@@ -1,6 +1,7 @@
 type modal =
   | New_entry
   | Confirm_delete
+  | Selection_cut_copy
 
 type t = {
   modal : modal option;
@@ -13,7 +14,6 @@ type t = {
   txt_bt_cancel : string;
   fun_bt_ok : Vdom.mouse_event -> Action.t;
 }
-
 
 let default = {
   modal = None; 
@@ -37,11 +37,19 @@ let is_confirm_delete v =
   | Some Confirm_delete -> true
   | _ -> false
 
+let is_selection_cut_copy v =
+  match v.modal with
+  | Some Selection_cut_copy -> true
+  | _ -> false
+
 let set_new_entry v =
   { v with modal = Some New_entry }
 
 let set_confirm_delete msg v =
   { v with modal = Some Confirm_delete; txt_switch = msg }
+
+let set_selection_cut_copy msg v =
+  { v with modal = Some Selection_cut_copy; txt_switch = msg }
 
 let get_title v = v.title
 let get_input_content v = v.input_content

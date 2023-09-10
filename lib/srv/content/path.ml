@@ -142,3 +142,95 @@ let delete root_dir v =
       Sys.remove pathname
     )
   | _, _ -> failwith "Empty directory or file in path"
+
+let file_copy ~overwrite ~from_path ~to_path =
+  match overwrite, Sys.file_exists to_path with
+  | false, true ->
+    ()
+  | _, _ ->
+    (* https://ocaml.github.io/ocamlunix/files.html#sec33 *)
+    let buffer_size = 32768 in
+    let buffer = Bytes.create buffer_size in
+    let fd_in = Unix.openfile from_path [O_RDONLY] 0 in
+    let fd_out = Unix.openfile to_path [O_WRONLY; O_CREAT; O_TRUNC] 0o600 in
+    let rec copy_loop () = match Unix.read fd_in buffer 0 buffer_size with
+      | 0 -> ()
+      | r -> ignore (Unix.write fd_out buffer 0 r); copy_loop ()
+    in
+    copy_loop ();
+    Unix.close fd_in;
+    Unix.close fd_out
+
+let tree ~root ~subdir ~dir =
+  let rec f (dirname, acc) e =
+    let path = Com.Directory.get_name (Directory.concat root (Directory.make_from_list [Com.Directory.get_name subdir; dirname; e])) in
+    let stat = Unix.LargeFile.stat path in
+    match stat.Unix.LargeFile.st_kind with
+    | Unix.S_REG ->
+      let acc = (Com.Path.make_relative (Directory.make_from_list [Com.Directory.get_name subdir; dirname]) (Com.File.make ~name:e ())) :: acc in
+      (dirname, acc)
+    | Unix.S_DIR ->
+      let v = Directory.make_from_list [Com.Directory.get_name subdir; dirname; e] in
+      let dir = Directory.concat root v in
+      let l = Sys.readdir (Com.Directory.get_name dir) |> Array.to_list in
+      let (_, r) = List.fold_left f (Com.Directory.get_name v, []) l in
+      (Com.Directory.get_name (Directory.make_from_list [Com.Directory.get_name subdir; dirname]), r @ acc)
+    | _ ->
+      (dirname, acc)
+  in
+  let (_, tree) = List.fold_left f ("", []) [Com.Directory.get_name dir] in
+  List.sort_uniq compare tree
+
+let size_of_tree ~tree ~root ~subdir =
+  let f acc subpath =
+    let dir_subpath = Com.Path.get_directory subpath in
+    let name_dir_subpath = Option.fold ~none:"" ~some:(fun e -> Com.Directory.get_name e) dir_subpath in
+    match Com.Path.get_file subpath with
+    | Some file_subpath -> (
+        let dir = Directory.concat root (Directory.make_from_list [Com.Directory.get_name subdir; name_dir_subpath]) in
+        let path = Com.Path.make_absolute dir file_subpath in
+        try
+          let stat = retrieve_stat path in
+          match stat with
+          | None ->
+            acc
+          | Some stat ->
+            let size = stat.Unix.LargeFile.st_size in
+            Int64.add acc size
+        with
+        | _ ->
+          acc
+      )
+    | None ->
+      acc
+  in
+  List.fold_left f Int64.zero tree
+
+let copy_from_tree ~overwrite ~tree ~from_root ~from_subdir ~to_root ~to_subdir =
+  let f subpath =
+    let dir_subpath = Com.Path.get_directory subpath in
+    let name_dir_subpath = Option.fold ~none:"" ~some:(fun e -> Com.Directory.get_name e) dir_subpath in
+    match Com.Path.get_file subpath with
+    | Some file_subpath -> (
+        let from_dir = Directory.concat from_root (Directory.make_from_list [Com.Directory.get_name from_subdir; name_dir_subpath]) in
+        let from_path = Com.Path.make_absolute from_dir file_subpath in
+        let to_dir = Directory.concat to_root (Directory.make_from_list [Com.Directory.get_name to_subdir; name_dir_subpath]) in
+        let to_path = Com.Path.make_absolute to_dir file_subpath in
+        try
+          file_copy ~overwrite ~from_path:(to_string from_path) ~to_path:(to_string to_path);
+          let stat = retrieve_stat to_path in
+          match stat with
+          | None -> Result.error subpath
+          | Some stat ->
+            let size = stat.Unix.LargeFile.st_size in
+            let mtime = stat.Unix.LargeFile.st_mtime |> Datetime.of_mtime in
+            let new_file = Com.File.(set_size_bytes (Some size) file_subpath |> set_mdatetime (Some mtime)) in
+            Result.ok (Com.Path.set_file new_file subpath)
+        with
+        | _ ->
+          Result.error subpath
+      )
+    | None ->
+      Result.error subpath
+  in
+  List.map f tree

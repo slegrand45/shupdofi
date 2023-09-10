@@ -10,6 +10,7 @@ type t = Areas
        | Delete_directory
        | Delete_selection
        | Download_selection
+       | Copy_selection
        | User
 
 val to_url : ?encode:(string -> string) -> t -> string

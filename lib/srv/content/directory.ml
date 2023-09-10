@@ -30,6 +30,8 @@ let walk init f_file f_stop v =
   walk init [pathname]
 
 let make_from_list l =
+  (* remove empty string to avoid multiple dir_sep, like "//" *)
+  let l = List.filter (fun s -> s <> "") l in
   let name = String.concat (Filename.dir_sep) l in
   Com.Directory.make_relative ~name ()
 
@@ -52,20 +54,6 @@ let is_usable v =
   | _ -> false
 
 let mkdir root l =
-  (*
-  let l = List.map (fun name -> Com.Directory.make ~name ()) l in
-  let subdirs_ok = List.for_all Com.Directory.is_defined l in
-  let nb = List.length l in
-  match subdirs_ok with
-  | false -> None
-  | true -> (
-      let subdir = 
-        match nb with
-        | n when n < 1 -> None
-        | n when n = 1 -> Some (List.hd l)
-        | _ -> Some (List.fold_left (fun acc e -> concat acc e) (List.hd l) (List.tl l))
-      in
-      *)
   let subdir = make_from_list l in
   if (Com.Directory.is_defined subdir) then (
     try
@@ -89,14 +77,12 @@ let attach_stat root entry =
   with
   | _ -> (entry, None)
 
-
 let retrieve_mdatetime f (entry, stat) =
   match stat with
   | None -> (entry, stat)
   | Some stat -> 
     let mtime = stat.Unix.LargeFile.st_mtime in
     (f (Some (Datetime.of_mtime mtime)) entry, Some stat)
-
 
 let read directory =
   let root = Com.Directory.get_name directory in
@@ -160,6 +146,36 @@ let delete root_dir v =
     rmrf pathname
   with
   | _ -> failwith (Printf.sprintf "Unable to delete directory %s" (Com.Directory.get_name v))
+
+let tree ~root ~subdir ~dir =
+  let rec f (dirname, acc) e =
+    let path = Com.Directory.(get_name (concat root (make_from_list [get_name subdir; dirname; e]))) in
+    match Sys.is_directory path with
+    | true ->
+      let v = Com.Directory.(make_from_list [get_name subdir; dirname; e]) in
+      let acc = v :: acc in
+      let l = Sys.readdir path |> Array.to_list in
+      let (_, r) = List.fold_left f (Com.Directory.get_name v, [v]) l in
+      (Com.Directory.(get_name (make_from_list [get_name subdir; dirname])), r @ acc)
+    | false ->
+      (dirname, acc)
+  in
+  let (_, tree) = List.fold_left f ("", []) [Com.Directory.get_name dir] in
+  List.sort_uniq compare tree
+
+let create_from_tree ~tree ~root ~subdir =
+  let f dir =
+    let subdir = make_from_list [Com.Directory.get_name subdir; Com.Directory.get_name dir] in
+    let path = Com.Directory.(concat root subdir) |> Com.Directory.get_name in
+    let () = try Sys.mkdir path 0o755 with | _ -> () in
+    if not (Sys.file_exists path) || not (Sys.is_directory path) then
+      Result.error dir
+    else
+      let (_, stat) = attach_stat (Com.Directory.get_name root) (Com.Directory.get_name subdir) in
+      let dir = retrieve_mdatetime Com.Directory.set_mdatetime (dir, stat) |> fst in
+      Result.ok dir
+  in
+  List.map f tree
 
 (* to check: find . -type f | xargs stat -c "%s" | awk '{s+=$1} END {print s}' *)
 let size ~stop v =

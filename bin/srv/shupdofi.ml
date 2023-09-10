@@ -10,6 +10,8 @@ let start_server config =
   let listen_address = Config.Config.get_server config |> Config.Server.get_listen_address in
   let listen_port = Config.Config.get_server config |> Config.Server.get_listen_port in
   let server = S.create ~addr:listen_address ~port:listen_port () in
+  (* How to not compress static files already zipped ? *)
+  (* let () = Tiny_httpd_camlzip.setup ~compress_above:512 ~buf_size:(16 * 1024) server in *)
   let accept_gzip (req:_ S.Request.t) =
     match
       S.Request.get_header req "Accept-Encoding"
@@ -175,6 +177,12 @@ let start_server config =
     (fun req -> Auth.get_user config req
                 |> Option.fold ~none:(fail_user_unknown())
                   ~some:(fun user -> Selection.archive config user req));
+
+  S.add_route_handler_stream ~meth:`POST server
+    S.Route.(exact_path "api/selection/copy" return)
+    (fun req -> Auth.get_user config req
+                |> Option.fold ~none:(fail_user_unknown())
+                  ~some:(fun user -> Selection.copy config user req));
 
   S.add_route_handler_stream ~meth:`DELETE server
     S.Route.(exact_path "api/selection" return)

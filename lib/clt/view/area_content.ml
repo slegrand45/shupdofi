@@ -28,13 +28,13 @@ let one_line_directory selection user area subdirs (acc, i) directory =
   let dirname = Com.Directory.get_name directory in
   let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_directory { area_id; subdirs; dirname })) in
   let td_download =
-    match Com.User.can_do_action ~area_id ~action:Com.Action.download user, Com.User.can_do_action ~area_id ~action:Com.Action.archive user with
-    | true, true -> [
+    match Com.User.can_do_action ~area_id ~action:Com.Action.download user with
+    | true -> [
         elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
           Icon.file_download ~label:"Download" ~class_attr:"icon" ~aria_id:("directory-icon-title-file-download" ^ (string_of_int i))
         ];
       ]
-    | _, _ -> []
+    | _ -> []
   in
   let td_rename =
     match Com.User.can_do_action ~area_id ~action:Com.Action.rename user with

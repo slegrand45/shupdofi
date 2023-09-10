@@ -34,7 +34,21 @@ let body m =
         ]
       ]
     | false ->
-      div []
+      match (Modal.is_selection_cut_copy modal) with
+      | true ->
+        elt "form" [
+          div ~a:[class_ "my-3"] [
+            div ~a:[class_ "form-check form-switch"] [
+              elt "input" ~a:[class_ "form-check-input"; type_ "checkbox"; attr "role" "switch"; attr "id" "formAskReplaceSelectionCutCopy";
+                              switch_checked; onclick (fun _ -> Action.Modal_toggle_switch)] [];
+              elt "label" ~a:[class_ "form-check-label"; attr "for" "formAskReplaceSelectionCutCopy"] [
+                text (Modal.get_txt_switch modal)
+              ]
+            ]
+          ]
+        ]
+      | false ->
+        div []
 
 let view m =
   let modal = m.Model.modal in

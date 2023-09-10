@@ -4,8 +4,10 @@ val default : t
 
 val is_new_entry : t -> bool
 val is_confirm_delete : t -> bool
+val is_selection_cut_copy : t -> bool
 val set_new_entry : t -> t
 val set_confirm_delete : string -> t -> t
+val set_selection_cut_copy : string -> t -> t
 
 val get_title : t -> string
 val get_input_content : t -> string

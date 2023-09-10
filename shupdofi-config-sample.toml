@@ -64,17 +64,13 @@ groups = []
 rights.users.download = [ "user1", "user2" ]
 rights.users.upload = [ "user1" ]
 rights.users.rename = [ "user1" ]
-rights.users.move = [ "user1" ]
 rights.users.delete = [ "user1" ]
-rights.users.archive = [ "user1" ]
 rights.users.create_directory = [ "user1" ]
 # for groups
 rights.groups.download = [ "group1" ]
 rights.groups.upload = [ "group1" ]
 rights.groups.rename = [ "group1" ]
-rights.groups.move = [ "group1" ]
 rights.groups.delete = [ "group1" ]
-rights.groups.archive = [ "group1" ]
 rights.groups.create_directory = [ "group1" ]
 
 # define access rights for area2

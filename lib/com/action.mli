@@ -4,10 +4,8 @@ val all : t
 val download : t
 val upload : t
 val rename : t
-val move : t
 val delete : t
 val create_directory : t
-val archive : t
 val from_string : string -> t
 val to_string : t -> string
 val to_toml : t -> string
