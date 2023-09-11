@@ -19,13 +19,15 @@ let update m a =
   | Action_other.New_directory.Ask ->
     let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
     let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
+    let fun_ok = (fun _ -> Action.New_directory (Action_other.New_directory.Start { area_id; subdirs })) in
     let modal = Modal.set_new_entry m.modal
                 |> Modal.enable_bt_ok
                 |> Modal.set_title "New directory"
                 |> Modal.set_input_content ""
                 |> Modal.set_txt_bt_ok "Create"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun _ -> Action.New_directory (Action_other.New_directory.Start { area_id; subdirs }))
+                |> Modal.set_fun_bt_ok fun_ok
+                |> Modal.set_fun_kb_ok fun_ok
     in
     let m = { m with modal } in
     let () = Js_modal.show () in

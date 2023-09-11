@@ -7,12 +7,14 @@ open Vdom
 
 let body m =
   let modal = m.Model.modal in
+  let fun_kb_ok = Modal.get_fun_kb_ok modal in
   match (Modal.is_new_entry modal) with
   | true -> 
     elt "form" [
       div ~a:[class_ "my-3"] [
         elt "input" ~a:[class_ "form-control"; attr "aria-label" "New entry";
-                        value (Modal.get_input_content modal); oninput (fun e -> Action.Modal_set_input_content { content = e })] []
+                        value (Modal.get_input_content modal); oninput (fun e -> Action.Modal_set_input_content { content = e });
+                        onkeydown_cancel (fun e -> match e.which with 13 -> Some (fun_kb_ok e) | _ -> None)] []
       ]
     ]
   | false ->
@@ -26,7 +28,8 @@ let body m =
         div ~a:[class_ "my-3"] [
           div ~a:[class_ "form-check form-switch"] [
             elt "input" ~a:[class_ "form-check-input"; type_ "checkbox"; attr "role" "switch"; attr "id" "formConfirmDeleteSwitch";
-                            switch_checked; onclick (fun _ -> Action.Modal_toggle_switch)] [];
+                            switch_checked; onclick (fun _ -> Action.Modal_toggle_switch);
+                            onkeydown_cancel (fun e -> match e.which with 13 -> Some (fun_kb_ok e) | _ -> None)] [];
             elt "label" ~a:[class_ "form-check-label"; attr "for" "formConfirmDeleteSwitch"] [
               text (Modal.get_txt_switch modal)
             ]
@@ -40,7 +43,8 @@ let body m =
           div ~a:[class_ "my-3"] [
             div ~a:[class_ "form-check form-switch"] [
               elt "input" ~a:[class_ "form-check-input"; type_ "checkbox"; attr "role" "switch"; attr "id" "formAskReplaceSelectionCutCopy";
-                              switch_checked; onclick (fun _ -> Action.Modal_toggle_switch)] [];
+                              switch_checked; onclick (fun _ -> Action.Modal_toggle_switch);
+                              onkeydown_cancel (fun e -> match e.which with 13 -> Some (fun_kb_ok e) | _ -> None)] [];
               elt "label" ~a:[class_ "form-check-label"; attr "for" "formAskReplaceSelectionCutCopy"] [
                 text (Modal.get_txt_switch modal)
               ]
@@ -53,7 +57,7 @@ let body m =
 let view m =
   let modal = m.Model.modal in
   let body = body m in
-  let fun_ok = Modal.get_fun_bt_ok modal in
+  let fun_bt_ok = Modal.get_fun_bt_ok modal in
   let attr_disabled_bt_ok =
     match Modal.bt_ok_is_disabled modal with
     | true -> str_prop "disabled" "disabled"
@@ -78,7 +82,7 @@ let view m =
             text (Modal.get_txt_bt_cancel modal)
           ];
           elt "button" ~a:[class_ "btn btn-primary"; type_ "button"; str_prop "id" "modal-btn-ok";
-                           attr_disabled_bt_ok; onclick fun_ok] [
+                           attr_disabled_bt_ok; onclick fun_bt_ok] [
             text (Modal.get_txt_bt_ok modal)
           ];
         ];

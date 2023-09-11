@@ -30,6 +30,7 @@ let update m a =
         let dirnames = Com.Area_content.get_directories area_content |> List.map Com.Directory.get_name in
         let filenames = Com.Area_content.get_files area_content |> List.map Com.File.get_name in
         let msg = Printf.sprintf "I understand that all the selected directories and files will be permanently deleted." in
+        let fun_ok = (fun _ -> Action.Selection (Action_other.Selection.Delete_start { area_id; subdirs; dirnames; filenames })) in
         let modal = Modal.set_confirm_delete msg m.modal
                     |> Modal.set_input_switch false
                     |> Modal.disable_bt_ok
@@ -37,7 +38,8 @@ let update m a =
                     |> Modal.set_input_content ""
                     |> Modal.set_txt_bt_ok "Delete"
                     |> Modal.set_txt_bt_cancel "Cancel"
-                    |> Modal.set_fun_bt_ok (fun _ -> Action.Selection (Action_other.Selection.Delete_start { area_id; subdirs; dirnames; filenames }))
+                    |> Modal.set_fun_bt_ok fun_ok
+                    |> Modal.set_fun_kb_ok fun_ok
         in
         let m = { m with modal } in
         let () = Js_modal.show () in

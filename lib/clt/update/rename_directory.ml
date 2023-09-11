@@ -20,13 +20,15 @@ let update m a =
     let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
     let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let old_dirname = Com.Directory.get_name directory in
+    let fun_ok = (fun _ -> Action.Rename_directory (Action_other.Rename_directory.Start { area_id; subdirs; old_dirname })) in
     let modal = Modal.set_new_entry m.modal
                 |> Modal.set_title "Rename directory"
                 |> Modal.enable_bt_ok
                 |> Modal.set_input_content old_dirname
                 |> Modal.set_txt_bt_ok "Rename"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun _ -> Action.Rename_directory (Action_other.Rename_directory.Start { area_id; subdirs; old_dirname }))
+                |> Modal.set_fun_bt_ok fun_ok
+                |> Modal.set_fun_kb_ok fun_ok
     in
     let m = { m with modal } in
     let () = Js_modal.show () in

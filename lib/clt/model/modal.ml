@@ -13,6 +13,7 @@ type t = {
   bt_ok_is_disabled : bool;
   txt_bt_cancel : string;
   fun_bt_ok : Vdom.mouse_event -> Action.t;
+  fun_kb_ok : Vdom.key_event -> Action.t;
 }
 
 let default = {
@@ -24,7 +25,8 @@ let default = {
   txt_bt_ok = "";
   bt_ok_is_disabled = false;
   txt_bt_cancel = "";
-  fun_bt_ok = fun _ -> Action.Nothing;
+  fun_bt_ok = (fun _ -> Action.Nothing);
+  fun_kb_ok = (fun _ -> Action.Nothing);
 }
 
 let is_new_entry v =
@@ -60,6 +62,7 @@ let get_input_switch v = v.input_switch
 let get_txt_switch v = v.txt_switch
 let get_txt_bt_cancel v = v.txt_bt_cancel
 let get_fun_bt_ok v = v.fun_bt_ok
+let get_fun_kb_ok v = v.fun_kb_ok
 
 let set_title title v = { v with title }
 let set_input_content input_content v = { v with input_content }
@@ -70,3 +73,4 @@ let set_input_switch switch v = { v with input_switch = switch }
 let toggle_input_switch v = { v with input_switch = not v.input_switch }
 let set_txt_bt_cancel txt v = { v with txt_bt_cancel = txt }
 let set_fun_bt_ok f v = { v with fun_bt_ok = f }
+let set_fun_kb_ok f v = { v with fun_kb_ok = f }

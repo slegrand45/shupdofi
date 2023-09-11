@@ -21,6 +21,7 @@ let update m a =
     let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
     let filename = Com.File.get_name file in
     let msg = Printf.sprintf "I understand that the file \"%s\" will be permanently deleted." filename in
+    let fun_ok = (fun _ -> Action.Delete_file (Action_other.Delete_file.Start { area_id; subdirs; filename })) in
     let modal = Modal.set_confirm_delete msg m.modal
                 |> Modal.set_input_switch false
                 |> Modal.disable_bt_ok
@@ -28,7 +29,8 @@ let update m a =
                 |> Modal.set_input_content ""
                 |> Modal.set_txt_bt_ok "Delete"
                 |> Modal.set_txt_bt_cancel "Cancel"
-                |> Modal.set_fun_bt_ok (fun _ -> Action.Delete_file (Action_other.Delete_file.Start { area_id; subdirs; filename }))
+                |> Modal.set_fun_bt_ok fun_ok
+                |> Modal.set_fun_kb_ok fun_ok
     in
     let m = { m with modal } in
     let () = Js_modal.show () in
