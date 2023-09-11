@@ -34,6 +34,8 @@ let add_uploaded ~id ~subdirs ~file v =
   else
     v
 
+let add_new_file = add_uploaded
+
 let add_new_directory ~id ~subdirs ~directory v =
   if id = Area.get_id v.area && subdirs = v.subdirs then
     { v with directories = directory :: v.directories }

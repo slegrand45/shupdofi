@@ -182,33 +182,27 @@ let update m a =
     let c = [Api.http_post ~url ~payload (fun status json -> Action.Selection (Action_other.Selection.Copy_done { toast_id; target_area_id; target_subdirs; status; json }))] in
     return m ~c
   | Action_other.Selection.Copy_done { toast_id; target_area_id; target_subdirs; status; json } ->
+    let m =
+      match status with
+      | 200 -> (
+          let result = Yojson.Safe.from_string json |> Msg_from_srv.Selection_paste_processed.t_of_yojson in
+          let selection = Msg_from_srv.Selection_paste_processed.get_selection result in
+          Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Selection copied");
+          let area_content = List.fold_left (
+              fun acc e -> Com.Area_content.(add_new_directory ~id:target_area_id ~subdirs:target_subdirs ~directory:e acc)
+            ) m.area_content (Msg_from_srv.Selection_processed.get_directories_ok selection)
+          in
+          let area_content = List.fold_left (
+              fun acc e ->
+                let file = Com.Path.get_file e |> Option.get in
+                Com.Area_content.(add_new_file ~id:target_area_id ~subdirs:target_subdirs ~file acc)
+            ) area_content (Msg_from_srv.Selection_processed.get_paths_ok selection)
+          in
+          { m with area_content }
+        )
+      | _ ->
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to copy selection");
+        m
+    in
+    let () = Js_toast.clean_hiddens ~document in
     return m
-(*let m =
-  match status with
-  | 200 -> (
-      let result = Yojson.Safe.from_string json |> Msg_from_srv.Selection_processed.t_of_yojson in
-      Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Selection deleted");
-      let area_content = List.fold_left (
-          fun acc e -> Com.Area_content.(remove_directory ~id:area_id ~subdirs:subdirs ~dirname:(Com.Directory.get_name e) acc)
-        ) m.area_content (Msg_from_srv.Selection_processed.get_directories_ok result)
-      in
-      let selection = List.fold_left (
-          fun acc e -> Com.Selection.(remove_directory ~area_id ~subdirs:subdirs e acc)
-        ) m.selection (Msg_from_srv.Selection_processed.get_directories_ok result)
-      in
-      let area_content = List.fold_left (
-          fun acc e -> Com.Area_content.(remove_file ~id:area_id ~subdirs:subdirs ~filename:(Com.File.get_name e) acc)
-        ) area_content (Msg_from_srv.Selection_processed.get_files_ok result)
-      in
-      let selection = List.fold_left (
-          fun acc e -> Com.Selection.(remove_file ~area_id ~subdirs:subdirs e acc)
-        ) selection (Msg_from_srv.Selection_processed.get_files_ok result)
-      in
-      { m with area_content; selection }
-    )
-  | _ ->
-    Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to delete selection");
-    m
-  in
-  let () = Js_toast.clean_hiddens ~document in
-  return m*)

@@ -166,7 +166,7 @@ let tree ~root ~subdir ~dir =
 let create_from_tree ~tree ~root ~subdir =
   let f dir =
     let subdir = make_from_list [Com.Directory.get_name subdir; Com.Directory.get_name dir] in
-    let path = Com.Directory.(concat root subdir) |> Com.Directory.get_name in
+    let path = concat root subdir |> Com.Directory.get_name in
     let () = try Sys.mkdir path 0o755 with | _ -> () in
     if not (Sys.file_exists path) || not (Sys.is_directory path) then
       Result.error dir
