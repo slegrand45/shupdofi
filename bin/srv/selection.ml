@@ -120,6 +120,8 @@ let copy config user req =
               ~root:(Config.Area.get_root target_area) ~subdir:(Content.Directory.make_from_list target_subdirs)
           in
           let directories_ok = List.filter Result.is_ok dir_creation |> List.map Result.get_ok in
+          (* client only needs directories which were in selection *)
+          let directories_ok = List.filter (fun ok -> List.exists (fun e -> Com.Directory.get_name ok = e) dirnames) directories_ok in
           let directories_ko = List.filter Result.is_error dir_creation |> List.map Result.get_error in
           let overwrite = Msg_from_clt.Selection_paste.get_overwrite selection in
           let file_copy = Content.Path.copy_from_tree ~overwrite ~tree:tree_file
@@ -127,8 +129,8 @@ let copy config user req =
               ~to_root:(Config.Area.get_root target_area) ~to_subdir:(Content.Directory.make_from_list target_subdirs)
           in
           let paths_ok = List.filter Result.is_ok file_copy |> List.map Result.get_ok in
-          (* client only needs "root" files for oks *)
-          let paths_ok = List.filter (fun e -> (Com.Path.get_directory e |> Option.get |> Com.Directory.get_name) = "") paths_ok in
+          (* client only needs files which were in selection *)
+          let paths_ok = List.filter (fun ok -> List.exists (fun e -> (Com.Path.get_file ok |> Option.get |> Com.File.get_name) = e) filenames) paths_ok in
           let paths_ko = List.filter Result.is_error file_copy |> List.map Result.get_error in
           let processed = Msg_to_clt.Selection_processed.make ~area:(Config.Area.get_area area) ~subdirs ~directories_ok ~directories_ko ~paths_ok ~paths_ko in
           let json =

@@ -38,7 +38,8 @@ let add_new_file = add_uploaded
 
 let add_new_directory ~id ~subdirs ~directory v =
   if id = Area.get_id v.area && subdirs = v.subdirs then
-    { v with directories = directory :: v.directories }
+    let l = List.filter (fun e -> Directory.get_name e <> Directory.get_name directory) v.directories in
+    { v with directories = directory :: l }
   else
     v
 
