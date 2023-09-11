@@ -111,9 +111,9 @@ let view m content =
     elt "footer" ~a:[class_ "mt-auto border-top border-info-subtle bg-light"] [
       div ~a:[class_ "row justify-content-center align-items-center pt-2 pb-2"] [
         div ~a:[class_ "col"] [
-          elt "a" ~a:[class_ "navbar-brand"; str_prop "href" "https://www.../"; str_prop "target" "_blank"] [
+          elt "a" ~a:[class_ "navbar-brand"; str_prop "href" "https://github.com/slegrand45/shupdofi"; str_prop "target" "_blank"] [
             elt "small" [
-              text "SH.UP.DO.FI v1.1"
+              text "SH.UP.DO.FI v0.1"
             ]
           ]
         ]
