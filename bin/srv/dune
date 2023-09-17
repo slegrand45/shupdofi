@@ -6,8 +6,8 @@
   str
   unix
   yojson
+  zip
   tiny_httpd
-  tiny_httpd_camlzip
   shupdofi_com
   shupdofi_msg_srv_from_clt
   shupdofi_msg_srv_to_clt

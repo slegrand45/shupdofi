@@ -30,7 +30,7 @@ let rename config user req =
         in
         let directory_renamed = Msg_to_clt.Directory_renamed.make ~area_id ~subdirs ~old_directory ~new_directory in
         let json = Msg_to_clt.Directory_renamed.yojson_of_t directory_renamed |> Yojson.Safe.to_string in
-        S.Response.make_raw ~code:200 json
+        Response.json json ~code:200 ~req
     )
   | false -> S.Response.fail ~code:403 "Rename is not authorized"
 
@@ -53,7 +53,9 @@ let archive config user area_id path =
         let path_archive = Content.Path.to_string archive in
         let ch = In_channel.open_bin path_archive in
         let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
-        let response = S.Response.make_raw_stream ~code:S.Response_code.ok stream |> S.Response.set_header "Content-Type" "application/zip" in
+        let response = S.Response.make_raw_stream ~code:S.Response_code.ok stream
+                       |> S.Response.set_header "Content-Type" "application/zip"
+        in
         let () = Sys.remove path_archive in
         response
       with
@@ -86,7 +88,7 @@ let create config user req =
       | Some directory ->
         let new_directory_created = Msg_to_clt.New_directory_created.make ~area_id ~subdirs ~directory in
         let json = Msg_to_clt.New_directory_created.yojson_of_t new_directory_created |> Yojson.Safe.to_string in
-        S.Response.make_raw ~code:201 json
+        Response.json json ~code:201 ~req
     )
   | false -> S.Response.fail ~code:403 "Directory creation is not authorized"
 

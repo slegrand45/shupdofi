@@ -1,3 +1,5 @@
+module Com = Shupdofi_com
+
 type t =
   | Clear
   | Delete_ask
@@ -9,5 +11,5 @@ type t =
   | Download_done of { toast_id : string; status : int; data : Ojs.t }
   | Copy_ask
   | Copy_start of { area_id : string; subdirs : string list; dirnames : string list; filenames : string list; target_area_id : string; target_subdirs : string list }
-  | Copy_do of { toast_id : string; area_id : string; subdirs : string list; dirnames : string list; filenames : string list; target_area_id : string; target_subdirs : string list; overwrite : bool }
+  | Copy_do of { toast_id : string; area_id : string; subdirs : string list; dirnames : string list; filenames : string list; target_area_id : string; target_subdirs : string list; paste_mode : Com.Path.paste }
   | Copy_done of { toast_id : string; target_area_id : string; target_subdirs : string list; status : int; json : string }

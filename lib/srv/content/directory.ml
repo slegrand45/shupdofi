@@ -173,7 +173,7 @@ let create_from_tree ~tree ~root ~subdir =
     else
       let (_, stat) = attach_stat (Com.Directory.get_name root) (Com.Directory.get_name subdir) in
       let dir = retrieve_mdatetime Com.Directory.set_mdatetime (dir, stat) |> fst in
-      Result.ok dir
+      Result.ok (dir, None)
   in
   List.map f tree
 

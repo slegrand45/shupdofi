@@ -66,15 +66,15 @@ let update m a =
           let result = Yojson.Safe.from_string json |> Msg_from_srv.Selection_processed.t_of_yojson in
           Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Selection deleted");
           let area_content = List.fold_left (
-              fun acc e -> Com.Area_content.(remove_directory ~id:area_id ~subdirs:subdirs ~dirname:(Com.Directory.get_name e) acc)
+              fun acc (e, _) -> Com.Area_content.(remove_directory ~id:area_id ~subdirs:subdirs ~dirname:(Com.Directory.get_name e) acc)
             ) m.area_content (Msg_from_srv.Selection_processed.get_directories_ok result)
           in
           let selection = List.fold_left (
-              fun acc e -> Com.Selection.(remove_directory ~area_id ~subdirs:subdirs e acc)
+              fun acc (e, _) -> Com.Selection.(remove_directory ~area_id ~subdirs:subdirs e acc)
             ) m.selection (Msg_from_srv.Selection_processed.get_directories_ok result)
           in
           let area_content = List.fold_left (
-              fun acc e ->
+              fun acc (e, _) ->
                 match (Com.Path.get_file e) with
                 | Some file ->
                   Com.Area_content.(remove_file ~id:area_id ~subdirs:subdirs ~filename:(Com.File.get_name file) acc)
@@ -83,7 +83,7 @@ let update m a =
             ) area_content (Msg_from_srv.Selection_processed.get_paths_ok result)
           in
           let selection = List.fold_left (
-              fun acc e ->
+              fun acc (e, _) ->
                 match (Com.Path.get_file e) with
                 | Some file ->
                   Com.Selection.(remove_file ~area_id ~subdirs:subdirs file acc)
@@ -153,9 +153,7 @@ let update m a =
         let subdirs = Com.Area_content.get_subdirs area_content in
         let dirnames = Com.Area_content.get_directories area_content |> List.map Com.Directory.get_name in
         let filenames = Com.Area_content.get_files area_content |> List.map Com.File.get_name in
-        let msg = Printf.sprintf "Overwrite existing files (otherwise the file will be silently ignored)." in
-        let modal = Modal.set_selection_cut_copy msg m.modal
-                    |> Modal.set_input_switch false
+        let modal = Modal.set_selection_cut_copy m.modal
                     |> Modal.enable_bt_ok
                     |> Modal.set_title "Copy selection"
                     |> Modal.set_input_content ""
@@ -168,16 +166,16 @@ let update m a =
         return m
     )
   | Action_other.Selection.Copy_start { area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs } ->
-    let overwrite = Modal.get_input_switch m.modal in
+    let paste_mode = Modal.get_paste_mode m.modal in
     let c = Js_toast.append_from_list ~l:[""] ~prefix_id:area_id ~fun_msg:(fun _ -> "Copy selection")
-        ~fun_cmd:(fun toast_id _ -> Api.send (Action.Selection (Action_other.Selection.Copy_do { toast_id; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs; overwrite })))
+        ~fun_cmd:(fun toast_id _ -> Api.send (Action.Selection (Action_other.Selection.Copy_do { toast_id; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs; paste_mode })))
     in
     let c = Api.send(Action.Modal_close) :: c in
     return m ~c
-  | Action_other.Selection.Copy_do { toast_id; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs; overwrite } ->
+  | Action_other.Selection.Copy_do { toast_id; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs; paste_mode } ->
     let () = Js_toast.show ~document ~toast_id in
     let selection = Msg_to_srv.Selection.make ~area_id ~subdirs ~dirnames ~filenames in
-    let payload = Msg_to_srv.Selection_paste.make ~selection ~overwrite ~target_area_id ~target_subdirs
+    let payload = Msg_to_srv.Selection_paste.make ~selection ~paste_mode ~target_area_id ~target_subdirs
                   |> Msg_to_srv.Selection_paste.yojson_of_t |> Yojson.Safe.to_string
     in
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Copy_selection) in
@@ -191,11 +189,15 @@ let update m a =
           let selection = Msg_from_srv.Selection_paste_processed.get_selection result in
           Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Selection copied");
           let area_content = List.fold_left (
-              fun acc e -> Com.Area_content.(add_new_directory ~id:target_area_id ~subdirs:target_subdirs ~directory:e acc)
+              fun acc (e, _) -> Com.Area_content.(add_new_directory ~id:target_area_id ~subdirs:target_subdirs ~directory:e acc)
             ) m.area_content (Msg_from_srv.Selection_processed.get_directories_ok selection)
           in
           let area_content = List.fold_left (
-              fun acc e ->
+              fun acc (oldpath, newpath) ->
+                let e = match newpath with
+                  | None -> oldpath
+                  | Some v -> v
+                in
                 let file = Com.Path.get_file e |> Option.get in
                 Com.Area_content.(add_new_file ~id:target_area_id ~subdirs:target_subdirs ~file acc)
             ) area_content (Msg_from_srv.Selection_processed.get_paths_ok selection)

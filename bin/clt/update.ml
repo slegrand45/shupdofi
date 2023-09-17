@@ -75,6 +75,8 @@ let update m a =
   | Action.Selection a -> Update_other.Selection.update m a
   | Action.Modal_set_input_content { content } ->
     return { m with modal = Modal.set_input_content content m.modal }
+  | Action.Modal_set_paste_mode mode ->
+    return { m with modal = Modal.set_paste_mode mode m.modal }
   | Action.Modal_toggle_switch ->
     let m = { m with modal = Modal.toggle_input_switch m.modal } in
     let m = match Modal.get_input_switch m.modal with

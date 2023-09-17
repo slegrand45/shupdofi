@@ -10,22 +10,13 @@ let start_server config =
   let listen_address = Config.Config.get_server config |> Config.Server.get_listen_address in
   let listen_port = Config.Config.get_server config |> Config.Server.get_listen_port in
   let server = S.create ~addr:listen_address ~port:listen_port () in
-  (* How to not compress static files already zipped ? *)
-  (* let () = Tiny_httpd_camlzip.setup ~compress_above:512 ~buf_size:(16 * 1024) server in *)
-  let accept_gzip (req:_ S.Request.t) =
-    match
-      S.Request.get_header req "Accept-Encoding"
-    with
-    | Some s -> List.mem "gzip" @@ String.split_on_char ',' (String.trim s)
-    | None -> false
-  in
 
   let gzip_path_if_exists subdir path _req =
     let subdir = Com.Directory.make_relative ~name:subdir () in
     let path = Com.Path.make_absolute (Content.Directory.concat www_root subdir)
         (Com.File.make ~name:(Filename.basename path) ()) in
     let path_gzip = Content.Path.add_extension "gz" path in
-    if (accept_gzip _req) && (Content.Path.(retrieve_stat path_gzip |> usable)) then
+    if (Response.can_return_gzip _req) && (Content.Path.(retrieve_stat path_gzip |> usable)) then
       (path_gzip, fun r -> S.Response.set_header "Content-Encoding" "gzip" r)
     else
       (path, fun r -> r)
@@ -164,13 +155,13 @@ let start_server config =
     S.Route.(exact "api" @/ exact "area" @/ exact "content" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun area_id subdirs req -> Auth.get_user config req
                                 |> Option.fold ~none:(fail_user_unknown())
-                                  ~some:(fun user -> Area.content config user area_id subdirs));
+                                  ~some:(fun user -> Area.content config user req area_id subdirs));
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact_path "api/user" return)
     (fun req -> Auth.get_user config req
                 |> Option.fold ~none:(fail_user_unknown())
-                  ~some:(fun user -> User.get config user));
+                  ~some:(fun user -> User.get config user req));
 
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact_path "api/selection/download" return)

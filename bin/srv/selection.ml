@@ -59,13 +59,13 @@ let delete config user req =
         | _ -> (oks, dir::kos)
       in
       let (directories_ok, directories_ko) = List.fold_left directory ([], []) dirnames in
-      let directories_ok = List.map (fun e -> Com.Directory.make_relative ~name:e ()) directories_ok in
+      let directories_ok = List.map (fun e -> (Com.Directory.make_relative ~name:e (), None)) directories_ok in
       let directories_ko = List.map (fun e -> Com.Directory.make_relative ~name:e ()) directories_ko in
       let path (oks, kos) file =
         let path = Com.Path.make_relative (Content.Directory.make_from_list subdirs) (Com.File.make ~name:file ()) in
         try
           Content.Path.delete (Config.Area.get_root area) path;
-          (path::oks, kos)
+          ((path, None)::oks, kos)
         with
         | _ -> (oks, path::kos)
       in
@@ -76,8 +76,8 @@ let delete config user req =
         |> Yojson.Safe.to_string
       in
       match directories_ok, directories_ko, paths_ok, paths_ko with
-      | _, [], _, [] -> S.Response.make_raw ~code:200 json
-      | _, _, _, _ -> S.Response.make_raw ~code:520 json
+      | _, [], _, [] -> Response.json ~code:200 json ~req
+      | _, _, _, _ -> Response.json ~code:520 json ~req
     )
   | false -> S.Response.fail ~code:403 "Delete is not authorized"
 
@@ -121,16 +121,16 @@ let copy config user req =
           in
           let directories_ok = List.filter Result.is_ok dir_creation |> List.map Result.get_ok in
           (* client only needs directories which were in selection *)
-          let directories_ok = List.filter (fun ok -> List.exists (fun e -> Com.Directory.get_name ok = e) dirnames) directories_ok in
+          let directories_ok = List.filter (fun (ok, _) -> List.exists (fun e -> Com.Directory.get_name ok = e) dirnames) directories_ok in
           let directories_ko = List.filter Result.is_error dir_creation |> List.map Result.get_error in
-          let overwrite = Msg_from_clt.Selection_paste.get_overwrite selection in
-          let file_copy = Content.Path.copy_from_tree ~overwrite ~tree:tree_file
+          let paste_mode = Msg_from_clt.Selection_paste.get_paste_mode selection in
+          let file_copy = Content.Path.copy_from_tree ~paste_mode ~tree:tree_file
               ~from_root:(Config.Area.get_root area) ~from_subdir:(Content.Directory.make_from_list subdirs)
               ~to_root:(Config.Area.get_root target_area) ~to_subdir:(Content.Directory.make_from_list target_subdirs)
           in
           let paths_ok = List.filter Result.is_ok file_copy |> List.map Result.get_ok in
           (* client only needs files which were in selection *)
-          let paths_ok = List.filter (fun ok -> List.exists (fun e -> (Com.Path.get_file ok |> Option.get |> Com.File.get_name) = e) filenames) paths_ok in
+          let paths_ok = List.filter (fun (ok, _) -> List.exists (fun e -> (Com.Path.get_file ok |> Option.get |> Com.File.get_name) = e) filenames) paths_ok in
           let paths_ko = List.filter Result.is_error file_copy |> List.map Result.get_error in
           let processed = Msg_to_clt.Selection_processed.make ~area:(Config.Area.get_area area) ~subdirs ~directories_ok ~directories_ko ~paths_ok ~paths_ko in
           let json =
@@ -139,8 +139,8 @@ let copy config user req =
             |> Yojson.Safe.to_string
           in
           match directories_ok, directories_ko, paths_ok, paths_ko with
-          | _, [], _, [] -> S.Response.make_raw ~code:200 json
-          | _, _, _, _ -> S.Response.make_raw ~code:520 json
+          | _, [], _, [] -> Response.json ~code:200 json ~req
+          | _, _, _, _ -> Response.json ~code:520 json ~req
         )
       | false ->
         S.Response.fail ~code:403 "Area quota exceeded"

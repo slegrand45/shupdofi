@@ -54,7 +54,7 @@ let upload config user area_id path req =
         | _ -> ""
       in
       match size_ok with
-      | true -> S.Response.make_raw ~code:201 json
+      | true -> Response.json ~code:201 json ~req
       | false -> S.Response.fail ~code:403 "Area quota exceeded"
     )
   | false -> S.Response.fail ~code:403 "Upload is not authorized"
@@ -78,7 +78,7 @@ let rename config user req =
       | Some (old_file, new_file) ->
         let file_renamed = Msg_to_clt.File_renamed.make ~area_id ~subdirs ~old_file ~new_file in
         let json = Msg_to_clt.File_renamed.yojson_of_t file_renamed |> Yojson.Safe.to_string in
-        S.Response.make_raw ~code:200 json
+        Response.json ~code:200 json ~req
     )
   | false -> S.Response.fail ~code:403 "Rename is not authorized"
 

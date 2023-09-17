@@ -143,23 +143,26 @@ let delete root_dir v =
     )
   | _, _ -> failwith "Empty directory or file in path"
 
-let file_copy ~overwrite ~from_path ~to_path =
-  match overwrite, Sys.file_exists to_path with
-  | false, true ->
-    ()
-  | _, _ ->
-    (* https://ocaml.github.io/ocamlunix/files.html#sec33 *)
-    let buffer_size = 32768 in
-    let buffer = Bytes.create buffer_size in
-    let fd_in = Unix.openfile from_path [O_RDONLY] 0 in
-    let fd_out = Unix.openfile to_path [O_WRONLY; O_CREAT; O_TRUNC] 0o600 in
-    let rec copy_loop () = match Unix.read fd_in buffer 0 buffer_size with
-      | 0 -> ()
-      | r -> ignore (Unix.write fd_out buffer 0 r); copy_loop ()
-    in
-    copy_loop ();
-    Unix.close fd_in;
-    Unix.close fd_out
+let file_copy ~paste_mode ~from_path ~to_path =
+  let () = prerr_endline(Printf.sprintf "from_path: %s  to_path: %s" from_path to_path) in
+  if (from_path <> to_path) then (
+    match paste_mode, Sys.file_exists to_path with
+    | Com.Path.Paste_ignore, true ->
+      ()
+    | _, _ ->
+      (* https://ocaml.github.io/ocamlunix/files.html#sec33 *)
+      let buffer_size = 32768 in
+      let buffer = Bytes.create buffer_size in
+      let fd_in = Unix.openfile from_path [O_RDONLY] 0 in
+      let fd_out = Unix.openfile to_path [O_WRONLY; O_CREAT; O_TRUNC] 0o600 in
+      let rec copy_loop () = match Unix.read fd_in buffer 0 buffer_size with
+        | 0 -> ()
+        | r -> ignore (Unix.write fd_out buffer 0 r); copy_loop ()
+      in
+      copy_loop ();
+      Unix.close fd_in;
+      Unix.close fd_out
+  )
 
 let tree ~root ~subdir ~dir =
   let rec f (dirname, acc) e =
@@ -206,26 +209,36 @@ let size_of_tree ~tree ~root ~subdir =
   in
   List.fold_left f Int64.zero tree
 
-let copy_from_tree ~overwrite ~tree ~from_root ~from_subdir ~to_root ~to_subdir =
+let subpath_for_copy ~paste_mode root_dir v =
+  let open Com.Path in
+  match paste_mode with
+  | Paste_ignore | Paste_overwrite -> v
+  | Paste_rename -> next_if_exists root_dir v
+
+let copy_from_tree ~paste_mode ~tree ~from_root ~from_subdir ~to_root ~to_subdir =
   let f subpath =
     let dir_subpath = Com.Path.get_directory subpath in
     let name_dir_subpath = Option.fold ~none:"" ~some:(fun e -> Com.Directory.get_name e) dir_subpath in
     match Com.Path.get_file subpath with
     | Some file_subpath -> (
-        let from_dir = Directory.concat from_root (Directory.make_from_list [Com.Directory.get_name from_subdir; name_dir_subpath]) in
+        let from_subdir = Directory.make_from_list [Com.Directory.get_name from_subdir; name_dir_subpath] in
+        let from_dir = Directory.concat from_root from_subdir in
         let from_path = Com.Path.make_absolute from_dir file_subpath in
-        let to_dir = Directory.concat to_root (Directory.make_from_list [Com.Directory.get_name to_subdir; name_dir_subpath]) in
-        let to_path = Com.Path.make_absolute to_dir file_subpath in
+        let to_subdir = Directory.make_from_list [Com.Directory.get_name to_subdir; name_dir_subpath] in
+        let to_dir = Directory.concat to_root to_subdir in
+        let to_subpath = subpath_for_copy ~paste_mode from_root (Com.Path.make_relative from_subdir file_subpath) in
+        let to_path = Com.Path.make_absolute to_dir (Com.Path.get_file to_subpath |> Option.get) in
         try
-          file_copy ~overwrite ~from_path:(to_string from_path) ~to_path:(to_string to_path);
+          file_copy ~paste_mode ~from_path:(to_string from_path) ~to_path:(to_string to_path);
           let stat = retrieve_stat to_path in
           match stat with
           | None -> Result.error subpath
           | Some stat ->
             let size = stat.Unix.LargeFile.st_size in
             let mtime = stat.Unix.LargeFile.st_mtime |> Datetime.of_mtime in
-            let new_file = Com.File.(set_size_bytes (Some size) file_subpath |> set_mdatetime (Some mtime)) in
-            Result.ok (Com.Path.set_file new_file subpath)
+            let new_file = Com.Path.get_file to_subpath |> Option.get |> Com.File.set_size_bytes (Some size) |> Com.File.set_mdatetime (Some mtime) in
+            let to_subpath = Com.Path.set_file new_file to_subpath in
+            Result.ok (subpath, Some to_subpath)
         with
         | _ ->
           Result.error subpath

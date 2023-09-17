@@ -18,7 +18,8 @@ let view m content =
   let same_location = Com.Selection.same_location ~area_id:(Com.Area.get_id area) ~subdirs m.selection in
   let visibility_badge = if (selection_count > 0) then "visible" else "invisible" in
   let menu_disabled_no_paste = if (selection_count > 0) then "" else "disabled" in
-  let menu_disabled_paste = if (selection_count > 0 && not same_location) then "" else "disabled" in
+  let menu_disabled_copy_paste = if (selection_count > 0) then "" else "disabled" in
+  let menu_disabled_cut_paste = if (selection_count > 0 && not same_location) then "" else "disabled" in
   let menu_aria_disabled = if (selection_count > 0) then [] else [attr "aria-disabled" "true"] in
   let div_account =
     match user_name with
@@ -39,7 +40,7 @@ let view m content =
               ];
               elt "ul" ~a:[class_ "dropdown-menu"] [
                 elt "li" [
-                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_paste); str_prop "href" "#";
+                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_copy_paste); str_prop "href" "#";
                                onclick_cancel (fun _ -> Some (Action.Selection Action_other.Selection.Copy_ask))]
                               @ menu_aria_disabled) [
                     Icon.content_copy ~class_attr:"fs-6" ~label:"Copy & paste"
@@ -48,7 +49,7 @@ let view m content =
                   ]
                 ];
                 elt "li" [
-                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_paste); str_prop "href" "#"] @ menu_aria_disabled) [
+                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_cut_paste); str_prop "href" "#"] @ menu_aria_disabled) [
                     Icon.content_cut ~class_attr:"fs-6" ~label:"Cut & paste"
                       ~aria_id:("shopping-basket-icon-content-cut");
                     elt "span" ~a:[class_ "ms-1 fs-6"] [ text "Cut & paste" ]

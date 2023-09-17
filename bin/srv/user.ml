@@ -2,7 +2,7 @@ module Config = Shupdofi_srv_config
 module Com = Shupdofi_com
 module S = Tiny_httpd
 
-let get config user =
+let get config user req =
   let name = Config.User.get_name user in
   let areas_rights =
     Config.Config.get_areas_accesses config
@@ -16,4 +16,4 @@ let get config user =
   in
   let user = Com.User.make ~name ~areas_rights in
   let json = Com.User.yojson_of_t user |> Yojson.Safe.to_string in
-  S.Response.make_raw ~code:200 json
+  Response.json ~code:200 json ~req

@@ -5,9 +5,9 @@ module Com = Shupdofi_com
 type t = {
   area: Com.Area.t;
   subdirs: string list;
-  directories_ok: Com.Directory.relative Com.Directory.t list;
+  directories_ok: (Com.Directory.relative Com.Directory.t * Com.Directory.relative Com.Directory.t option) list;
   directories_ko: Com.Directory.relative Com.Directory.t list;
-  paths_ok: Com.Directory.relative Com.Path.t list;
+  paths_ok: (Com.Directory.relative Com.Path.t * Com.Directory.relative Com.Path.t option) list;
   paths_ko: Com.Directory.relative Com.Path.t list;
 }
 [@@deriving yojson]

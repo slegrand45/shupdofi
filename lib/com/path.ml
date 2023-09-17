@@ -9,6 +9,9 @@ type 'a path = {
 type 'a t = ('a path) option
 [@@deriving yojson]
 
+type paste = Paste_ignore | Paste_overwrite | Paste_rename
+[@@deriving yojson]
+
 let make directory file =
   match Directory.is_defined directory, File.is_defined file with
   | true, true -> Some { directory; file }

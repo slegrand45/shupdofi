@@ -1,4 +1,5 @@
 module Action = Shupdofi_clt_model.Action
+module Com = Shupdofi_com
 module Icon = Shupdofi_clt_icon.Icon
 module Modal = Shupdofi_clt_model.Modal
 module Model = Shupdofi_clt_model.Model
@@ -28,8 +29,7 @@ let body m =
         div ~a:[class_ "my-3"] [
           div ~a:[class_ "form-check form-switch"] [
             elt "input" ~a:[class_ "form-check-input"; type_ "checkbox"; attr "role" "switch"; attr "id" "formConfirmDeleteSwitch";
-                            switch_checked; onclick (fun _ -> Action.Modal_toggle_switch);
-                            onkeydown_cancel (fun e -> match e.which with 13 -> Some (fun_kb_ok e) | _ -> None)] [];
+                            switch_checked; onclick (fun _ -> Action.Modal_toggle_switch)] [];
             elt "label" ~a:[class_ "form-check-label"; attr "for" "formConfirmDeleteSwitch"] [
               text (Modal.get_txt_switch modal)
             ]
@@ -37,18 +37,39 @@ let body m =
         ]
       ]
     | false ->
+      let paste_mode v = 
+        match Modal.get_paste_mode modal = v with
+        | true -> bool_prop "checked" true
+        | _ -> bool_prop "checked" false
+      in
       match (Modal.is_selection_cut_copy modal) with
       | true ->
         elt "form" [
           div ~a:[class_ "my-3"] [
-            div ~a:[class_ "form-check form-switch"] [
-              elt "input" ~a:[class_ "form-check-input"; type_ "checkbox"; attr "role" "switch"; attr "id" "formAskReplaceSelectionCutCopy";
-                              switch_checked; onclick (fun _ -> Action.Modal_toggle_switch);
-                              onkeydown_cancel (fun e -> match e.which with 13 -> Some (fun_kb_ok e) | _ -> None)] [];
-              elt "label" ~a:[class_ "form-check-label"; attr "for" "formAskReplaceSelectionCutCopy"] [
-                text (Modal.get_txt_switch modal)
+            elt "p" ~a:[class_ "my-3"] [
+              text "When a file already exists:"
+            ];
+            div ~a:[class_ "form-check my-3"] [
+              elt "input" ~a:[class_ "form-check-input"; type_ "radio"; attr "id" "formAskModeCutCopyIgnore";
+                              paste_mode Com.Path.Paste_ignore; onclick (fun _ -> Action.Modal_set_paste_mode Com.Path.Paste_ignore)] [];
+              elt "label" ~a:[class_ "form-check-label"; attr "for" "formAskModeCutCopyIgnore"] [
+                text "Silently ignore it and keep it untouched"
               ]
-            ]
+            ];
+            div ~a:[class_ "form-check my-3"] [
+              elt "input" ~a:[class_ "form-check-input"; type_ "radio"; attr "id" "formAskModeCutCopyOverwrite";
+                              paste_mode Com.Path.Paste_overwrite; onclick (fun _ -> Action.Modal_set_paste_mode Com.Path.Paste_overwrite)] [];
+              elt "label" ~a:[class_ "form-check-label"; attr "for" "formAskModeCutCopyOverwrite"] [
+                text "Overwrite it and replace it with the copy"
+              ]
+            ];
+            div ~a:[class_ "form-check my-3"] [
+              elt "input" ~a:[class_ "form-check-input"; type_ "radio"; attr "id" "formAskModeCutCopyRename";
+                              paste_mode Com.Path.Paste_rename; onclick (fun _ -> Action.Modal_set_paste_mode Com.Path.Paste_rename)] [];
+              elt "label" ~a:[class_ "form-check-label"; attr "for" "formAskModeCutCopyRename"] [
+                text "Copy it as a new file with an other name"
+              ]
+            ];
           ]
         ]
       | false ->

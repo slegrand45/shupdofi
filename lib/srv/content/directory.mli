@@ -12,5 +12,6 @@ val mkdir : absolute -> string list -> relative option
 val rename : absolute -> before:relative -> after:relative -> Unix.LargeFile.stats option
 val delete : absolute -> relative -> unit
 val tree : root:absolute -> subdir:relative -> dir:relative -> Com.Directory.relative Com.Directory.t list
-val create_from_tree : tree:Com.Directory.relative Com.Directory.t list -> root:absolute -> subdir:relative -> (Com.Directory.relative Com.Directory.t, Com.Directory.relative Com.Directory.t) result list
+val create_from_tree : tree:Com.Directory.relative Com.Directory.t list -> root:absolute -> subdir:relative ->
+  ((Com.Directory.relative Com.Directory.t * Com.Directory.relative Com.Directory.t option), Com.Directory.relative Com.Directory.t) result list
 val size : stop:int64 -> absolute -> int64

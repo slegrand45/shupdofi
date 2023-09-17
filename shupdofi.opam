@@ -20,7 +20,6 @@ depends: [
   "js_of_ocaml-ppx"
   "magic-mime"
   "tiny_httpd"
-  "tiny_httpd_camlzip"
   "ojs"
   "otoml"
   "camlzip"

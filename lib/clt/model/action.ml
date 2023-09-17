@@ -18,6 +18,7 @@ type t =
   | User of Action_other.User.t
   | Selection of Action_other.Selection.t
   | Modal_set_input_content of { content : string }
+  | Modal_set_paste_mode of Com.Path.paste
   | Modal_toggle_switch
   | Modal_close
   | Modal_cancel

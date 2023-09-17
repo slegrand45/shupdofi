@@ -14,7 +14,7 @@ let list config user =
   S.Response.make_string (Ok (Com.Area.yojson_of_collection areas |> Yojson.Safe.to_string))
   |> S.Response.set_header "Content-Type" "text/json"
 
-let content config user area_id subdirs =
+let content config user req area_id subdirs =
   (* prerr_endline "** Headers:";
      S.Headers.pp Format.err_formatter (S.Request.headers _req) ;
      prerr_endline "** **"; *)
@@ -30,7 +30,7 @@ let content config user area_id subdirs =
       | true -> (
           let subdirs = String.split_on_char '/' subdirs |> List.filter (fun e -> e <> "") in
           let content = Content.Area.get_content ~area ~subdirs in
-          S.Response.make_string (Ok (Com.Area_content.yojson_of_t content |> Yojson.Safe.to_string))
-          |> S.Response.set_header "Content-Type" "text/json"
+          let s = Com.Area_content.yojson_of_t content |> Yojson.Safe.to_string in
+          Response.json s ~code:200 ~req
         )
       | false -> S.Response.fail ~code:403 "Area access is not authorized"
