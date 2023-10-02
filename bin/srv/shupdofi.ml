@@ -13,7 +13,7 @@ let start_server config =
 
   let gzip_path_if_exists subdir path _req =
     let subdir = Com.Directory.make_relative ~name:subdir () in
-    let path = Com.Path.make_absolute (Content.Directory.concat www_root subdir)
+    let path = Com.Path.make_absolute (Content.Directory.concat_absolute www_root subdir)
         (Com.File.make ~name:(Filename.basename path) ()) in
     let path_gzip = Content.Path.add_extension "gz" path in
     if (Response.can_return_gzip _req) && (Content.Path.(retrieve_stat path_gzip |> usable)) then
@@ -47,7 +47,7 @@ let start_server config =
     S.Route.(exact "www" @/ string_urlencoded @/ return)
     (fun path _req ->
        let subdir = Com.Directory.make_relative ~name:(Filename.dirname path) () in
-       let path = Com.Path.make_absolute (Content.Directory.concat www_root subdir)
+       let path = Com.Path.make_absolute (Content.Directory.concat_absolute www_root subdir)
            (Com.File.make ~name:(Filename.basename path) ()) in
        let ch = In_channel.open_bin (Content.Path.to_string path) in
        let stream = Tiny_httpd_stream.of_chan_close_noerr ch in

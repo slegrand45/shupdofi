@@ -37,11 +37,27 @@ let make_from_list l =
 
 let to_list_of_string v =
   let name = Com.Directory.get_name v in
-  String.split_on_char (Filename.dir_sep).[0] name |> List.filter (fun e -> e <> "" && e <> ".")
+  String.split_on_char (Filename.dir_sep).[0] name |> List.filter (fun e -> e <> "" && e <> Filename.current_dir_name)
 
-let concat v1 v2 =
-  let name = Filename.concat (Com.Directory.get_name v1) (Com.Directory.get_name v2) in
+let concat_absolute v1 v2 =
+  let name =
+    match Com.Directory.get_name v1, Com.Directory.get_name v2 with
+    | "", "" -> ""
+    | "", s2 -> s2
+    | s1, "" -> s1
+    | s1, s2 -> Filename.concat s1 s2
+  in
   Com.Directory.make_absolute ~name ()
+
+let concat_relative v1 v2 =
+  let name =
+    match Com.Directory.get_name v1, Com.Directory.get_name v2 with
+    | "", "" -> ""
+    | "", s2 -> s2
+    | s1, "" -> s1
+    | s1, s2 -> Filename.concat s1 s2
+  in
+  Com.Directory.make_relative ~name ()
 
 let is_usable v =
   let dirname = Com.Directory.get_name v in
@@ -57,7 +73,7 @@ let mkdir root l =
   let subdir = make_from_list l in
   if (Com.Directory.is_defined subdir) then (
     try
-      let pathdir = concat root subdir |> Com.Directory.get_name in
+      let pathdir = concat_absolute root subdir |> Com.Directory.get_name in
       let () = Sys.mkdir pathdir 0o755 in
       let stat = Unix.LargeFile.stat pathdir in
       let mtime = stat.Unix.LargeFile.st_mtime |> Datetime.of_mtime in
@@ -118,8 +134,8 @@ let read directory =
   | _ -> ([], [])
 
 let rename root_dir ~before ~after =
-  let absolute_before = concat root_dir before in
-  let absolute_after = concat root_dir after in
+  let absolute_before = concat_absolute root_dir before in
+  let absolute_after = concat_absolute root_dir after in
   try
     if (Sys.file_exists (Com.Directory.get_name absolute_after)) then
       None
@@ -132,7 +148,7 @@ let rename root_dir ~before ~after =
   | _ -> None
 
 let delete root_dir v =
-  let dir = concat root_dir v in
+  let dir = concat_absolute root_dir v in
   let pathname = Com.Directory.get_name dir in
   (* https://stackoverflow.com/a/56344603 *)
   let rec rmrf path = match Sys.is_directory path with
@@ -147,35 +163,96 @@ let delete root_dir v =
   with
   | _ -> failwith (Printf.sprintf "Unable to delete directory %s" (Com.Directory.get_name v))
 
+(*
 let tree ~root ~subdir ~dir =
   let rec f (dirname, acc) e =
-    let path = Com.Directory.(get_name (concat root (make_from_list [get_name subdir; dirname; e]))) in
+    let path = Com.Directory.(get_name (concat_absolute root (make_from_list [get_name subdir; dirname; e]))) in
     match Sys.is_directory path with
     | true ->
-      let v = Com.Directory.(make_from_list [get_name subdir; dirname; e]) in
+      let v = make_from_list [dirname; e] in
       let acc = v :: acc in
       let l = Sys.readdir path |> Array.to_list in
-      let (_, r) = List.fold_left f (Com.Directory.get_name v, [v]) l in
+      let (_, r) = List.fold_left f ((*Com.Directory.get_name v*) Com.Directory.get_name (make_from_list [dirname; e]), [v]) l in
       (Com.Directory.(get_name (make_from_list [get_name subdir; dirname])), r @ acc)
     | false ->
       (dirname, acc)
   in
   let (_, tree) = List.fold_left f ("", []) [Com.Directory.get_name dir] in
   List.sort_uniq compare tree
+*)
 
-let create_from_tree ~tree ~root ~subdir =
-  let f dir =
-    let subdir = make_from_list [Com.Directory.get_name subdir; Com.Directory.get_name dir] in
-    let path = concat root subdir |> Com.Directory.get_name in
+let next_if_exists root_dir v =
+  let rec f i v =
+    let dir = concat_absolute root_dir v in
+    let name = Com.Directory.get_name dir in
+    if Sys.file_exists name then
+      let new_name = Printf.sprintf "%s (%u)" (Filename.basename name) i in
+      let l = to_list_of_string v |> List.rev |> List.tl |> List.cons new_name |> List.rev in
+      let new_v = Com.Directory.make_relative ~name:(String.concat Filename.dir_sep l) () in
+      f (i + 1) new_v
+    else
+      v
+  in
+  f 1 v
+
+(*
+let subdir_for_create ~paste_mode root_dir v =
+  let open Com.Path in
+  match paste_mode with
+  | Paste_ignore | Paste_overwrite -> v
+  | Paste_rename -> next_if_exists root_dir v
+
+let search_in_created ~l ~dir =
+  let dir_name = Com.Directory.get_name dir in
+  let length_dir_name = String.length dir_name in
+  let f acc e =
+    match e with
+    | Result.Error _ ->
+      acc
+    | Result.Ok (from_dir, to_dir) ->
+      match to_dir with
+      | None -> acc
+      | Some to_dir ->
+        (* si début de dir = from_dir_name*)
+        let from_dir_name = Com.Directory.get_name from_dir in
+        let string_to_match = from_dir_name ^ (Filename.dir_sep) in
+        let length_string_to_match = String.length string_to_match in
+        match length_dir_name >= length_string_to_match with
+        | true ->
+          if String.sub dir_name 0 length_string_to_match = string_to_match then (
+            let new_name = (Com.Directory.get_name to_dir) ^ Filename.dir_sep ^
+                           (String.sub dir_name length_string_to_match (length_dir_name - length_string_to_match))
+            in
+            (Com.Directory.make_relative ~name:new_name ()) :: acc
+          )
+          else (
+            acc
+          )
+        | false -> acc
+  in
+  match List.fold_left f [] l with
+  | [] -> dir
+  | [v] -> v
+  | _ -> dir
+*)
+
+(*
+let create_from_tree ~paste_mode ~tree ~root ~subdir =
+  let f acc dir =
+    let dir = search_in_created ~l:acc ~dir in
+    let subdir = concat_relative subdir dir in
+    let new_subdir = subdir_for_create ~paste_mode root subdir in
+    let path = concat_absolute root new_subdir |> Com.Directory.get_name in
     let () = try Sys.mkdir path 0o755 with | _ -> () in
     if not (Sys.file_exists path) || not (Sys.is_directory path) then
-      Result.error dir
+      (Result.error dir) :: acc
     else
-      let (_, stat) = attach_stat (Com.Directory.get_name root) (Com.Directory.get_name subdir) in
-      let dir = retrieve_mdatetime Com.Directory.set_mdatetime (dir, stat) |> fst in
-      Result.ok (dir, None)
+      let (_, stat) = attach_stat (Com.Directory.get_name root) (Com.Directory.get_name new_subdir) in
+      let new_subdir = retrieve_mdatetime Com.Directory.set_mdatetime (new_subdir, stat) |> fst in
+      (Result.ok (dir, Some new_subdir)) :: acc
   in
-  List.map f tree
+  List.fold_left f [] tree
+*)
 
 (* to check: find . -type f | xargs stat -c "%s" | awk '{s+=$1} END {print s}' *)
 let size ~stop v =

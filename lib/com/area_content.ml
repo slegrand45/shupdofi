@@ -34,13 +34,30 @@ let add_uploaded ~id ~subdirs ~file v =
   else
     v
 
-let add_new_file = add_uploaded
+let add_new_path ~id ~subdirs ~path v =
+  if id = Area.get_id v.area && subdirs = v.subdirs then (
+    let directory_name = Option.get (Path.get_directory path) |> Directory.get_name in
+    let subdir = String.concat (Filename.dir_sep) v.subdirs in
+    if ((Filename.dirname directory_name = Filename.current_dir_name && Filename.basename directory_name = Filename.current_dir_name)
+        || directory_name = subdir) then (
+      let file = Option.get (Path.get_file path) in
+      let l = List.filter (fun e -> File.get_name e <> File.get_name file) v.files in
+      { v with files = file :: l }
+    ) else
+      v
+  ) else
+    v
 
 let add_new_directory ~id ~subdirs ~directory v =
-  if id = Area.get_id v.area && subdirs = v.subdirs then
-    let l = List.filter (fun e -> Directory.get_name e <> Directory.get_name directory) v.directories in
-    { v with directories = directory :: l }
-  else
+  if id = Area.get_id v.area && subdirs = v.subdirs then (
+    let directory_name = Directory.get_name directory in
+    let subdir = String.concat (Filename.dir_sep) subdirs in
+    if (Filename.dirname directory_name = Filename.current_dir_name || Filename.dirname directory_name = subdir) then (
+      let l = List.filter (fun e -> Directory.get_name e <> directory_name) v.directories in
+      { v with directories = directory :: l }
+    ) else
+      v
+  ) else
     v
 
 let rename_directory ~id ~subdirs ~old_directory ~new_directory v =

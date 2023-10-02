@@ -186,21 +186,18 @@ let update m a =
       match status with
       | 200 -> (
           let result = Yojson.Safe.from_string json |> Msg_from_srv.Selection_paste_processed.t_of_yojson in
-          let selection = Msg_from_srv.Selection_paste_processed.get_selection result in
           Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Selection copied");
           let area_content = List.fold_left (
-              fun acc (e, _) -> Com.Area_content.(add_new_directory ~id:target_area_id ~subdirs:target_subdirs ~directory:e acc)
-            ) m.area_content (Msg_from_srv.Selection_processed.get_directories_ok selection)
+              fun acc e ->
+                let e = Msg_from_srv.Selection_paste_processed.get_directory_ok_to_dir e in
+                Com.Area_content.(add_new_directory ~id:target_area_id ~subdirs:target_subdirs ~directory:e acc)
+            ) m.area_content (Msg_from_srv.Selection_paste_processed.get_directories_ok result)
           in
           let area_content = List.fold_left (
-              fun acc (oldpath, newpath) ->
-                let e = match newpath with
-                  | None -> oldpath
-                  | Some v -> v
-                in
-                let file = Com.Path.get_file e |> Option.get in
-                Com.Area_content.(add_new_file ~id:target_area_id ~subdirs:target_subdirs ~file acc)
-            ) area_content (Msg_from_srv.Selection_processed.get_paths_ok selection)
+              fun acc e ->
+                let path = Msg_from_srv.Selection_paste_processed.get_file_ok_to_file e in
+                Com.Area_content.(add_new_path ~id:target_area_id ~subdirs:target_subdirs ~path acc)
+            ) area_content (Msg_from_srv.Selection_paste_processed.get_paths_ok result)
           in
           { m with area_content }
         )

@@ -15,7 +15,7 @@ let rec add_entry root oc file =
     begin try
         while true do
           let e = Unix.readdir d in
-          if e <> "." && e <> ".." then add_entry root oc (Filename.concat file e)
+          if e <> Filename.current_dir_name && e <> Filename.parent_dir_name then add_entry root oc (Filename.concat file e)
         done
       with End_of_file -> ()
     end;

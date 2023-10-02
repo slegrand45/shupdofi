@@ -11,7 +11,7 @@ val set_subdirs : string list -> t -> t
 val set_directories : Directory.relative Directory.t list -> t -> t
 val set_files : File.t list -> t -> t
 val add_uploaded : id:string -> subdirs:string list -> file:File.t -> t -> t
-val add_new_file : id:string -> subdirs:string list -> file:File.t -> t -> t
+val add_new_path : id:string -> subdirs:string list -> path:Directory.relative Path.t -> t -> t
 val add_new_directory : id:string -> subdirs:string list -> directory:Directory.relative Directory.t -> t -> t
 val rename_directory : id:string -> subdirs:string list -> old_directory:Directory.relative Directory.t -> new_directory:Directory.relative Directory.t -> t -> t
 val rename_file : id:string -> subdirs:string list -> old_file:File.t -> new_file:File.t -> t -> t

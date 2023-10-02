@@ -92,7 +92,7 @@ let download config user area_id path =
       let file = Com.Path.get_file path in
       match dir, file with
       | Some dir, Some file -> (
-          let path = Com.Path.make_absolute (Content.Directory.concat (Config.Area.get_root area) dir) file in
+          let path = Com.Path.make_absolute (Content.Directory.concat_absolute (Config.Area.get_root area) dir) file in
           let ch = In_channel.open_bin (Content.Path.to_string path) in
           let stream = Tiny_httpd_stream.of_chan_close_noerr ch in
           S.Response.make_raw_stream ~code:S.Response_code.ok stream

@@ -55,7 +55,7 @@ let next_if_exists root_dir v =
   | None, _ -> failwith "Empty directory in path"
   | _, None -> failwith "Empty file in path"
   | Some subdir, Some file -> 
-    let new_dir = Directory.concat root_dir subdir in
+    let new_dir = Directory.concat_absolute root_dir subdir in
     let v = Com.Path.make_absolute new_dir file in
     let name = to_string v in
     let rec f i name new_name =
@@ -78,7 +78,7 @@ let oc root_dir v =
   | None, _ -> failwith "Empty directory in path"
   | _, None -> failwith "Empty file in path"
   | Some subdir, Some file -> 
-    let new_dir = Directory.concat root_dir subdir in
+    let new_dir = Directory.concat_absolute root_dir subdir in
     let v = Com.Path.make_absolute new_dir file in
     let name = to_string v in
     let oc = Out_channel.open_bin name in
@@ -91,7 +91,7 @@ let update_meta_infos root_dir v =
   let file = Com.Path.get_file v in
   match dir, file with
   | Some dir, Some file -> (
-      let new_dir = Directory.concat root_dir dir in
+      let new_dir = Directory.concat_absolute root_dir dir in
       let path_with_root = Com.Path.make_absolute new_dir file in
       let stat = retrieve_stat path_with_root in
       match stat with
@@ -111,8 +111,8 @@ let rename root_dir ~before ~after =
   let after_file = Com.Path.get_file after in
   match before_dir, before_file, after_dir, after_file with
   | Some before_dir, Some before_file, Some after_dir, Some after_file -> (
-      let absolute_before_dir = Directory.concat root_dir before_dir in
-      let absolute_after_dir = Directory.concat root_dir after_dir in
+      let absolute_before_dir = Directory.concat_absolute root_dir before_dir in
+      let absolute_after_dir = Directory.concat_absolute root_dir after_dir in
       let before_path = Com.Path.make_absolute absolute_before_dir before_file in
       let after_path = Com.Path.make_absolute absolute_after_dir after_file in
       try
@@ -136,15 +136,15 @@ let delete root_dir v =
   let file = Com.Path.get_file v in
   match dir, file with
   | Some dir, Some file -> (
-      let new_dir = Directory.concat root_dir dir in
+      let new_dir = Directory.concat_absolute root_dir dir in
       let path_with_root = Com.Path.make_absolute new_dir file in
       let pathname = to_string path_with_root in
       Sys.remove pathname
     )
   | _, _ -> failwith "Empty directory or file in path"
 
+(*
 let file_copy ~paste_mode ~from_path ~to_path =
-  let () = prerr_endline(Printf.sprintf "from_path: %s  to_path: %s" from_path to_path) in
   if (from_path <> to_path) then (
     match paste_mode, Sys.file_exists to_path with
     | Com.Path.Paste_ignore, true ->
@@ -163,34 +163,39 @@ let file_copy ~paste_mode ~from_path ~to_path =
       Unix.close fd_in;
       Unix.close fd_out
   )
+*)
 
+(*
 let tree ~root ~subdir ~dir =
   let rec f (dirname, acc) e =
-    let path = Com.Directory.get_name (Directory.concat root (Directory.make_from_list [Com.Directory.get_name subdir; dirname; e])) in
+    let path = Com.Directory.get_name (Directory.concat_absolute root (Directory.make_from_list [Com.Directory.get_name subdir; dirname; e])) in
     let stat = Unix.LargeFile.stat path in
     match stat.Unix.LargeFile.st_kind with
     | Unix.S_REG ->
-      let acc = (Com.Path.make_relative (Directory.make_from_list [Com.Directory.get_name subdir; dirname]) (Com.File.make ~name:e ())) :: acc in
-      (dirname, acc)
+      let r = Com.Path.make_relative (Directory.make_from_list [dirname]) (Com.File.make ~name:e ()) in
+      (dirname, r :: acc)
     | Unix.S_DIR ->
       let v = Directory.make_from_list [Com.Directory.get_name subdir; dirname; e] in
-      let dir = Directory.concat root v in
+      let dir = Directory.concat_absolute root v in
       let l = Sys.readdir (Com.Directory.get_name dir) |> Array.to_list in
-      let (_, r) = List.fold_left f (Com.Directory.get_name v, []) l in
+      let (_, r) = List.fold_left f ((*Com.Directory.get_name v*) Com.Directory.get_name (Directory.make_from_list [dirname; e]), []) l in
       (Com.Directory.get_name (Directory.make_from_list [Com.Directory.get_name subdir; dirname]), r @ acc)
     | _ ->
       (dirname, acc)
   in
   let (_, tree) = List.fold_left f ("", []) [Com.Directory.get_name dir] in
-  List.sort_uniq compare tree
+  let l = List.sort_uniq compare tree in
+  l
+*)
 
+(*
 let size_of_tree ~tree ~root ~subdir =
   let f acc subpath =
     let dir_subpath = Com.Path.get_directory subpath in
     let name_dir_subpath = Option.fold ~none:"" ~some:(fun e -> Com.Directory.get_name e) dir_subpath in
     match Com.Path.get_file subpath with
     | Some file_subpath -> (
-        let dir = Directory.concat root (Directory.make_from_list [Com.Directory.get_name subdir; name_dir_subpath]) in
+        let dir = Directory.concat_absolute root (Directory.make_from_list [Com.Directory.get_name subdir; name_dir_subpath]) in
         let path = Com.Path.make_absolute dir file_subpath in
         try
           let stat = retrieve_stat path in
@@ -208,25 +213,46 @@ let size_of_tree ~tree ~root ~subdir =
       acc
   in
   List.fold_left f Int64.zero tree
+*)
 
+(*
 let subpath_for_copy ~paste_mode root_dir v =
   let open Com.Path in
   match paste_mode with
   | Paste_ignore | Paste_overwrite -> v
   | Paste_rename -> next_if_exists root_dir v
 
-let copy_from_tree ~paste_mode ~tree ~from_root ~from_subdir ~to_root ~to_subdir =
+let search_dir_created ~dir_created ~dir =
+  let f acc e =
+    match e with
+    | Result.Error _ -> acc
+    | Result.Ok (from_dir, to_dir) ->
+      if (Com.Directory.get_name from_dir) = (Com.Directory.get_name dir) then
+        match to_dir with
+        | None -> from_dir :: acc
+        | Some d -> d :: acc
+      else
+        acc
+  in
+  match List.fold_left f [] dir_created with
+  | [] -> Com.Directory.make_relative ~name:"" ()
+  | [v] -> v
+  | _ -> Com.Directory.make_relative ~name:"" ()
+*)
+
+(*
+let copy_from_tree ~paste_mode ~tree ~dir_created ~from_root ~from_subdir ~to_root ~to_subdir =
   let f subpath =
-    let dir_subpath = Com.Path.get_directory subpath in
-    let name_dir_subpath = Option.fold ~none:"" ~some:(fun e -> Com.Directory.get_name e) dir_subpath in
+    let dir_subpath = Com.Path.get_directory subpath |> Option.get in
+    let from_subdir = Directory.concat_relative from_subdir dir_subpath in
+    let from_dir = Directory.concat_absolute from_root from_subdir in
+    let new_dir_subpath = search_dir_created ~dir_created ~dir:dir_subpath in
+    let to_subdir = Directory.concat_relative to_subdir new_dir_subpath in
+    let to_dir = Directory.concat_absolute to_root to_subdir in
     match Com.Path.get_file subpath with
     | Some file_subpath -> (
-        let from_subdir = Directory.make_from_list [Com.Directory.get_name from_subdir; name_dir_subpath] in
-        let from_dir = Directory.concat from_root from_subdir in
         let from_path = Com.Path.make_absolute from_dir file_subpath in
-        let to_subdir = Directory.make_from_list [Com.Directory.get_name to_subdir; name_dir_subpath] in
-        let to_dir = Directory.concat to_root to_subdir in
-        let to_subpath = subpath_for_copy ~paste_mode from_root (Com.Path.make_relative from_subdir file_subpath) in
+        let to_subpath = subpath_for_copy ~paste_mode from_root (Com.Path.make_relative to_subdir file_subpath) in
         let to_path = Com.Path.make_absolute to_dir (Com.Path.get_file to_subpath |> Option.get) in
         try
           file_copy ~paste_mode ~from_path:(to_string from_path) ~to_path:(to_string to_path);
@@ -238,12 +264,13 @@ let copy_from_tree ~paste_mode ~tree ~from_root ~from_subdir ~to_root ~to_subdir
             let mtime = stat.Unix.LargeFile.st_mtime |> Datetime.of_mtime in
             let new_file = Com.Path.get_file to_subpath |> Option.get |> Com.File.set_size_bytes (Some size) |> Com.File.set_mdatetime (Some mtime) in
             let to_subpath = Com.Path.set_file new_file to_subpath in
-            Result.ok (subpath, Some to_subpath)
+            Result.ok (Com.Path.set_directory from_subdir subpath, Some to_subpath)
         with
         | _ ->
-          Result.error subpath
+          Result.error (Com.Path.set_directory from_subdir subpath)
       )
     | None ->
-      Result.error subpath
+      Result.error (Com.Path.set_directory from_subdir subpath)
   in
   List.map f tree
+  *)

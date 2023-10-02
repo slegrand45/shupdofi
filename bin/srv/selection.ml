@@ -93,55 +93,32 @@ let copy config user req =
       let subdirs = Msg_from_clt.Selection_paste.get_selection selection |> Msg_from_clt.Selection.get_subdirs in
       let dirnames = Msg_from_clt.Selection_paste.get_selection selection |> Msg_from_clt.Selection.get_dirnames in
       let filenames = Msg_from_clt.Selection_paste.get_selection selection |> Msg_from_clt.Selection.get_filenames in
-      let target_subdirs = Msg_from_clt.Selection_paste.get_target_subdirs selection in
-      let f_tree_file acc dir =
-        let tree = Content.Path.tree ~root:(Config.Area.get_root area) ~subdir:(Content.Directory.make_from_list subdirs)
-            ~dir:(Content.Directory.make_from_list [dir])
+
+      let subdir = Content.Directory.make_from_list subdirs in
+      let dirs = List.map (fun name -> Com.Directory.make_relative ~name ()) dirnames in
+      let files = List.map (fun name -> Com.File.make ~name ()) filenames in
+      let selection_size = Content.Tree.selection_size ~root:(Config.Area.get_root area) ~subdir ~dirs ~files in
+      let max_upload_size = get_max_upload_size target_area in
+      match max_upload_size > 0L && selection_size <= max_upload_size with
+      | true ->
+        let target_subdirs = Msg_from_clt.Selection_paste.get_target_subdirs selection in
+        let target_subdir = Content.Directory.make_from_list target_subdirs in
+        let paste_mode = Msg_from_clt.Selection_paste.get_paste_mode selection in
+        let result = Content.Tree.selection_copy ~from_root:(Config.Area.get_root area) ~from_subdir:subdir
+            ~to_root:(Config.Area.get_root target_area) ~to_subdir:target_subdir
+            ~dirs ~files ~paste_mode
         in
-        acc @ tree
-      in
-      let tree_file = List.fold_left f_tree_file [] dirnames in
-      let files =
-        List.map (fun e -> Com.Path.make_relative (Com.Directory.make_relative ~name:"" ()) (Com.File.make ~name:e ())) filenames
-      in
-      let tree_file = tree_file @ files in
-      let total_size_files = Content.Path.size_of_tree ~tree:tree_file ~root:(Config.Area.get_root area) ~subdir:(Content.Directory.make_from_list subdirs) in
-      let max_upload_size = get_max_upload_size area in
-      match max_upload_size > 0L && total_size_files <= max_upload_size with
-      | true -> (
-          let f_tree_dir acc dir =
-            let tree = Content.Directory.tree ~root:(Config.Area.get_root area) ~subdir:(Content.Directory.make_from_list subdirs)
-                ~dir:(Content.Directory.make_from_list [dir])
-            in
-            acc @ tree
-          in
-          let tree_dir = List.fold_left f_tree_dir [] dirnames in
-          let dir_creation = Content.Directory.create_from_tree ~tree:tree_dir
-              ~root:(Config.Area.get_root target_area) ~subdir:(Content.Directory.make_from_list target_subdirs)
-          in
-          let directories_ok = List.filter Result.is_ok dir_creation |> List.map Result.get_ok in
-          (* client only needs directories which were in selection *)
-          let directories_ok = List.filter (fun (ok, _) -> List.exists (fun e -> Com.Directory.get_name ok = e) dirnames) directories_ok in
-          let directories_ko = List.filter Result.is_error dir_creation |> List.map Result.get_error in
-          let paste_mode = Msg_from_clt.Selection_paste.get_paste_mode selection in
-          let file_copy = Content.Path.copy_from_tree ~paste_mode ~tree:tree_file
-              ~from_root:(Config.Area.get_root area) ~from_subdir:(Content.Directory.make_from_list subdirs)
-              ~to_root:(Config.Area.get_root target_area) ~to_subdir:(Content.Directory.make_from_list target_subdirs)
-          in
-          let paths_ok = List.filter Result.is_ok file_copy |> List.map Result.get_ok in
-          (* client only needs files which were in selection *)
-          let paths_ok = List.filter (fun (ok, _) -> List.exists (fun e -> (Com.Path.get_file ok |> Option.get |> Com.File.get_name) = e) filenames) paths_ok in
-          let paths_ko = List.filter Result.is_error file_copy |> List.map Result.get_error in
-          let processed = Msg_to_clt.Selection_processed.make ~area:(Config.Area.get_area area) ~subdirs ~directories_ok ~directories_ko ~paths_ok ~paths_ko in
-          let json =
-            Msg_to_clt.Selection_paste_processed.make ~selection:processed ~target_area:(Config.Area.get_area target_area) ~target_subdirs
-            |> Msg_to_clt.Selection_paste_processed.yojson_of_t
-            |> Yojson.Safe.to_string
-          in
-          match directories_ok, directories_ko, paths_ok, paths_ko with
-          | _, [], _, [] -> Response.json ~code:200 json ~req
-          | _, _, _, _ -> Response.json ~code:520 json ~req
-        )
+        let json =
+          Msg_to_clt.Selection_paste_processed.make ~from_area:(Config.Area.get_area area) ~from_subdirs:subdirs
+            ~to_area:(Config.Area.get_area target_area) ~to_subdirs:target_subdirs
+            ~directories_ok:(Content.Tree.(get_result_directories_ok result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_directory_ok ~from_dir:(get_ok_from_dir_relative e) ~to_dir:(get_ok_to_dir_relative e))))
+            ~directories_ko:(Content.Tree.(get_result_directories_error result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_directory_error ~from_dir:(get_error_from_dir_relative e) ~to_dir:(get_error_to_dir_relative e) ~msg:(get_error_dir_msg e))))
+            ~paths_ok:(Content.Tree.(get_result_files_ok result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_file_ok ~from_file:(get_ok_from_file_relative e) ~to_file:(get_ok_to_file_relative e))))
+            ~paths_ko:(Content.Tree.(get_result_files_error result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_file_error ~from_file:(get_error_from_file_relative e) ~to_file:(get_error_to_file_relative e) ~msg:(get_error_file_msg e))))
+          |> Msg_to_clt.Selection_paste_processed.yojson_of_t
+          |> Yojson.Safe.to_string
+        in
+        Response.json ~code:200 json ~req
       | false ->
         S.Response.fail ~code:403 "Area quota exceeded"
     )
