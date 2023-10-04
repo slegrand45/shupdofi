@@ -5,26 +5,27 @@ type absolute = Com.Directory.absolute Com.Directory.t
 type relative = Com.Directory.relative Com.Directory.t
 
 (* https://rosettacode.org/wiki/Walk_a_directory/Recursively#OCaml *)
-let walk init f_file f_stop v =
-  let rec walk acc l =
-    match f_stop acc with
-    | true -> acc
+let walk init f_dir f_file f_stop v =
+  let rec walk (acc_dir, acc_file) l =
+    match f_stop acc_file with
+    | true -> (acc_dir, acc_file)
     | false ->
       match l with
-      | [] -> acc
+      | [] -> (acc_dir, acc_file)
       | dir::tail ->
         let contents = Array.to_list (Sys.readdir dir) in
         let contents = List.rev_map (Filename.concat dir) contents in
         let dirs, files =
-          List.fold_left (fun (dirs,files) f ->
-              match (Unix.LargeFile.stat f).st_kind with
-              | S_REG -> (dirs, f::files)
-              | S_DIR -> (f::dirs, files)
+          List.fold_left (fun (dirs,files) entry ->
+              match (Unix.LargeFile.stat entry).st_kind with
+              | S_REG -> (dirs, entry::files)
+              | S_DIR -> (entry::dirs, files)
               | _ -> (dirs, files)
             ) ([],[]) contents
         in
-        let acc = List.fold_left f_file acc files in
-        walk acc (dirs @ tail)
+        let acc_dir = List.fold_left f_dir acc_dir dirs in
+        let acc_file = List.fold_left f_file acc_file files in
+        walk (acc_dir, acc_file) (dirs @ tail)
   in
   let pathname = Com.Directory.get_name v in
   walk init [pathname]
@@ -256,11 +257,21 @@ let create_from_tree ~paste_mode ~tree ~root ~subdir =
 
 (* to check: find . -type f | xargs stat -c "%s" | awk '{s+=$1} END {print s}' *)
 let size ~stop v =
-  let f acc path =
+  let f_file acc path =
     let stat = Unix.LargeFile.stat path in
     Int64.add acc (stat.Unix.LargeFile.st_size)
   in
   let f_stop v =
     v >= stop
   in
-  walk 0L f f_stop v
+  walk (0, 0L) (fun _ _ -> 0) f_file f_stop v |> snd
+
+let absolute_subdirs root_dir l =
+  let f_dir acc dir =
+    dir :: acc
+  in
+  let f acc e =
+    let dir = concat_absolute root_dir e in
+    ((walk ([], 0) f_dir (fun _ _ -> 0) (fun _ -> false) dir) |> fst) @ acc
+  in
+  List.fold_left f [] l |> List.map (fun name -> Com.Directory.make_absolute ~name ())

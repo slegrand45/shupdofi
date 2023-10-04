@@ -11,6 +11,27 @@ let get_max_upload_size area =
   let current_area_size = Content.Directory.size (Config.Area.get_root area) ~stop:quota in
   Int64.sub quota current_area_size
 
+let no_copy_loop ~from_area ~from_subdir ~to_area ~to_subdir ~dirs =
+  match (Config.Area.get_root from_area <> Config.Area.get_root to_area) with
+  | true -> true
+  | false ->
+    match dirs with
+    | [] -> true
+    | _ ->
+      let from_dir_absolute = Content.Directory.concat_absolute (Config.Area.get_root from_area) from_subdir in
+      let subdirs_selection =
+        List.map (fun dir -> Content.Directory.concat_absolute from_dir_absolute dir) dirs
+        @ Content.Directory.absolute_subdirs from_dir_absolute dirs
+      in
+      let to_dir_absolute = Content.Directory.concat_absolute (Config.Area.get_root to_area) to_subdir in
+
+      let () =
+        List.iter (fun e -> prerr_endline(Printf.sprintf "subdir: %s" (Com.Directory.get_name e))) subdirs_selection
+      in
+      prerr_endline(Printf.sprintf "to_dir_absolute: %s" (Com.Directory.get_name to_dir_absolute));
+
+      not (List.exists (fun dir -> Com.Directory.get_name to_dir_absolute = Com.Directory.get_name dir) subdirs_selection)
+
 let archive config user req =
   let body = Tiny_httpd_stream.read_all req.S.Request.body in
   let selection = Yojson.Safe.from_string body |> Msg_from_clt.Selection.t_of_yojson in
@@ -93,32 +114,37 @@ let copy config user req =
       let subdirs = Msg_from_clt.Selection_paste.get_selection selection |> Msg_from_clt.Selection.get_subdirs in
       let dirnames = Msg_from_clt.Selection_paste.get_selection selection |> Msg_from_clt.Selection.get_dirnames in
       let filenames = Msg_from_clt.Selection_paste.get_selection selection |> Msg_from_clt.Selection.get_filenames in
-
       let subdir = Content.Directory.make_from_list subdirs in
       let dirs = List.map (fun name -> Com.Directory.make_relative ~name ()) dirnames in
       let files = List.map (fun name -> Com.File.make ~name ()) filenames in
       let selection_size = Content.Tree.selection_size ~root:(Config.Area.get_root area) ~subdir ~dirs ~files in
       let max_upload_size = get_max_upload_size target_area in
       match max_upload_size > 0L && selection_size <= max_upload_size with
-      | true ->
-        let target_subdirs = Msg_from_clt.Selection_paste.get_target_subdirs selection in
-        let target_subdir = Content.Directory.make_from_list target_subdirs in
-        let paste_mode = Msg_from_clt.Selection_paste.get_paste_mode selection in
-        let result = Content.Tree.selection_copy ~from_root:(Config.Area.get_root area) ~from_subdir:subdir
-            ~to_root:(Config.Area.get_root target_area) ~to_subdir:target_subdir
-            ~dirs ~files ~paste_mode
-        in
-        let json =
-          Msg_to_clt.Selection_paste_processed.make ~from_area:(Config.Area.get_area area) ~from_subdirs:subdirs
-            ~to_area:(Config.Area.get_area target_area) ~to_subdirs:target_subdirs
-            ~directories_ok:(Content.Tree.(get_result_directories_ok result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_directory_ok ~from_dir:(get_ok_from_dir_relative e) ~to_dir:(get_ok_to_dir_relative e))))
-            ~directories_ko:(Content.Tree.(get_result_directories_error result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_directory_error ~from_dir:(get_error_from_dir_relative e) ~to_dir:(get_error_to_dir_relative e) ~msg:(get_error_dir_msg e))))
-            ~paths_ok:(Content.Tree.(get_result_files_ok result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_file_ok ~from_file:(get_ok_from_file_relative e) ~to_file:(get_ok_to_file_relative e))))
-            ~paths_ko:(Content.Tree.(get_result_files_error result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_file_error ~from_file:(get_error_from_file_relative e) ~to_file:(get_error_to_file_relative e) ~msg:(get_error_file_msg e))))
-          |> Msg_to_clt.Selection_paste_processed.yojson_of_t
-          |> Yojson.Safe.to_string
-        in
-        Response.json ~code:200 json ~req
+      | true -> (
+          let target_subdirs = Msg_from_clt.Selection_paste.get_target_subdirs selection in
+          let target_subdir = Content.Directory.make_from_list target_subdirs in
+          let paste_mode = Msg_from_clt.Selection_paste.get_paste_mode selection in
+          match no_copy_loop ~from_area:area ~from_subdir:subdir ~to_area:target_area ~to_subdir:target_subdir ~dirs with
+          | true -> (
+              let result = Content.Tree.selection_copy ~from_root:(Config.Area.get_root area) ~from_subdir:subdir
+                  ~to_root:(Config.Area.get_root target_area) ~to_subdir:target_subdir
+                  ~dirs ~files ~paste_mode
+              in
+              let json =
+                Msg_to_clt.Selection_paste_processed.make ~from_area:(Config.Area.get_area area) ~from_subdirs:subdirs
+                  ~to_area:(Config.Area.get_area target_area) ~to_subdirs:target_subdirs
+                  ~directories_ok:(Content.Tree.(get_result_directories_ok result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_directory_ok ~from_dir:(get_ok_from_dir_relative e) ~to_dir:(get_ok_to_dir_relative e))))
+                  ~directories_ko:(Content.Tree.(get_result_directories_error result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_directory_error ~from_dir:(get_error_from_dir_relative e) ~to_dir:(get_error_to_dir_relative e) ~msg:(get_error_dir_msg e))))
+                  ~paths_ok:(Content.Tree.(get_result_files_ok result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_file_ok ~from_file:(get_ok_from_file_relative e) ~to_file:(get_ok_to_file_relative e))))
+                  ~paths_ko:(Content.Tree.(get_result_files_error result |> List.map (fun e -> Msg_to_clt.Selection_paste_processed.make_file_error ~from_file:(get_error_from_file_relative e) ~to_file:(get_error_to_file_relative e) ~msg:(get_error_file_msg e))))
+                |> Msg_to_clt.Selection_paste_processed.yojson_of_t
+                |> Yojson.Safe.to_string
+              in
+              Response.json ~code:200 json ~req
+            )
+          | false ->
+            S.Response.fail ~code:403 "Copy of a directory in one of its subdirectories is not allowed"
+        )
       | false ->
         S.Response.fail ~code:403 "Area quota exceeded"
     )

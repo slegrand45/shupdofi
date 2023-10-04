@@ -18,3 +18,4 @@ val delete : absolute -> relative -> unit
 (*val create_from_tree : paste_mode:Com.Path.paste -> tree:Com.Directory.relative Com.Directory.t list -> root:absolute -> subdir:relative ->
   ((Com.Directory.relative Com.Directory.t * Com.Directory.relative Com.Directory.t option), Com.Directory.relative Com.Directory.t) result list*)
 val size : stop:int64 -> absolute -> int64
+val absolute_subdirs : absolute -> relative list -> absolute list
