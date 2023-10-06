@@ -24,12 +24,6 @@ let no_copy_loop ~from_area ~from_subdir ~to_area ~to_subdir ~dirs =
         @ Content.Directory.absolute_subdirs from_dir_absolute dirs
       in
       let to_dir_absolute = Content.Directory.concat_absolute (Config.Area.get_root to_area) to_subdir in
-
-      let () =
-        List.iter (fun e -> prerr_endline(Printf.sprintf "subdir: %s" (Com.Directory.get_name e))) subdirs_selection
-      in
-      prerr_endline(Printf.sprintf "to_dir_absolute: %s" (Com.Directory.get_name to_dir_absolute));
-
       not (List.exists (fun dir -> Com.Directory.get_name to_dir_absolute = Com.Directory.get_name dir) subdirs_selection)
 
 let archive config user req =
@@ -123,10 +117,11 @@ let copy config user req =
       | true -> (
           let target_subdirs = Msg_from_clt.Selection_paste.get_target_subdirs selection in
           let target_subdir = Content.Directory.make_from_list target_subdirs in
+          let action = Msg_from_clt.Selection_paste.get_action selection in
           let paste_mode = Msg_from_clt.Selection_paste.get_paste_mode selection in
           match no_copy_loop ~from_area:area ~from_subdir:subdir ~to_area:target_area ~to_subdir:target_subdir ~dirs with
           | true -> (
-              let result = Content.Tree.selection_copy ~from_root:(Config.Area.get_root area) ~from_subdir:subdir
+              let result = Content.Tree.action_on_selection ~action ~from_root:(Config.Area.get_root area) ~from_subdir:subdir
                   ~to_root:(Config.Area.get_root target_area) ~to_subdir:target_subdir
                   ~dirs ~files ~paste_mode
               in

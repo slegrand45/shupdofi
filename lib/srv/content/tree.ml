@@ -163,6 +163,11 @@ let copy_file ~from_absolute ~to_absolute =
     Unix.close fd_out
   )
 
+let move_file ~from_absolute ~to_absolute =
+  if (from_absolute <> to_absolute) then (
+    Sys.rename from_absolute to_absolute
+  )
+
 let make_event paste_mode to_presence to_creation = 
   match to_presence, to_creation with
   | Not_existing, Same_name -> (to_presence, Create Same_name)
@@ -176,7 +181,7 @@ let make_event paste_mode to_presence to_creation =
     )
   | _, _ -> assert false
 
-let rec copy_entry ~acc ~from_root ~to_root ~paste_mode ~from_entry ~to_subdir =
+let rec action_on_entry ~action ~acc ~from_root ~to_root ~paste_mode ~from_entry ~to_subdir =
   let from_absolute = Filename.concat from_root from_entry in
   match Sys.is_directory from_absolute with
   | true -> (
@@ -196,7 +201,7 @@ let rec copy_entry ~acc ~from_root ~to_root ~paste_mode ~from_entry ~to_subdir =
                 (fun acc entry ->
                    let from_entry = Filename.concat from_entry entry in
                    let to_subdir = Filename.concat to_subdir (Filename.basename to_absolute) in
-                   copy_entry ~acc ~from_root ~to_root ~paste_mode ~from_entry ~to_subdir)
+                   action_on_entry ~action ~acc ~from_root ~to_root ~paste_mode ~from_entry ~to_subdir)
                 acc entries
             in
             result_add_ok_dir ~r:acc ~event ~from_absolute ~to_absolute ~from_relative:from_entry ~to_relative
@@ -223,13 +228,18 @@ let rec copy_entry ~acc ~from_root ~to_root ~paste_mode ~from_entry ~to_subdir =
           try
             let to_exists = Sys.file_exists to_absolute && Sys.is_regular_file to_absolute in
             let () =
+              let f_action =
+                match action with
+                | Com.Path.Copy -> copy_file
+                | Com.Path.Move -> move_file
+              in
               match paste_mode with
               | Com.Path.Paste_overwrite ->
-                copy_file ~from_absolute ~to_absolute;
+                f_action ~from_absolute ~to_absolute;
               | Com.Path.Paste_ignore ->
-                if (not to_exists) then copy_file ~from_absolute ~to_absolute else ();
+                if (not to_exists) then f_action ~from_absolute ~to_absolute else ();
               | Com.Path.Paste_rename ->
-                if (not to_exists) then copy_file ~from_absolute ~to_absolute else ();
+                if (not to_exists) then f_action ~from_absolute ~to_absolute else ();
             in
             result_add_ok_file ~r:acc ~event ~from_absolute ~to_absolute ~from_relative:from_entry ~to_relative
           with
@@ -281,18 +291,32 @@ let update_meta_data result =
   let files_ok = List.map file result.files_ok in
   { result with directories_ok; files_ok }
 
-let selection_copy ~from_root ~from_subdir ~to_root ~to_subdir ~dirs ~files ~paste_mode =
+let action_on_selection ~action ~from_root ~from_subdir ~to_root ~to_subdir ~dirs ~files ~paste_mode =
   let from_root_dir_name = Directory.concat_absolute from_root from_subdir |> Com.Directory.get_name in
   let to_root_dir_name = Directory.concat_absolute to_root to_subdir |> Com.Directory.get_name in
   let result_dirs = List.fold_left
-      (fun acc e -> copy_entry ~acc ~from_root:from_root_dir_name ~to_root:to_root_dir_name ~paste_mode ~from_entry:(Com.Directory.get_name e) ~to_subdir:"")
+      (fun acc e -> action_on_entry ~action ~acc ~from_root:from_root_dir_name ~to_root:to_root_dir_name ~paste_mode ~from_entry:(Com.Directory.get_name e) ~to_subdir:"")
       result_empty
       dirs
   in
   let result_dirs_and_files = List.fold_left
-      (fun acc e -> copy_entry ~acc ~from_root:from_root_dir_name ~to_root:to_root_dir_name ~paste_mode ~from_entry:(Com.File.get_name e) ~to_subdir:"")
+      (fun acc e -> action_on_entry ~action ~acc ~from_root:from_root_dir_name ~to_root:to_root_dir_name ~paste_mode ~from_entry:(Com.File.get_name e) ~to_subdir:"")
       result_dirs
       files
+  in
+  let () = match action with
+    | Copy -> ()
+    | Move ->
+      let calc_level dir =
+        let s = Com.Directory.get_name dir in
+        let regexp = Str.regexp_string Filename.dir_sep in
+        let l = Str.split_delim regexp s in
+        List.length l
+      in
+      result_dirs_and_files.directories_ok
+      |> List.sort (fun (a:result_directory_ok) (b:result_directory_ok) -> compare (calc_level b.from_dir_absolute) (calc_level a.from_dir_absolute))
+      |> List.map (fun (dir:result_directory_ok) -> Com.Directory.get_name dir.from_dir_absolute)
+      |> List.iter (fun dir -> Sys.rmdir dir)
   in
   update_meta_data result_dirs_and_files
 

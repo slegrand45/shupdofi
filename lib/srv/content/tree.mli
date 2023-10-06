@@ -9,7 +9,7 @@ type t
 val selection_size : root:Directory.absolute -> subdir:Directory.relative
   -> dirs:Directory.relative list -> files:Shupdofi_com.File.t list -> int64
 
-val selection_copy : from_root:Directory.absolute -> from_subdir:Directory.relative ->
+val action_on_selection : action:Com.Path.copy_move -> from_root:Directory.absolute -> from_subdir:Directory.relative ->
   to_root:Directory.absolute -> to_subdir:Directory.relative ->
   dirs:'a Com.Directory.t list -> files:Com.File.t list ->
   paste_mode:Com.Path.paste -> t

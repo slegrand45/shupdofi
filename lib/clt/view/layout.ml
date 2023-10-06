@@ -41,7 +41,7 @@ let view m content =
               elt "ul" ~a:[class_ "dropdown-menu"] [
                 elt "li" [
                   elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_copy_paste); str_prop "href" "#";
-                               onclick_cancel (fun _ -> Some (Action.Selection Action_other.Selection.Copy_ask))]
+                               onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Copy_move_ask Com.Path.Copy)))]
                               @ menu_aria_disabled) [
                     Icon.content_copy ~class_attr:"fs-6" ~label:"Copy & paste"
                       ~aria_id:("shopping-basket-icon-content-copy");
@@ -49,7 +49,9 @@ let view m content =
                   ]
                 ];
                 elt "li" [
-                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_cut_paste); str_prop "href" "#"] @ menu_aria_disabled) [
+                  elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_cut_paste); str_prop "href" "#";
+                               onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Copy_move_ask Com.Path.Move)))]
+                              @ menu_aria_disabled) [
                     Icon.content_cut ~class_attr:"fs-6" ~label:"Cut & paste"
                       ~aria_id:("shopping-basket-icon-content-cut");
                     elt "span" ~a:[class_ "ms-1 fs-6"] [ text "Cut & paste" ]

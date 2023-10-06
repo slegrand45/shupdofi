@@ -142,7 +142,7 @@ let update m a =
     in
     let () = Js_toast.clean_hiddens ~document in
     return m
-  | Action_other.Selection.Copy_ask -> (
+  | Action_other.Selection.Copy_move_ask action -> (
       let target_area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
       let target_subdirs = Com.Area_content.get_subdirs m.Model.area_content in
       match Com.Selection.get_area_content m.selection with
@@ -153,40 +153,44 @@ let update m a =
         let subdirs = Com.Area_content.get_subdirs area_content in
         let dirnames = Com.Area_content.get_directories area_content |> List.map Com.Directory.get_name in
         let filenames = Com.Area_content.get_files area_content |> List.map Com.File.get_name in
+        let title = Com.Path.(match action with Copy -> "Copy selection" | Move -> "Move selection") in
+        let txt_bt_ok = Com.Path.(match action with Copy -> "Copy" | Move -> "Move") in
         let modal = Modal.set_selection_cut_copy m.modal
                     |> Modal.enable_bt_ok
-                    |> Modal.set_title "Copy selection"
+                    |> Modal.set_title title
                     |> Modal.set_input_content ""
-                    |> Modal.set_txt_bt_ok "Copy"
+                    |> Modal.set_txt_bt_ok txt_bt_ok
                     |> Modal.set_txt_bt_cancel "Cancel"
-                    |> Modal.set_fun_bt_ok (fun _ -> Action.Selection (Action_other.Selection.Copy_start { area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs }))
+                    |> Modal.set_fun_bt_ok (fun _ -> Action.Selection (Action_other.Selection.Copy_move_start { action; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs }))
         in
         let m = { m with modal } in
         let () = Js_modal.show () in
         return m
     )
-  | Action_other.Selection.Copy_start { area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs } ->
+  | Action_other.Selection.Copy_move_start { action; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs } ->
     let paste_mode = Modal.get_paste_mode m.modal in
-    let c = Js_toast.append_from_list ~l:[""] ~prefix_id:area_id ~fun_msg:(fun _ -> "Copy selection")
-        ~fun_cmd:(fun toast_id _ -> Api.send (Action.Selection (Action_other.Selection.Copy_do { toast_id; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs; paste_mode })))
+    let msg = Com.Path.(match action with Copy -> "Copy selection" | Move -> "Move selection") in
+    let c = Js_toast.append_from_list ~l:[""] ~prefix_id:area_id ~fun_msg:(fun _ -> msg)
+        ~fun_cmd:(fun toast_id _ -> Api.send (Action.Selection (Action_other.Selection.Copy_move_do { action; toast_id; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs; paste_mode })))
     in
     let c = Api.send(Action.Modal_close) :: c in
     return m ~c
-  | Action_other.Selection.Copy_do { toast_id; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs; paste_mode } ->
+  | Action_other.Selection.Copy_move_do { action; toast_id; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs; paste_mode } ->
     let () = Js_toast.show ~document ~toast_id in
     let selection = Msg_to_srv.Selection.make ~area_id ~subdirs ~dirnames ~filenames in
-    let payload = Msg_to_srv.Selection_paste.make ~selection ~paste_mode ~target_area_id ~target_subdirs
+    let payload = Msg_to_srv.Selection_paste.make ~action ~selection ~paste_mode ~target_area_id ~target_subdirs
                   |> Msg_to_srv.Selection_paste.yojson_of_t |> Yojson.Safe.to_string
     in
     let url = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) Copy_selection) in
-    let c = [Api.http_post ~url ~payload (fun status json -> Action.Selection (Action_other.Selection.Copy_done { toast_id; target_area_id; target_subdirs; status; json }))] in
+    let c = [Api.http_post ~url ~payload (fun status json -> Action.Selection (Action_other.Selection.Copy_move_done { action; toast_id; target_area_id; target_subdirs; status; json }))] in
     return m ~c
-  | Action_other.Selection.Copy_done { toast_id; target_area_id; target_subdirs; status; json } ->
+  | Action_other.Selection.Copy_move_done { action; toast_id; target_area_id; target_subdirs; status; json } ->
     let m =
       match status with
       | 200 -> (
           let result = Yojson.Safe.from_string json |> Msg_from_srv.Selection_paste_processed.t_of_yojson in
-          Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Selection copied");
+          let msg = Com.Path.(match action with Copy -> "Selection copied" | Move -> "Selection moved") in
+          Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg;
           let area_content = List.fold_left (
               fun acc e ->
                 let e = Msg_from_srv.Selection_paste_processed.get_directory_ok_to_dir e in
@@ -202,7 +206,12 @@ let update m a =
           { m with area_content }
         )
       | _ ->
-        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to copy selection");
+        let msg =
+          match json with
+          | "" -> Com.Path.(match action with Copy -> "Unable to copy selection" | Move -> "Unable to move selection")
+          | _ -> json
+        in
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg;
         m
     in
     let () = Js_toast.clean_hiddens ~document in
