@@ -9,12 +9,14 @@ module Modal = Shupdofi_clt_model.Modal
 module Msg_from_srv = Shupdofi_msg_clt_from_srv
 module Msg_to_srv = Shupdofi_msg_clt_to_srv
 module Routing = Shupdofi_clt_routing
+module T = Shupdofi_clt_i18n.T
 
 open Vdom
 open Js_browser
 open Js_of_ocaml
 
 let update m a =
+  let prefs = m.Model.preferences in
   match a with
   | Action_other.Rename_directory.Ask { directory } ->
     let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
@@ -22,11 +24,11 @@ let update m a =
     let old_dirname = Com.Directory.get_name directory in
     let fun_ok = (fun _ -> Action.Rename_directory (Action_other.Rename_directory.Start { area_id; subdirs; old_dirname })) in
     let modal = Modal.set_new_entry m.modal
-                |> Modal.set_title "Rename directory"
+                |> Modal.set_title (T._t prefs Rename_directory)
                 |> Modal.enable_bt_ok
                 |> Modal.set_input_content old_dirname
-                |> Modal.set_txt_bt_ok "Rename"
-                |> Modal.set_txt_bt_cancel "Cancel"
+                |> Modal.set_txt_bt_ok (T._t prefs Rename)
+                |> Modal.set_txt_bt_cancel (T._t prefs Cancel)
                 |> Modal.set_fun_bt_ok fun_ok
                 |> Modal.set_fun_kb_ok fun_ok
     in
@@ -37,7 +39,7 @@ let update m a =
     let new_dirname = Modal.get_input_content m.modal in
     let c_default = Api.send(Action.Modal_close) in
     if old_dirname <> new_dirname then
-      let c = Js_toast.append_from_list ~l:[new_dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename " ^ old_dirname ^ " to " ^ new_dirname)
+      let c = Js_toast.append_from_list ~l:[new_dirname] ~prefix_id:area_id ~fun_msg:(fun _ -> (T._t prefs (Rename_directory_old_new (old_dirname, new_dirname))))
           ~fun_cmd:(fun toast_id new_dirname -> Api.send (Action.Rename_directory (Action_other.Rename_directory.Do { area_id; subdirs; toast_id; old_dirname; new_dirname })))
       in
       let c = c_default :: c in
@@ -57,7 +59,7 @@ let update m a =
       match status with
       | 200 ->
         let directory_renamed = Yojson.Safe.from_string json |> Msg_from_srv.Directory_renamed.t_of_yojson in
-        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:(old_dirname ^ " renamed to " ^ new_dirname);
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:(T._t prefs (Directory_renamed_old_new (old_dirname, new_dirname)));
         let area_id = Msg_from_srv.Directory_renamed.get_area_id directory_renamed in
         let subdirs = Msg_from_srv.Directory_renamed.get_subdirs directory_renamed in
         let old_directory = Msg_from_srv.Directory_renamed.get_old_directory directory_renamed in

@@ -2,16 +2,6 @@ module Com = Shupdofi_com
 
 open Js_of_ocaml
 
-type language = En | Fr
-
-let language_from_string = function
-  | "fr" -> Fr
-  | _ -> En
-
-let language_to_string = function
-  | Fr -> "fr"
-  | En -> "en"
-
 let user_language () =
   (* From https://github.com/ocsigen/js_of_ocaml/blob/master/examples/hyperbolic/hypertree.ml *)
   let s = 
@@ -24,7 +14,7 @@ let user_language () =
         0
         2)
   in
-  language_from_string s
+  Com.I18n.language_from_string s
 
 let fmt_date_hm dt =
   let year = Com.(Datetime.get_date dt |> Date.get_year) in

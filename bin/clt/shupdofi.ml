@@ -8,7 +8,7 @@ open Js_browser
 let update = Update.update
 
 let init =
-  return Model.empty ~c:[Api.send Action.Current_url_modified]
+  return Model.default ~c:[Api.send Action.Current_url_modified]
 
 let () = Vdom_blit.(register (cmd {f = Api.cmd_handler}))
 

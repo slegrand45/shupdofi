@@ -3,10 +3,12 @@ module Com = Shupdofi_com
 module Icon = Shupdofi_clt_icon.Icon
 module Modal = Shupdofi_clt_model.Modal
 module Model = Shupdofi_clt_model.Model
+module T = Shupdofi_clt_i18n.T
 
 open Vdom
 
 let body m =
+  let prefs = m.Model.preferences in
   let modal = m.Model.modal in
   let fun_kb_ok = Modal.get_fun_kb_ok modal in
   match (Modal.is_new_entry modal) with
@@ -47,27 +49,27 @@ let body m =
         elt "form" [
           div ~a:[class_ "my-3"] [
             elt "p" ~a:[class_ "my-3"] [
-              text "When a file already exists:"
+              text (T._t prefs When_entry_already_exists_colon)
             ];
             div ~a:[class_ "form-check my-3"] [
               elt "input" ~a:[class_ "form-check-input"; type_ "radio"; attr "id" "formAskModeCutCopyIgnore";
                               paste_mode Com.Path.Paste_ignore; onclick (fun _ -> Action.Modal_set_paste_mode Com.Path.Paste_ignore)] [];
               elt "label" ~a:[class_ "form-check-label"; attr "for" "formAskModeCutCopyIgnore"] [
-                text "Silently ignore it and keep it untouched"
+                text (T._t prefs Silently_ignore_it_and_keep_it_untouched)
               ]
             ];
             div ~a:[class_ "form-check my-3"] [
               elt "input" ~a:[class_ "form-check-input"; type_ "radio"; attr "id" "formAskModeCutCopyOverwrite";
                               paste_mode Com.Path.Paste_overwrite; onclick (fun _ -> Action.Modal_set_paste_mode Com.Path.Paste_overwrite)] [];
               elt "label" ~a:[class_ "form-check-label"; attr "for" "formAskModeCutCopyOverwrite"] [
-                text "Overwrite it and replace it with the copy"
+                text (T._t prefs Overwrite_it_and_replace_it_with_the_copy)
               ]
             ];
             div ~a:[class_ "form-check my-3"] [
               elt "input" ~a:[class_ "form-check-input"; type_ "radio"; attr "id" "formAskModeCutCopyRename";
                               paste_mode Com.Path.Paste_rename; onclick (fun _ -> Action.Modal_set_paste_mode Com.Path.Paste_rename)] [];
               elt "label" ~a:[class_ "form-check-label"; attr "for" "formAskModeCutCopyRename"] [
-                text "Copy it as a new file with an other name"
+                text (T._t prefs Copy_it_as_a_new_file_with_an_other_name)
               ]
             ];
           ]

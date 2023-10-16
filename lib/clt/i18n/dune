@@ -2,4 +2,4 @@
  (name shupdofi_clt_i18n)
  (modes byte)
  (preprocess (pps js_of_ocaml-ppx))
- (libraries js_of_ocaml-lwt shupdofi_com))
+ (libraries js_of_ocaml-lwt shupdofi_com shupdofi_clt_preferences))

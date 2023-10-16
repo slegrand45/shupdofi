@@ -9,6 +9,7 @@ module Model = Shupdofi_clt_model.Model
 module Routing = Shupdofi_clt_routing
 module Size = Shupdofi_com.Size
 module Sorting = Com.Sorting
+module T = Shupdofi_clt_i18n.T
 
 open Vdom
 
@@ -23,7 +24,7 @@ let one_line_mdatetime v =
   | None -> ""
   | Some v -> Intl.fmt_date_hm v
 
-let one_line_directory selection user area subdirs (acc, i) directory =
+let one_line_directory prefs selection user area subdirs (acc, i) directory =
   let area_id = Com.Area.get_id area in
   let dirname = Com.Directory.get_name directory in
   let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_directory { area_id; subdirs; dirname })) in
@@ -31,7 +32,7 @@ let one_line_directory selection user area subdirs (acc, i) directory =
     match Com.User.can_do_action ~area_id ~action:Com.Action.download user with
     | true -> [
         elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
-          Icon.file_download ~label:"Download" ~class_attr:"icon" ~aria_id:("directory-icon-title-file-download" ^ (string_of_int i))
+          Icon.file_download ~label:(T._t prefs Download) ~class_attr:"icon" ~aria_id:("directory-icon-title-file-download" ^ (string_of_int i))
         ];
       ]
     | _ -> []
@@ -41,7 +42,7 @@ let one_line_directory selection user area subdirs (acc, i) directory =
     | true -> [
         elt "a" ~a:[str_prop "href" ""; class_ "action hide";
                     onclick_cancel (fun _ -> Some (Action.Rename_directory (Action_other.Rename_directory.Ask { directory })))] [
-          Icon.edit ~label:"Rename" ~class_attr:"icon" ~aria_id:("directory-icon-title-edit" ^ (string_of_int i))
+          Icon.edit ~label:(T._t prefs Rename) ~class_attr:"icon" ~aria_id:("directory-icon-title-edit" ^ (string_of_int i))
         ];
       ]
     | false -> []
@@ -51,7 +52,7 @@ let one_line_directory selection user area subdirs (acc, i) directory =
     | true -> [
         elt "a" ~a:[str_prop "href" ""; class_ "action hide";
                     onclick_cancel (fun _ -> Some (Action.Delete_directory (Action_other.Delete_directory.Ask { directory })))] [
-          Icon.delete_forever ~label:"Delete" ~class_attr:"icon" ~aria_id:("directory-icon-delete-forever" ^ (string_of_int i))
+          Icon.delete_forever ~label:(T._t prefs Delete) ~class_attr:"icon" ~aria_id:("directory-icon-delete-forever" ^ (string_of_int i))
         ];
       ]
     | false -> []
@@ -61,7 +62,7 @@ let one_line_directory selection user area subdirs (acc, i) directory =
   | name -> (
       elt "tr" ~a:[class_ "line"] [
         elt "td" [
-          elt "input" ~a:[type_ "checkbox"; class_ "line form-check-input"; attr "aria-label" "select directory";
+          elt "input" ~a:[type_ "checkbox"; class_ "line form-check-input"; attr "aria-label" (T._t prefs Select_directory);
                           bool_prop "checked" (Com.Selection.directory_is_selected ~area ~subdirs ~directory selection);
                           onclick (fun _ -> Action.Click_select_directory { area; subdirs; directory })] []
         ];
@@ -74,7 +75,7 @@ let one_line_directory selection user area subdirs (acc, i) directory =
         elt "td" ~a:[class_ "text-center"] td_delete;
       ] :: acc, i + 1)
 
-let one_line_file selection user area subdirs (acc, i) file =
+let one_line_file prefs selection user area subdirs (acc, i) file =
   let area_id = Com.Area.get_id area in
   let filename = Com.File.get_name file in
   let href_download = Routing.Api.(to_url ~encode:(fun e -> Js_of_ocaml.Js.(to_string (encodeURIComponent (string e)))) (Download_file { area_id; subdirs; filename })) in
@@ -82,7 +83,7 @@ let one_line_file selection user area subdirs (acc, i) file =
     match Com.User.can_do_action ~area_id ~action:Com.Action.download user with
     | true -> [
         elt "a" ~a:[str_prop "href" href_download; class_ "action hide"; str_prop "download" ""] [
-          Icon.file_download ~label:"Download" ~class_attr:"icon" ~aria_id:("file-icon-title-file-download" ^ (string_of_int i))
+          Icon.file_download ~label:(T._t prefs Download) ~class_attr:"icon" ~aria_id:("file-icon-title-file-download" ^ (string_of_int i))
         ];
       ]
     | false -> []
@@ -92,7 +93,7 @@ let one_line_file selection user area subdirs (acc, i) file =
     | true -> [
         elt "a" ~a:[str_prop "href" ""; class_ "action hide";
                     onclick_cancel (fun _ -> Some (Action.Rename_file (Action_other.Rename_file.Ask { file })))] [
-          Icon.edit ~label:"Rename" ~class_attr:"icon" ~aria_id:("file-icon-title-edit" ^ (string_of_int i))
+          Icon.edit ~label:(T._t prefs Rename) ~class_attr:"icon" ~aria_id:("file-icon-title-edit" ^ (string_of_int i))
         ];
       ]
     | false -> []
@@ -102,7 +103,7 @@ let one_line_file selection user area subdirs (acc, i) file =
     | true -> [
         elt "a" ~a:[str_prop "href" ""; class_ "action hide";
                     onclick_cancel (fun _ -> Some (Action.Delete_file (Action_other.Delete_file.Ask { file })))] [
-          Icon.delete_forever ~label:"Delete" ~class_attr:"icon" ~aria_id:("file-icon-delete-forever" ^ (string_of_int i))
+          Icon.delete_forever ~label:(T._t prefs Delete) ~class_attr:"icon" ~aria_id:("file-icon-delete-forever" ^ (string_of_int i))
         ];
       ]
     | false -> []
@@ -112,7 +113,7 @@ let one_line_file selection user area subdirs (acc, i) file =
   | name -> (
       elt "tr" ~a:[class_ "line"] [
         elt "td" [
-          elt "input" ~a:[type_ "checkbox"; class_ "line form-check-input"; attr "aria-label" "select file";
+          elt "input" ~a:[type_ "checkbox"; class_ "line form-check-input"; attr "aria-label" (T._t prefs Select_file);
                           bool_prop "checked" (Com.Selection.file_is_selected ~area ~subdirs ~file selection);
                           onclick (fun _ -> Action.Click_select_file { area; subdirs; file })] []
         ];
@@ -125,14 +126,14 @@ let one_line_file selection user area subdirs (acc, i) file =
         elt "td" ~a:[class_ "text-center"] td_delete;
       ] :: acc, i + 1)
 
-let icon_sort sorting criteria =
+let icon_sort prefs sorting criteria =
   let icon ~aria_id ~visible =
     let class_attr = if visible then "icon" else "icon invisible" in
     match Sorting.get_direction sorting with
     | Sorting.Direction.Ascending ->
-      Icon.arrow_upward ~label:"Sort upward" ~class_attr ~aria_id:(aria_id ^ "-icon-arrow-upward")
+      Icon.arrow_upward ~label:(T._t prefs Sort_upward) ~class_attr ~aria_id:(aria_id ^ "-icon-arrow-upward")
     | Sorting.Direction.Descending ->
-      Icon.arrow_downward ~label:"Sort downward" ~class_attr ~aria_id:(aria_id ^ "-icon-arrow-downward")
+      Icon.arrow_downward ~label:(T._t prefs Sort_downward) ~class_attr ~aria_id:(aria_id ^ "-icon-arrow-downward")
   in
   match criteria with
   | Sorting.Criteria.Name -> (
@@ -151,20 +152,20 @@ let icon_sort sorting criteria =
       | _ -> [ icon ~aria_id:("size") ~visible:false ]
     )
 
-let lines sorting selection user area subdirs directories files =
+let lines prefs sorting selection user area subdirs directories files =
   match directories, files with
   | [], [] -> [elt "p"
                  [ text "Empty directory" ]
               ]
   | directories, files ->
-    let trs_directories = List.fold_left (one_line_directory selection user area subdirs) ([], 1) directories |> fst |> List.rev in
-    let trs_files = List.fold_left (one_line_file selection user area subdirs) ([], 1) files |> fst |> List.rev in
+    let trs_directories = List.fold_left (one_line_directory prefs selection user area subdirs) ([], 1) directories |> fst |> List.rev in
+    let trs_files = List.fold_left (one_line_file prefs selection user area subdirs) ([], 1) files |> fst |> List.rev in
     [div ~a:[class_ "table-responsive"] [
         elt "table" ~a:[class_ "table table-hover area-content"] [
           elt "thead" [
             elt "tr" [
               elt "th" [
-                elt "input" ~a:[type_ "checkbox"; class_ "line form-check-input"; attr "aria-label" "select all";
+                elt "input" ~a:[type_ "checkbox"; class_ "line form-check-input"; attr "aria-label" (T._t prefs Select_all);
                                 bool_prop "checked" (Com.Selection.all_is_selected ~area ~subdirs selection);
                                 onclick (fun _ -> Action.Click_select_all { area; subdirs; directories; files })] []
               ];
@@ -173,24 +174,24 @@ let lines sorting selection user area subdirs directories files =
                 elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm btn-light";
                                  attr "aria-expanded" "false";
                                  onclick (fun _ -> Action.Click_sorting Sorting.Criteria.name)] [
-                  elt "span" ~a:[] [ text "Name" ];
-                  elt "span" ~a:[ class_ "px-2" ] (icon_sort sorting Sorting.Criteria.name)
+                  elt "span" ~a:[] [ text (T._t prefs Name) ];
+                  elt "span" ~a:[ class_ "px-2" ] (icon_sort prefs sorting Sorting.Criteria.name)
                 ]
               ];
               elt "th" ~a:[str_prop "scope" "col"] [
                 elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm btn-light";
                                  attr "aria-expanded" "false";
                                  onclick (fun _ -> Action.Click_sorting Sorting.Criteria.last_modified)] [
-                  elt "span" ~a:[] [ text "Last modified" ];
-                  elt "span" ~a:[ class_ "px-2" ] (icon_sort sorting Sorting.Criteria.last_modified)
+                  elt "span" ~a:[] [ text (T._t prefs Last_modified) ];
+                  elt "span" ~a:[ class_ "px-2" ] (icon_sort prefs sorting Sorting.Criteria.last_modified)
                 ]
               ];
               elt "th" ~a:[str_prop "scope" "col"] [
                 elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm btn-light";
                                  attr "aria-expanded" "false";
                                  onclick (fun _ -> Action.Click_sorting Sorting.Criteria.size)] [
-                  elt "span" ~a:[] [ text "Size" ];
-                  elt "span" ~a:[ class_ "px-2" ] (icon_sort sorting Sorting.Criteria.size)
+                  elt "span" ~a:[] [ text (T._t prefs Size) ];
+                  elt "span" ~a:[ class_ "px-2" ] (icon_sort prefs sorting Sorting.Criteria.size)
                 ]
               ];
               elt "th" ~a:[str_prop "scope" "col"] [ text "" ];
@@ -265,6 +266,7 @@ let breadcrumb user area l =
 
 let view m =
   if (Block.Fetchable.is_loaded m.Model.block) then (
+    let prefs = m.Model.preferences in
     let user = m.Model.user in
     let content = m.Model.area_content |> Com.Area_content.sort m.sorting in
     let sorting = m.Model.sorting in
@@ -274,7 +276,7 @@ let view m =
     let subdirs = Com.Area_content.get_subdirs content in
     let directories = Com.Area_content.get_directories content in
     let files = Com.Area_content.get_files content in
-    let lines = lines sorting selection user area subdirs directories files in
+    let lines = lines prefs sorting selection user area subdirs directories files in
     let td_delete =
       match Com.User.can_do_action ~area_id ~action:Com.Action.upload user with
       | true -> [
@@ -283,7 +285,7 @@ let view m =
               div ~a:[class_ "input-group input-group-sm"] [
                 div ~a:[class_ "input-group-text"] [ Icon.file_upload ~class_attr:"" ];
                 input ~a:[class_ "form-control form-control-sm"; str_prop "type" "file"; value "";
-                          attr "aria-label" "upload"; str_prop "id" "fileupload"; bool_prop "multiple" true;
+                          attr "aria-label" (T._t prefs Upload); str_prop "id" "fileupload"; bool_prop "multiple" true;
                           oninput (fun _ -> Action.Upload_file (Action_other.Upload_file.Start { input_file_id = "fileupload" }))] []
               ]
             ];
@@ -295,7 +297,7 @@ let view m =
       div ~a:[class_ "row justify-content-end"] td_delete;
       div ~a:[class_ "row mt-3 mb-3"] [
         div ~a:[class_ "col"] [
-          elt "nav" ~a:[class_ ""; attr "aria-label" "breadcrumb"] [
+          elt "nav" ~a:[class_ ""; attr "aria-label" (T._t prefs Breadcrumb)] [
             elt "ol" ~a:[class_ "breadcrumb mt-2 mb-2 align-items-center"] 
               (breadcrumb user area subdirs)
           ]

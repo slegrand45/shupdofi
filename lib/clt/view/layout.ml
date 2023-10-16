@@ -6,11 +6,13 @@ module Icon = Shupdofi_clt_icon.Icon
 module Model = Shupdofi_clt_model.Model
 module Routing = Shupdofi_clt_routing
 module Selection = Shupdofi_com.Selection
+module T = Shupdofi_clt_i18n.T
 module User = Shupdofi_com.User
 
 open Vdom
 
 let view m content =
+  let prefs = m.Model.preferences in
   let area = Com.Area_content.get_area m.Model.area_content in
   let subdirs = Com.Area_content.get_subdirs m.Model.area_content in
   let user_name = User.get_name m.Model.user in
@@ -30,12 +32,12 @@ let view m content =
             div ~a:[class_ "dropdown"] [
               elt "button" ~a:[str_prop "type" "button"; class_ "btn btn-sm position-relative dropdown-toggle";
                                attr "data-bs-toggle" "dropdown"; attr "aria-expanded" "false";] [
-                Icon.shopping_basket ~label:"Selection" ~aria_id:("selection-icon-shopping-basket") ~class_attr:"fs-6";
+                Icon.shopping_basket ~label:(T._t prefs Selection) ~aria_id:("selection-icon-shopping-basket") ~class_attr:"fs-6";
                 elt "span" ~a:[class_ ("position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary " ^ visibility_badge)] [
                   text (selection_count |> string_of_int)
                 ];
                 elt "span" ~a:[class_ "visually-hidden"] [
-                  text "Selection"
+                  text (T._t prefs Selection)
                 ]
               ];
               elt "ul" ~a:[class_ "dropdown-menu"] [
@@ -43,36 +45,36 @@ let view m content =
                   elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_copy_paste); str_prop "href" "#";
                                onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Copy_move_ask Com.Path.Copy)))]
                               @ menu_aria_disabled) [
-                    Icon.content_copy ~class_attr:"fs-6" ~label:"Copy & paste"
+                    Icon.content_copy ~class_attr:"fs-6" ~label:(T._t prefs Copy_paste)
                       ~aria_id:("shopping-basket-icon-content-copy");
-                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text "Copy & paste" ]
+                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text (T._t prefs Copy_paste) ]
                   ]
                 ];
                 elt "li" [
                   elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_cut_paste); str_prop "href" "#";
                                onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Copy_move_ask Com.Path.Move)))]
                               @ menu_aria_disabled) [
-                    Icon.content_cut ~class_attr:"fs-6" ~label:"Cut & paste"
+                    Icon.content_cut ~class_attr:"fs-6" ~label:(T._t prefs Cut_paste)
                       ~aria_id:("shopping-basket-icon-content-cut");
-                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text "Cut & paste" ]
+                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text (T._t prefs Cut_paste) ]
                   ]
                 ];
                 elt "li" [
                   elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_no_paste); str_prop "href" "#";
                                onclick_cancel (fun _ -> Some (Action.Selection Action_other.Selection.Download_start))]
                               @ menu_aria_disabled) [
-                    Icon.file_download ~class_attr:"fs-6" ~label:"Download"
+                    Icon.file_download ~class_attr:"fs-6" ~label:(T._t prefs Download)
                       ~aria_id:("shopping-basket-icon-file-download");
-                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text "Download" ]
+                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text (T._t prefs Download) ]
                   ]
                 ];
                 elt "li" [
                   elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_no_paste); str_prop "href" "#";
                                onclick_cancel (fun _ -> Some (Action.Selection Action_other.Selection.Clear))]
                               @ menu_aria_disabled) [
-                    Icon.clear ~class_attr:"fs-6" ~label:"Clear"
+                    Icon.clear ~class_attr:"fs-6" ~label:(T._t prefs Clear)
                       ~aria_id:("shopping-basket-icon-clear");
-                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text "Clear" ]
+                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text (T._t prefs Clear) ]
                   ]
                 ];
                 elt "li" [
@@ -82,9 +84,9 @@ let view m content =
                   elt "a" ~a:([class_ ("dropdown-item py-2 my-2 " ^ menu_disabled_no_paste); str_prop "href" "#";
                                onclick_cancel (fun _ -> Some (Action.Selection (Action_other.Selection.Delete_ask)))]
                               @ menu_aria_disabled) [
-                    Icon.delete_forever ~class_attr:"fs-6" ~label:"Delete"
+                    Icon.delete_forever ~class_attr:"fs-6" ~label:(T._t prefs Delete)
                       ~aria_id:("shopping-basket-icon-delete-forever");
-                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text "Delete" ]
+                    elt "span" ~a:[class_ "ms-1 fs-6"] [ text (T._t prefs Delete) ]
                   ]
                 ]
               ]
@@ -103,7 +105,7 @@ let view m content =
     elt "header" ~a:[class_ "border-bottom border-info-subtle mb-4 bg-light"] [
       elt "nav" ~a:[class_ "navbar"] [
         div ~a:[class_ "container-fluid"] [
-          Html.link Routing.Page.Home ~class_attr:"navbar-brand d-flex" ~title:"Home" [
+          Html.link Routing.Page.Home ~class_attr:"navbar-brand d-flex" ~title:(T._t prefs Home) [
             Icon.home ~class_attr:"fs-6"
           ];
           div ~a:[class_ "row justify-content-end"] div_account
