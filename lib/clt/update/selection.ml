@@ -9,12 +9,14 @@ module Modal = Shupdofi_clt_model.Modal
 module Msg_from_srv = Shupdofi_msg_clt_from_srv
 module Msg_to_srv = Shupdofi_msg_clt_to_srv
 module Routing = Shupdofi_clt_routing
+module T = Shupdofi_clt_i18n.T
 
 open Vdom
 open Js_browser
 open Js_of_ocaml
 
 let update m a =
+  let prefs = m.Model.preferences in
   match a with
   | Action_other.Selection.Clear ->
     let selection = Com.Selection.empty in
@@ -29,15 +31,15 @@ let update m a =
         let subdirs = Com.Area_content.get_subdirs area_content in
         let dirnames = Com.Area_content.get_directories area_content |> List.map Com.Directory.get_name in
         let filenames = Com.Area_content.get_files area_content |> List.map Com.File.get_name in
-        let msg = Printf.sprintf "I understand that all the selected directories and files will be permanently deleted." in
+        let msg = T._t prefs I_understand_all_selected_directories_files_definitively_deleted_dot in
         let fun_ok = (fun _ -> Action.Selection (Action_other.Selection.Delete_start { area_id; subdirs; dirnames; filenames })) in
         let modal = Modal.set_confirm_delete msg m.modal
                     |> Modal.set_input_switch false
                     |> Modal.disable_bt_ok
-                    |> Modal.set_title "Delete selection"
+                    |> Modal.set_title (T._t prefs Delete_selection)
                     |> Modal.set_input_content ""
-                    |> Modal.set_txt_bt_ok "Delete"
-                    |> Modal.set_txt_bt_cancel "Cancel"
+                    |> Modal.set_txt_bt_ok (T._t prefs Delete)
+                    |> Modal.set_txt_bt_cancel (T._t prefs Cancel)
                     |> Modal.set_fun_bt_ok fun_ok
                     |> Modal.set_fun_kb_ok fun_ok
         in
@@ -46,7 +48,7 @@ let update m a =
         return m
     )
   | Action_other.Selection.Delete_start { area_id; subdirs; dirnames; filenames } ->
-    let c = Js_toast.append_from_list ~l:[""] ~prefix_id:area_id ~fun_msg:(fun _ -> "Delete selection")
+    let c = Js_toast.append_from_list ~l:[""] ~prefix_id:area_id ~fun_msg:(fun _ -> (T._t prefs Delete_selection))
         ~fun_cmd:(fun toast_id _ -> Api.send (Action.Selection (Action_other.Selection.Delete_do { toast_id; area_id; subdirs; dirnames; filenames })))
     in
     let c = Api.send(Action.Modal_close) :: c in
@@ -64,7 +66,7 @@ let update m a =
       match status with
       | 200 -> (
           let result = Yojson.Safe.from_string json |> Msg_from_srv.Selection_processed.t_of_yojson in
-          Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:("Selection deleted");
+          Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:(T._t prefs Selection_deleted);
           let area_content = List.fold_left (
               fun acc (e, _) -> Com.Area_content.(remove_directory ~id:area_id ~subdirs:subdirs ~dirname:(Com.Directory.get_name e) acc)
             ) m.area_content (Msg_from_srv.Selection_processed.get_directories_ok result)
@@ -94,7 +96,7 @@ let update m a =
           { m with area_content; selection }
         )
       | _ ->
-        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to delete selection");
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:(T._t prefs Unable_to_delete_selection);
         m
     in
     let () = Js_toast.clean_hiddens ~document in
@@ -108,7 +110,7 @@ let update m a =
         let subdirs = Com.Area_content.get_subdirs area_content in
         let dirnames = Com.Area_content.get_directories area_content |> List.map Com.Directory.get_name in
         let filenames = Com.Area_content.get_files area_content |> List.map Com.File.get_name in
-        let c = Js_toast.append_from_list ~l:[""] ~prefix_id:area_id ~fun_msg:(fun _ -> "Download selection")
+        let c = Js_toast.append_from_list ~l:[""] ~prefix_id:area_id ~fun_msg:(fun _ -> (T._t prefs Download_selection))
             ~fun_cmd:(fun toast_id _ -> Api.send (Action.Selection (Action_other.Selection.Download_do { toast_id; area_id; subdirs; dirnames; filenames })))
         in
         return m ~c
@@ -136,7 +138,7 @@ let update m a =
           m
         )
       | _ ->
-        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to delete selection");
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:(T._t prefs Unable_to_download_selection);
         Js_toast.show ~document ~toast_id;
         m
     in
@@ -153,14 +155,14 @@ let update m a =
         let subdirs = Com.Area_content.get_subdirs area_content in
         let dirnames = Com.Area_content.get_directories area_content |> List.map Com.Directory.get_name in
         let filenames = Com.Area_content.get_files area_content |> List.map Com.File.get_name in
-        let title = Com.Path.(match action with Copy -> "Copy selection" | Move -> "Move selection") in
-        let txt_bt_ok = Com.Path.(match action with Copy -> "Copy" | Move -> "Move") in
+        let title = Com.Path.(match action with Copy -> (T._t prefs Copy_selection) | Move -> (T._t prefs Move_selection)) in
+        let txt_bt_ok = Com.Path.(match action with Copy -> (T._t prefs Copy) | Move -> (T._t prefs Move)) in
         let modal = Modal.set_selection_cut_copy m.modal
                     |> Modal.enable_bt_ok
                     |> Modal.set_title title
                     |> Modal.set_input_content ""
                     |> Modal.set_txt_bt_ok txt_bt_ok
-                    |> Modal.set_txt_bt_cancel "Cancel"
+                    |> Modal.set_txt_bt_cancel (T._t prefs Cancel)
                     |> Modal.set_fun_bt_ok (fun _ -> Action.Selection (Action_other.Selection.Copy_move_start { action; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs }))
         in
         let m = { m with modal } in
@@ -169,7 +171,7 @@ let update m a =
     )
   | Action_other.Selection.Copy_move_start { action; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs } ->
     let paste_mode = Modal.get_paste_mode m.modal in
-    let msg = Com.Path.(match action with Copy -> "Copy selection" | Move -> "Move selection") in
+    let msg = Com.Path.(match action with Copy -> (T._t prefs Copy_selection) | Move -> (T._t prefs Move_selection)) in
     let c = Js_toast.append_from_list ~l:[""] ~prefix_id:area_id ~fun_msg:(fun _ -> msg)
         ~fun_cmd:(fun toast_id _ -> Api.send (Action.Selection (Action_other.Selection.Copy_move_do { action; toast_id; area_id; subdirs; dirnames; filenames; target_area_id; target_subdirs; paste_mode })))
     in
@@ -189,7 +191,7 @@ let update m a =
       match status with
       | 200 -> (
           let result = Yojson.Safe.from_string json |> Msg_from_srv.Selection_paste_processed.t_of_yojson in
-          let msg = Com.Path.(match action with Copy -> "Selection copied" | Move -> "Selection moved") in
+          let msg = Com.Path.(match action with Copy -> (T._t prefs Selection_copied) | Move -> (T._t prefs Selection_moved)) in
           Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg;
           let area_content = List.fold_left (
               fun acc e ->
@@ -208,7 +210,7 @@ let update m a =
       | _ ->
         let msg =
           match json with
-          | "" -> Com.Path.(match action with Copy -> "Unable to copy selection" | Move -> "Unable to move selection")
+          | "" -> Com.Path.(match action with Copy -> (T._t prefs Unable_to_copy_selection) | Move -> (T._t prefs Unable_to_move_selection))
           | _ -> json
         in
         Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg;

@@ -9,12 +9,14 @@ module Modal = Shupdofi_clt_model.Modal
 module Msg_from_srv = Shupdofi_msg_clt_from_srv
 module Msg_to_srv = Shupdofi_msg_clt_to_srv
 module Routing = Shupdofi_clt_routing
+module T = Shupdofi_clt_i18n.T
 
 open Vdom
 open Js_browser
 open Js_of_ocaml
 
 let update m a =
+  let prefs = m.Model.preferences in
   match a with
   | Action_other.Rename_file.Ask { file } ->
     let area_id = Com.Area_content.get_area m.Model.area_content |> Com.Area.get_id in
@@ -22,11 +24,11 @@ let update m a =
     let old_filename = Com.File.get_name file in
     let fun_ok = (fun _ -> Action.Rename_file (Action_other.Rename_file.Start { area_id; subdirs; old_filename })) in
     let modal = Modal.set_new_entry m.modal
-                |> Modal.set_title "Rename file"
+                |> Modal.set_title (T._t prefs Rename_file)
                 |> Modal.enable_bt_ok
                 |> Modal.set_input_content old_filename
-                |> Modal.set_txt_bt_ok "Rename"
-                |> Modal.set_txt_bt_cancel "Cancel"
+                |> Modal.set_txt_bt_ok (T._t prefs Rename)
+                |> Modal.set_txt_bt_cancel (T._t prefs Cancel)
                 |> Modal.set_fun_bt_ok fun_ok
                 |> Modal.set_fun_kb_ok fun_ok
     in
@@ -37,7 +39,7 @@ let update m a =
     let new_filename = Modal.get_input_content m.modal in
     let c_default = Api.send(Action.Modal_close) in
     if old_filename <> new_filename then
-      let c = Js_toast.append_from_list ~l:[new_filename] ~prefix_id:area_id ~fun_msg:(fun _ -> "Rename " ^ old_filename ^ " to " ^ new_filename)
+      let c = Js_toast.append_from_list ~l:[new_filename] ~prefix_id:area_id ~fun_msg:(fun _ -> (T._t prefs (Rename_file_old_new (old_filename, new_filename))))
           ~fun_cmd:(fun toast_id new_filename -> Api.send (Action.Rename_file (Action_other.Rename_file.Do { area_id; subdirs; toast_id; old_filename; new_filename })))
       in
       let c = c_default :: c in
@@ -57,14 +59,14 @@ let update m a =
       match status with
       | 200 ->
         let file_renamed = Yojson.Safe.from_string json |> Msg_from_srv.File_renamed.t_of_yojson in
-        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:(old_filename ^ " renamed to " ^ new_filename);
+        Js_toast.set_status_ok ~doc:Dom_html.document ~id:toast_id ~delay:5.0 ~msg:(T._t prefs (File_renamed_old_new (old_filename, new_filename)));
         let area_id = Msg_from_srv.File_renamed.get_area_id file_renamed in
         let subdirs = Msg_from_srv.File_renamed.get_subdirs file_renamed in
         let old_file = Msg_from_srv.File_renamed.get_old_file file_renamed in
         let new_file = Msg_from_srv.File_renamed.get_new_file file_renamed in
         { m with area_content = Com.Area_content.(rename_file ~id:area_id ~subdirs ~old_file ~new_file m.area_content) }
       | _ ->
-        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to rename file " ^ old_filename ^ " to " ^ new_filename);
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:(T._t prefs (Unable_to_rename_file_old_new (old_filename, new_filename)));
         m
     in
     let () = Js_toast.clean_hiddens ~document in

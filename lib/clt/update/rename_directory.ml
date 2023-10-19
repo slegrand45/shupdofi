@@ -66,7 +66,7 @@ let update m a =
         let new_directory = Msg_from_srv.Directory_renamed.get_new_directory directory_renamed in
         { m with area_content = Com.Area_content.(rename_directory ~id:area_id ~subdirs ~old_directory ~new_directory m.area_content) }
       | _ ->
-        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:("Unable to rename directory " ^ old_dirname ^ " to " ^ new_dirname);
+        Js_toast.set_status_ko ~doc:Dom_html.document ~id:toast_id ~msg:(T._t prefs (Unable_to_rename_directory_old_new (old_dirname, new_dirname)));
         m
     in
     let () = Js_toast.clean_hiddens ~document in
