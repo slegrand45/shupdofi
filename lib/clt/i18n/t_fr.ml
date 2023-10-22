@@ -32,6 +32,8 @@ let _t = function
     Printf.sprintf "Fichier %s supprimé" filename
   | File_renamed_old_new (oldname, newname) ->
     Printf.sprintf "Fichier renommé de %s vers %s" oldname newname
+  | File_uploaded filename ->
+    Printf.sprintf "Fichier %s envoyé" filename
   | Home -> "Accueil"
   | I_understand_all_selected_directories_files_definitively_deleted_dot ->
     "Je comprends que tous les répertoires et fichiers sélectionnés seront supprimés définitivement."
@@ -77,5 +79,11 @@ let _t = function
     Printf.sprintf "Impossible de renommer le répertoire %s vers %s" oldname newname
   | Unable_to_rename_file_old_new (oldname, newname) ->
     Printf.sprintf "Impossible de renommer le fichier %s vers %s" oldname newname
+  | Unable_to_upload_file filename ->
+    Printf.sprintf "Impossible d'envoyer le fichier %s" filename
+  | Unable_to_upload_file_with_additional_txt (filename, txt) ->
+    Printf.sprintf "Impossible d'envoyer le fichier %s : %s" filename txt
   | Upload -> "Envoyer"
+  | Upload_filename filename ->
+    Printf.sprintf "Envoyer %s" filename
   | When_entry_already_exists_colon -> "Lorsqu'un fichier ou un répertoire existe déjà :"

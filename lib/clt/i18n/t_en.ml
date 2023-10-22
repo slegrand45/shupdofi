@@ -32,6 +32,8 @@ let _t = function
     Printf.sprintf "File %s deleted" filename
   | File_renamed_old_new (oldname, newname) ->
     Printf.sprintf "File renamed from %s to %s" oldname newname
+  | File_uploaded filename ->
+    Printf.sprintf "%s uploaded" filename
   | Home -> "Home"
   | I_understand_all_selected_directories_files_definitively_deleted_dot ->
     "I understand that all the selected directories and files will be definitively deleted."
@@ -77,5 +79,11 @@ let _t = function
     Printf.sprintf "Unable to rename directory %s to %s" oldname newname
   | Unable_to_rename_file_old_new (oldname, newname) ->
     Printf.sprintf "Unable to rename file %s to %s" oldname newname
+  | Unable_to_upload_file filename ->
+    Printf.sprintf "Unable to upload file %s" filename
+  | Unable_to_upload_file_with_additional_txt (filename, txt) ->
+    Printf.sprintf "Unable to upload file %s : %s" filename txt
   | Upload -> "Upload"
+  | Upload_filename filename ->
+    Printf.sprintf "Upload %s" filename
   | When_entry_already_exists_colon -> "When an entry already exists:"

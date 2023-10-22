@@ -22,6 +22,7 @@ type t =
   | Download_selection
   | File_deleted of string
   | File_renamed_old_new of (string * string)
+  | File_uploaded of string
   | Home
   | I_understand_all_selected_directories_files_definitively_deleted_dot
   | I_understand_directory_and_content_will_be_permanently_deleted_dot of string
@@ -57,5 +58,8 @@ type t =
   | Unable_to_move_selection
   | Unable_to_rename_directory_old_new of (string * string)
   | Unable_to_rename_file_old_new of (string * string)
+  | Unable_to_upload_file of string
+  | Unable_to_upload_file_with_additional_txt of (string * string)
   | Upload
+  | Upload_filename of string
   | When_entry_already_exists_colon
