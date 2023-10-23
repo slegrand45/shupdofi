@@ -23,6 +23,7 @@ depends: [
   "ojs"
   "otoml"
   "camlzip"
+  "vdom"
   "odoc" {with-doc}
 ]
 build: [
