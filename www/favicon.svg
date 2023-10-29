@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="800px" height="800px" viewBox="0 0 15 15" fill="#F7F9F9" xmlns="http://www.w3.org/2000/svg">
+<rect
+    x="0"
+    y="0"
+    width="15"
+    height="15"
+    fill="#F7F9F9" stroke="#222020"/>
+<path d="M0 0L14 0L0 14Z" stroke="#222020" fill="#E27522" />
+<path d="M15 15L1 15L15 1Z" stroke="#222020" fill="#E27522" />
+<rect
+    x="0.5"
+    y="11.5"
+    width="3"
+    height="3"
+    fill="#F7F9F9" />
+<rect
+    x="0.875"
+    y="11.875"
+    width="2.25"
+    height="2.25"
+    fill="#1C6E8C"/>  
+<rect
+    x="11.5"
+    y="0.5"
+    width="3"
+    height="3"
+    fill="#F7F9F9" />
+<rect
+    x="11.875"
+    y="0.875"
+    width="2.25"
+    height="2.25"
+    fill="#1C6E8C" />  
+<circle cx="7.5" cy="7.5" r="2" fill="#F7F9F9" />
+<circle cx="7.5" cy="7.5" r="1.7" fill="#1C6E8C" />
+<circle cx="5" cy="10" r="1.25" fill="#F7F9F9" />
+<circle cx="5" cy="10" r="0.95" fill="#1C6E8C" />
+<circle cx="10" cy="5" r="1.25" fill="#F7F9F9" />
+<circle cx="10" cy="5" r="0.95" fill="#1C6E8C" />
+</svg>

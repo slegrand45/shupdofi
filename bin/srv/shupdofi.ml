@@ -22,6 +22,13 @@ let start_server config =
       (path, fun r -> r)
   in
 
+  let exact_one_static_root_file filename mime _req =
+    let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Com.Directory.get_name www_root) ())
+        (Com.File.make ~name:filename ()) in
+    S.Response.make_string (Ok (In_channel.with_open_bin (Content.Path.to_string path) In_channel.input_all))
+    |> S.Response.set_header "Content-Type" mime
+  in
+
   S.set_top_handler 
     server
     (fun _req ->
@@ -77,26 +84,42 @@ let start_server config =
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "favicon.ico" @/ return)
-    (fun _req -> (
-         let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Com.Directory.get_name www_root) ())
-             (Com.File.make ~name:"favicon.ico" ()) in
-         S.Response.make_string (Ok (In_channel.with_open_bin (Content.Path.to_string path) In_channel.input_all))
-         |> S.Response.set_header "Content-Type" "image/vnd.microsoft.icon"
-       )
-    );
+    (exact_one_static_root_file "favicon.ico" "image/vnd.microsoft.icon")
+  ;
+
+  S.add_route_handler ~meth:`GET server
+    S.Route.(exact "favicon.svg" @/ return)
+    (exact_one_static_root_file "favicon.svg" "image/svg+xml")
+  ;
+
+  S.add_route_handler ~meth:`GET server
+    S.Route.(exact "apple-touch-icon.png" @/ return)
+    (exact_one_static_root_file "apple-touch-icon.png" "image/png")
+  ;
+
+  S.add_route_handler ~meth:`GET server
+    S.Route.(exact "android-chrome-192x192.png" @/ return)
+    (exact_one_static_root_file "android-chrome-192x192.png" "image/png")
+  ;
+
+  S.add_route_handler ~meth:`GET server
+    S.Route.(exact "android-chrome-512x512.png" @/ return)
+    (exact_one_static_root_file "android-chrome-512x512.png" "image/png")
+  ;
+
+  S.add_route_handler ~meth:`GET server
+    S.Route.(exact "site.webmanifest" @/ return)
+    (exact_one_static_root_file "site.webmanifest" "application/manifest+json")
+  ;
 
   S.add_route_handler ~meth:`GET server
     S.Route.(exact "robots.txt" @/ return)
-    (fun _req -> (
-         let path = Com.Path.make_absolute (Com.Directory.make_absolute ~name:(Com.Directory.get_name www_root) ())
-             (Com.File.make ~name:"robots.txt" ()) in
-         S.Response.make_string (Ok (In_channel.with_open_bin (Content.Path.to_string path) In_channel.input_all))
-         |> S.Response.set_header "Content-Type" "text/plain"
-       )
-    );
+    (exact_one_static_root_file "robots.txt" "text/plain")
+  ;
 
   let fail_user_unknown = (fun () -> S.Response.fail ~code:403 "User unknown") in
 
+  (* API *)
   S.add_route_handler_stream ~meth:`POST server
     S.Route.(exact "api" @/ exact "file" @/ string_urlencoded @/ rest_of_path_urlencoded)
     (fun area path req -> Auth.get_user config req
