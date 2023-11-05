@@ -1,3 +1,5 @@
 # Shupdofi
 
-Shupdofi is an open-source self-hosted web application to SHare, UPload and DOwnload FIles. Shupdofi also supports groups and users with different access rights.
+Shupdofi is an open-source self-hosted web application to manage files and directories.
+
+With Shupdofi you can define several shared directories with different access rights for groups and users.
